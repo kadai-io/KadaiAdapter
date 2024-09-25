@@ -13,14 +13,14 @@
     </description>
     <url>http://kadai.io</url>
 
-    <developers>
-        <developer>
-            <name>Holger Hagen</name>
-            <email>holger.hagen@envite.de</email>
-            <organization>Envite Consulting GmbH</organization>
-            <organizationUrl>https://www.envite.de</organizationUrl>
-        </developer>
-    </developers>
+  <developers>
+    <developer>
+      <name>Holger Hagen</name>
+      <email>holger.hagen@envite.de</email>
+      <organization>envite consulting GmbH</organization>
+      <organizationUrl>https://envite.de/</organizationUrl>
+    </developer>
+  </developers>
 
     <scm>
         <url>http://github.com/kadai-io/kadaiadapter/tree/master</url>
