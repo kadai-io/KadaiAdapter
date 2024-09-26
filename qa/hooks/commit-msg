@@ -4,7 +4,6 @@ COMMIT_MESSAGE="$(cat $MSG_FILE)"
 REGEX='^((ADPT)-[0-9]+):'
 if [[ $COMMIT_MESSAGE =~ $REGEX ]]; then
  TICKET=${BASH_REMATCH[1]}
- RESULT=$(curl -s https://taskana.atlassian.net/rest/api/3/issue/$TICKET)
  if [[ $RESULT =~ "errorMessages" ]]; then
   echo -e "\033[0;31mERROR:\033[0m $TICKET is not a valid ticket number"
   exit 1
