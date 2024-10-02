@@ -103,8 +103,8 @@ jobs:
         env:
           GPG_KEY_NAME: ${{ secrets.GPG_KEY_NAME }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          MAVEN_USERNAME: 44pdzWD8
-          MAVEN_PASSWORD: eJZ25rsRdH7ZiePJO52JUy7LyVkNIgXxXEBmnTNH3aOM
+          MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       - name: Update version to next snapshot and push back
         run: |
           ci/change_version.sh -i -m .
@@ -153,11 +153,10 @@ jobs:
       - name: Install kadai adapter
         run: ./mvnw -B install -DskipTests -Dcheckstyle.skip -Dmaven.javadoc.skip
       - name: Upload SonarQube analysis
-        run: ./mvnw -B sonar:sonar
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
       - name: Remove kadai artifacts from cache
         run: rm -rf ~/.m2/repository/io/kadai
