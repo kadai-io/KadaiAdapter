@@ -90,15 +90,13 @@
         <version.hamcrest.json>0.3</version.hamcrest.json>
 
         <version.maven.gpg>3.2.5</version.maven.gpg>
-        <version.sonatype>1.7.0</version.sonatype>
         <version.jacoco>0.8.12</version.jacoco>
+        <version.sonatype.snapshot>1.7.0</version.sonatype.snapshot>
+        <version.sonatype.release>0.6.0</version.sonatype.release>
 
         <!-- sonar settings -->
         <!--suppress UnresolvedMavenProperty -->
-        <sonar.projectKey>${env.SONAR_PROJECT_KEY}</sonar.projectKey>
-        <!--suppress UnresolvedMavenProperty -->
         <sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
-        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.coverage.jacoco.xmlReportPaths>
@@ -178,7 +176,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${version.sonatype}</version>
+                        <version>${version.sonatype.snapshot}</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
@@ -221,24 +219,17 @@
                         </configuration>
                     </plugin>
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${version.sonatype}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                        </configuration>
+                      <groupId>org.sonatype.central</groupId>
+                      <artifactId>central-publishing-maven-plugin</artifactId>
+                      <version>${version.sonatype.release}</version>
+                      <extensions>true</extensions>
+                      <configuration>
+                        <publishingServerId>central</publishingServerId>
+                        <autoPublish>false</autoPublish>
+                      </configuration>
                     </plugin>
                 </plugins>
             </build>
-            <distributionManagement>
-                <repository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
-            </distributionManagement>
         </profile>
     </profiles>
 
@@ -304,6 +295,7 @@
                 <executions>
                     <execution>
                         <id>attach-sources</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
                         </goals>
@@ -317,6 +309,7 @@
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
