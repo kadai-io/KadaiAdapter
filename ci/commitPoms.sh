@@ -65,7 +65,9 @@ function main() {
     for file in "$@"; do
       [[ -n "$file" ]] && git add "$file"
     done
-    git commit -m "Updated poms to version $(increment_version "${BASH_REMATCH[@]:1:1}")-SNAPSHOT/$(increment_version "${BASH_REMATCH[@]:2:2}")-SNAPSHOT"
+    # Use commented version when Sonatype Central will offer SNAPSHOTS again
+    # git commit -m "Updated poms to version $(increment_version "${BASH_REMATCH[@]:1:1}")-SNAPSHOT/$(increment_version "${BASH_REMATCH[@]:2:2}")-SNAPSHOT"
+    git commit -m "Updated poms to version $(increment_version "${BASH_REMATCH[@]:1:1}")-SNAPSHOT/$(echo "${BASH_REMATCH[@]:2:2}")"
     git push
   else
     echo "Nothing to push - this is not a release!"
