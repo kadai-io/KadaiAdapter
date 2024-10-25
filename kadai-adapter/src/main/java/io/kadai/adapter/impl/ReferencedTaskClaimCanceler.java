@@ -44,6 +44,7 @@ public class ReferencedTaskClaimCanceler {
   protected String runAsUser;
 
   @Autowired AdapterManager adapterManager;
+  @Autowired LastSchedulerRun lastSchedulerRun;
 
   @Scheduled(
       fixedRateString =
@@ -66,6 +67,7 @@ public class ReferencedTaskClaimCanceler {
               retrieveCancelledClaimKadaiTasksAndCancelClaimCorrespondingReferencedTask();
               return null;
             });
+        lastSchedulerRun.touch();
       } catch (Exception ex) {
         LOGGER.debug("Caught exception while trying to cancel claim referenced tasks", ex);
       }

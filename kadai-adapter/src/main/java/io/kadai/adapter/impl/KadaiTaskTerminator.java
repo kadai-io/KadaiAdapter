@@ -42,6 +42,7 @@ public class KadaiTaskTerminator {
   protected String runAsUser;
 
   @Autowired AdapterManager adapterManager;
+  @Autowired LastSchedulerRun lastSchedulerRun;
 
   @Scheduled(
       fixedRateString =
@@ -75,6 +76,7 @@ public class KadaiTaskTerminator {
                 return null;
               });
         }
+        lastSchedulerRun.touch();
       } catch (Exception e) {
         LOGGER.warn(
             "caught exception while trying to retrieve "

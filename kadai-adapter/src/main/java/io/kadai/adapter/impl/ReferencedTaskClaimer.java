@@ -44,6 +44,7 @@ public class ReferencedTaskClaimer {
   protected String runAsUser;
 
   @Autowired AdapterManager adapterManager;
+  @Autowired LastSchedulerRun lastSchedulerRun;
 
   @Scheduled(
       fixedRateString =
@@ -66,6 +67,7 @@ public class ReferencedTaskClaimer {
               retrieveClaimedKadaiTasksAndClaimCorrespondingReferencedTask();
               return null;
             });
+        lastSchedulerRun.touch();
       } catch (Exception ex) {
         LOGGER.debug("Caught exception while trying to claim referenced tasks", ex);
       }

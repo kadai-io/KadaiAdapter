@@ -46,6 +46,7 @@ public class ReferencedTaskCompleter {
   protected String runAsUser;
 
   @Autowired AdapterManager adapterManager;
+  @Autowired LastSchedulerRun lastSchedulerRun;
 
   @Scheduled(
       fixedRateString =
@@ -68,6 +69,7 @@ public class ReferencedTaskCompleter {
               retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTask();
               return null;
             });
+        lastSchedulerRun.touch();
       } catch (Exception ex) {
         LOGGER.debug("Caught exception while trying to complete referenced tasks", ex);
       }

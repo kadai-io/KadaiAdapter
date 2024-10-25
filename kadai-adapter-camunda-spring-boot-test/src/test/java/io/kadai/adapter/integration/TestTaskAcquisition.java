@@ -21,6 +21,7 @@ package io.kadai.adapter.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaSystemConnectorImpl;
@@ -72,6 +73,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TestTaskAcquisition.class);
   @Autowired AdapterManager adapterManager;
+  @Autowired
+  private LastSchedulerRun lastSchedulerRun;
 
   @Value("${kadai-system-connector-camundaSystemURLs}")
   private String configuredSystemConnectorUrls;
@@ -153,6 +156,10 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       String businessProcessId = kadaiTaskSummary.getBusinessProcessId();
       assertThat(processInstanceId).isEqualTo(businessProcessId);
     }
+
+    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
+    assertThat(lastRunTime).isNotNull();
+    assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
 
   @WithAccessId(

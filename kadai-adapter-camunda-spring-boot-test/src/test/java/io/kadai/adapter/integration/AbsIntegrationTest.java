@@ -55,7 +55,7 @@ abstract class AbsIntegrationTest {
 
   protected static KadaiEngine kadaiEngine;
 
-  private static boolean isInitialised = false;
+  static boolean isInitialised = false;
 
   @LocalServerPort private Integer port;
 
@@ -92,7 +92,7 @@ abstract class AbsIntegrationTest {
   @Resource(name = "camundaBpmDataSource")
   protected DataSource camundaBpmDataSource;
 
-  private TestRestTemplate restTemplate;
+  protected TestRestTemplate testRestTemplate;
 
   @Autowired private ProcessEngineConfiguration processEngineConfiguration;
 
@@ -126,8 +126,7 @@ abstract class AbsIntegrationTest {
 
       isInitialised = true;
     }
-
-    this.restTemplate =
+    this.testRestTemplate =
         new TestRestTemplate(
             new RestTemplateBuilder()
                 .rootUri("http://localhost:" + port)
@@ -136,10 +135,10 @@ abstract class AbsIntegrationTest {
     this.camundaProcessengineRequester =
         new CamundaProcessengineRequester(
             this.processEngineConfiguration.getProcessEngineName(),
-            this.restTemplate,
+            this.testRestTemplate,
             this.httpHeaderProvider);
     this.kadaiOutboxRequester =
-        new KadaiOutboxRequester(this.restTemplate, this.httpHeaderProvider);
+        new KadaiOutboxRequester(this.testRestTemplate, this.httpHeaderProvider);
     this.taskService = kadaiEngine.getTaskService();
 
     // adjust polling interval, give adapter a little more time
