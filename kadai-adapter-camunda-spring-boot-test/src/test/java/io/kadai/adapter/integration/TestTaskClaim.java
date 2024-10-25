@@ -24,6 +24,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaUtilRequester;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
@@ -31,10 +32,12 @@ import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
 import io.kadai.task.api.models.TaskSummary;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,6 +52,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ExtendWith(JaasExtension.class)
 @ContextConfiguration
 class TestTaskClaim extends AbsIntegrationTest {
+  @Autowired private LastSchedulerRun lastSchedulerRun;
 
   @WithAccessId(
       user = "teamlead_1",
@@ -95,6 +99,9 @@ class TestTaskClaim extends AbsIntegrationTest {
           this.camundaProcessengineRequester.isCorrectAssignee(camundaTaskId, "teamlead_1");
       assertThat(assigneeSetSuccessfully).isTrue();
     }
+    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
+    assertThat(lastRunTime).isNotNull();
+    assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
 
   @WithAccessId(
@@ -196,6 +203,9 @@ class TestTaskClaim extends AbsIntegrationTest {
           this.camundaProcessengineRequester.isCorrectAssignee(camundaTaskId, null);
       assertThat(noAssigneeSet).isTrue();
     }
+    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
+    assertThat(lastRunTime).isNotNull();
+    assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
 
   @WithAccessId(

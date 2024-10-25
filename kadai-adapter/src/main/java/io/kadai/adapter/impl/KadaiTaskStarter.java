@@ -44,6 +44,7 @@ public class KadaiTaskStarter {
   protected String runAsUser;
 
   @Autowired AdapterManager adapterManager;
+  @Autowired LastSchedulerRun lastSchedulerRun;
 
   @Scheduled(
       fixedRateString =
@@ -66,6 +67,7 @@ public class KadaiTaskStarter {
               retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
               return null;
             });
+        lastSchedulerRun.touch();
       } catch (Exception ex) {
         LOGGER.error(
             "Caught exception while trying to create Kadai tasks from referenced tasks", ex);
