@@ -29,7 +29,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-/** Class to assist with building requests against the TASKNA Outbox REST API. */
+/** Class to assist with building requests against the KADAI Outbox REST API. */
 public class KadaiOutboxRequester {
 
   private static final String BASIC_OUTBOX_PATH = "http://localhost:10020/outbox-rest/events";
