@@ -67,12 +67,16 @@ public class CamundaConnectorTestConfiguration {
   }
 
   @Bean
-  CamundaTaskRetriever camundaTaskRetriever() {
-    return new CamundaTaskRetriever();
+  CamundaTaskRetriever camundaTaskRetriever(
+      final HttpHeaderProvider httpHeaderProvider,
+      final ObjectMapper objectMapper,
+      final RestTemplate restTemplate) {
+    return new CamundaTaskRetriever(httpHeaderProvider, objectMapper, restTemplate);
   }
 
   @Bean
-  CamundaTaskCompleter camundaTaskCompleter() {
-    return new CamundaTaskCompleter();
+  CamundaTaskCompleter camundaTaskCompleter(
+      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
+    return new CamundaTaskCompleter(httpHeaderProvider, restTemplate);
   }
 }

@@ -23,7 +23,6 @@ import io.kadai.adapter.systemconnector.api.SystemResponse;
 import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -41,8 +40,14 @@ import org.springframework.web.client.RestTemplate;
 public class CamundaTaskClaimCanceler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskClaimCanceler.class);
-  @Autowired HttpHeaderProvider httpHeaderProvider;
-  @Autowired private RestTemplate restTemplate;
+  private final HttpHeaderProvider httpHeaderProvider;
+  private final RestTemplate restTemplate;
+
+  public CamundaTaskClaimCanceler(
+      HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.restTemplate = restTemplate;
+  }
 
   @Value("${kadai.adapter.camunda.claiming.enabled:false}")
   private boolean claimingEnabled;
@@ -54,9 +59,7 @@ public class CamundaTaskClaimCanceler {
 
     if (!cancelClaimConfigLogged) {
       LOGGER.info(
-          String.format(
-              "Synchronizing CancelClaim of Tasks in KADAI to Camunda is set to %b",
-              claimingEnabled));
+          "Synchronizing CancelClaim of Tasks in KADAI to Camunda is set to {}", claimingEnabled);
       cancelClaimConfigLogged = true;
     }
 

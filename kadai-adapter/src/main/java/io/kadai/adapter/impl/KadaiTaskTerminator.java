@@ -23,11 +23,9 @@ import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
-import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -41,8 +39,13 @@ public class KadaiTaskTerminator {
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
-  @Autowired AdapterManager adapterManager;
-  @Autowired LastSchedulerRun lastSchedulerRun;
+  private final AdapterManager adapterManager;
+  private final LastSchedulerRun lastSchedulerRun;
+
+  public KadaiTaskTerminator(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+    this.adapterManager = adapterManager;
+    this.lastSchedulerRun = lastSchedulerRun;
+  }
 
   @Scheduled(
       fixedRateString =
@@ -92,8 +95,6 @@ public class KadaiTaskTerminator {
         "KadaiTaskTerminator."
             + "retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks ENTRY ");
 
-    List<ReferencedTask> tasksSuccessfullyTerminatedInKadai = new ArrayList<>();
-
     try {
       List<ReferencedTask> kadaiTasksToTerminate =
           systemConnector.retrieveFinishedReferencedTasks();
@@ -101,7 +102,6 @@ public class KadaiTaskTerminator {
       for (ReferencedTask referencedTask : kadaiTasksToTerminate) {
         try {
           terminateKadaiTask(referencedTask);
-          tasksSuccessfullyTerminatedInKadai.add(referencedTask);
         } catch (TaskTerminationFailedException ex) {
           LOGGER.error(
               "attempted to terminate task with external Id {} and caught exception",

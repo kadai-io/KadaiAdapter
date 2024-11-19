@@ -97,8 +97,7 @@ public class CamundaProcessengineRequester {
     ResponseEntity<String> answer =
         restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
     JSONObject processJson = new JSONObject(answer.getBody());
-    String processId = (String) processJson.get("id");
-    return processId;
+    return (String) processJson.get("id");
   }
 
   /**
@@ -146,8 +145,7 @@ public class CamundaProcessengineRequester {
             + "/"
             + camundaTaskId
             + COMPLETE_TASK_PATH;
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForCamundaRestApi("{}");
+    HttpEntity<String> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi("{}");
     ResponseEntity<String> answer =
         this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
     if (answer.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
@@ -202,16 +200,13 @@ public class CamundaProcessengineRequester {
         restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
     // no task found will only show in empty body
     JSONArray taskHistoryRetrievalAnswerJson = new JSONArray(response.getBody());
-    if (taskHistoryRetrievalAnswerJson.length() == 0) {
+    if (taskHistoryRetrievalAnswerJson.isEmpty()) {
       return false;
     } else {
       String historyTaskId =
           (String) ((JSONObject) taskHistoryRetrievalAnswerJson.get(0)).get("id");
-      if (camundaTaskId.contentEquals(historyTaskId)) {
-        return true;
-      }
+      return camundaTaskId.contentEquals(historyTaskId);
     }
-    return false;
   }
 
   public boolean isCorrectAssigneeFromHistory(String camundaTaskId, String assignee)
@@ -228,16 +223,13 @@ public class CamundaProcessengineRequester {
         restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
     // no task found will only show in empty body
     JSONArray taskHistoryRetrievalAnswerJson = new JSONArray(response.getBody());
-    if (taskHistoryRetrievalAnswerJson.length() == 0) {
+    if (taskHistoryRetrievalAnswerJson.isEmpty()) {
       return false;
     } else {
       String camundaTaskAssignee =
           (String) ((JSONObject) taskHistoryRetrievalAnswerJson.get(0)).get("assignee");
-      if (assignee.equals(camundaTaskAssignee)) {
-        return true;
-      }
+      return assignee.equals(camundaTaskAssignee);
     }
-    return false;
   }
 
   /**
@@ -255,8 +247,7 @@ public class CamundaProcessengineRequester {
     if (skipCustomListeners) {
       url += "?skipCustomListeners=true";
     }
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForCamundaRestApi("{}");
+    HttpEntity<String> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi("{}");
     ResponseEntity<String> answer =
         this.restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, String.class);
     if (HttpStatus.NO_CONTENT.equals(answer.getStatusCode())) {
@@ -287,18 +278,11 @@ public class CamundaProcessengineRequester {
         restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, String.class);
     JSONObject taskRetrievalAnswerJson = new JSONObject(responseEntity.getBody());
 
-    if (!taskRetrievalAnswerJson.get("assignee").equals(null)) {
-
-      String assignee = taskRetrievalAnswerJson.getString("assignee");
-
-      if (assignee.equals(assigneeValueToVerify)) {
-        return true;
-      }
-
-    } else if (assigneeValueToVerify == null) {
-      return true;
+    if (taskRetrievalAnswerJson.get("assignee") == JSONObject.NULL) {
+      return assigneeValueToVerify == null;
     }
 
-    return false;
+    String assignee = taskRetrievalAnswerJson.getString("assignee");
+    return assignee.equals(assigneeValueToVerify);
   }
 }

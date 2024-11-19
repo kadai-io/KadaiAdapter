@@ -102,13 +102,6 @@ class ReferencedTaskTest {
   }
 
   @Test
-  void should_ReturnFollowUp_When_FollowUpWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setDue(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getDue());
-  }
-
-  @Test
   void should_ReturnDue_When_DueWasSet() {
     ReferencedTask referencedTask = new ReferencedTask();
     referencedTask.setDue(theValue);
@@ -218,9 +211,7 @@ class ReferencedTaskTest {
     refTask2.setWorkbasketKey("nochnkey");
     assertThat(refTask2).isEqualTo(theTask);
     refTask2 = theTask;
-    assertThat(theTask).isEqualTo(refTask2);
-    assertThat(theTask).isNotEqualTo("aString");
-    assertThat(theTask).isNotEqualTo(null);
+    assertThat(theTask).isEqualTo(refTask2).isNotEqualTo("aString").isNotEqualTo(null);
     theTask = new ReferencedTask();
     theTask.setAssignee("1");
     theTask.setBusinessProcessId("2");

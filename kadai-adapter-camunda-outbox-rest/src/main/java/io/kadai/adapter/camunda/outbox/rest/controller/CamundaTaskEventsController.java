@@ -52,6 +52,7 @@ import spinjar.com.fasterxml.jackson.databind.ObjectMapper;
 public class CamundaTaskEventsController {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final String REMAINING_RETRIES = "remainingRetries";
 
   CamundaTaskEventsService camundaTaskEventService = new CamundaTaskEventsService();
   CamundaTaskEventResourceAssembler camundaTaskEventResourceAssembler =
@@ -135,12 +136,12 @@ public class CamundaTaskEventsController {
     Map<String, Integer> patchMap =
         OBJECT_MAPPER.readValue(body, new TypeReference<Map<String, Integer>>() {});
 
-    if (patchMap == null || !patchMap.containsKey("remainingRetries")) {
+    if (patchMap == null || !patchMap.containsKey(REMAINING_RETRIES)) {
       throw new InvalidArgumentException(
           "Please provide a valid json body in the format {\"remainingRetries\":3}");
     }
 
-    int retriesToSet = patchMap.get("remainingRetries");
+    int retriesToSet = patchMap.get(REMAINING_RETRIES);
 
     CamundaTaskEvent camundaTaskEvent =
         camundaTaskEventService.setRemainingRetries(eventId, retriesToSet);
@@ -165,12 +166,12 @@ public class CamundaTaskEventsController {
     Map<String, Integer> patchMap =
         OBJECT_MAPPER.readValue(body, new TypeReference<Map<String, Integer>>() {});
 
-    if (patchMap == null || !patchMap.containsKey("remainingRetries")) {
+    if (patchMap == null || !patchMap.containsKey(REMAINING_RETRIES)) {
       throw new InvalidArgumentException(
           "Please provide a valid json body in the format {\"remainingRetries\":3}");
     }
 
-    int retriesToSet = patchMap.get("remainingRetries");
+    int retriesToSet = patchMap.get(REMAINING_RETRIES);
 
     int remainingRetries = Integer.parseInt(retries);
 

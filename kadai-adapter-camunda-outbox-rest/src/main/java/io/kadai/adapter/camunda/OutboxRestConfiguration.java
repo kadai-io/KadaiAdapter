@@ -65,16 +65,14 @@ public class OutboxRestConfiguration {
 
         outboxProperties.load(propertiesStream);
 
-        LOGGER.info(
-            String.format("Outbox properties were loaded from file %s.", outboxPropertiesFile));
+        LOGGER.info("Outbox properties were loaded from file {}.", outboxPropertiesFile);
 
       } catch (Exception e) {
         LOGGER.warn(
-            String.format(
-                "Caught Exception while trying to load properties from "
-                    + "provided properties file %s. "
-                    + "Trying to read properties from classpath",
-                outboxPropertiesFile),
+            "Caught Exception while trying to load properties from "
+                + "provided properties file {}. "
+                + "Trying to read properties from classpath",
+            outboxPropertiesFile,
             e);
 
         readPropertiesFromClasspath();
@@ -133,10 +131,9 @@ public class OutboxRestConfiguration {
     } catch (NumberFormatException e) {
       maxNumberOfEventsReturned = MAX_NUMBER_OF_EVENTS_DEFAULT;
       LOGGER.warn(
-          String.format(
-              "Attempted to retrieve max number of events to be returned and caught Exception. "
-                  + "Setting default for max number of events to be returned to %d  ",
-              maxNumberOfEventsReturned),
+          "Attempted to retrieve max number of events to be returned and caught Exception. "
+              + "Setting default for max number of events to be returned to {}  ",
+          maxNumberOfEventsReturned,
           e);
     }
 
@@ -161,10 +158,9 @@ public class OutboxRestConfiguration {
         return Duration.parse(durationBetweentaskCreationRetriesProperty);
       } catch (Exception e) {
         LOGGER.warn(
-            String.format(
-                "Attempted to retrieve duration between task creation retries and caught Exception."
-                    + "Setting default to %s ",
-                durationBetweentaskCreationRetriesProperty),
+            "Attempted to retrieve duration between task creation retries and caught Exception."
+                + "Setting default to {} ",
+            durationBetweentaskCreationRetriesProperty,
             e);
 
         return DURATION_BETWEEN_TASK_CREATION_RETRIES_DEFAULT;
@@ -178,22 +174,16 @@ public class OutboxRestConfiguration {
 
       outboxProperties.load(propertiesStream);
 
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(
-            String.format(
-                "Outbox properties were loaded from file %s from classpath.",
-                KADAI_OUTBOX_PROPERTIES));
-      }
+      LOGGER.debug(
+          "Outbox properties were loaded from file {} from classpath.", KADAI_OUTBOX_PROPERTIES);
     } catch (Exception e) {
       LOGGER.warn(
-          String.format(
-              "Caught Exception while trying to load properties from file %s from classpath",
-              KADAI_OUTBOX_PROPERTIES),
+          "Caught Exception while trying to load properties from file {} from classpath",
+          KADAI_OUTBOX_PROPERTIES,
           e);
       throw new SystemException(
           String.format(
-              "Internal System error when processing properties file %s ",
-              KADAI_OUTBOX_PROPERTIES),
+              "Internal System error when processing properties file %s ", KADAI_OUTBOX_PROPERTIES),
           e.getCause());
     }
   }

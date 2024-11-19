@@ -23,7 +23,6 @@ import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.common.api.KadaiEngine;
 import io.kadai.common.api.exceptions.KadaiException;
 import io.kadai.common.api.exceptions.NotAuthorizedException;
 import io.kadai.task.api.CallbackState;
@@ -40,10 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /** Implements KadaiConnector. */
@@ -51,18 +48,20 @@ import org.springframework.stereotype.Component;
 public class KadaiSystemConnectorImpl implements KadaiConnector {
 
   static final String REFERENCED_TASK_ID = "referenced_task_id";
-  static final String REFERENCED_TASK_VARIABLES = "referenced_task_variables";
   static final String SYSTEM_URL = "system_url";
   private static final String TASK_STATE_CANCELLED = "CANCELLED";
   private static final String TASK_STATE_TERMINATED = "TERMINATED";
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiSystemConnectorImpl.class);
 
-  @Autowired private TaskService taskService;
-  @Autowired private KadaiEngine kadaiEngine;
+  private final TaskService taskService;
+  private final TaskInformationMapper taskInformationMapper;
 
-  @Autowired private TaskInformationMapper taskInformationMapper;
+  public KadaiSystemConnectorImpl(
+      TaskService taskService, TaskInformationMapper taskInformationMapper) {
+    this.taskService = taskService;
+    this.taskInformationMapper = taskInformationMapper;
+  }
 
-  @Autowired private DataSource kadaiDataSource;
   Integer batchSize = AdapterSpringContextProvider.getBean(Integer.class);
 
   public List<ReferencedTask> retrieveFinishedKadaiTasksAsReferencedTasks() {
@@ -114,7 +113,7 @@ public class KadaiSystemConnectorImpl implements KadaiConnector {
             .lockResultsEquals(batchSize)
             .callbackStateIn(CallbackState.CLAIMED)
             .list();
-    
+
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug(
           "the claims of the following kadai tasks were cancelled {} and "

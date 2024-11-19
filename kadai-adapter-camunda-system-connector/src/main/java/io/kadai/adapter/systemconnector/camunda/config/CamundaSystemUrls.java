@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CamundaSystemUrls {
 
-  Set<SystemUrlInfo> camundaSystemUrls = new HashSet<>();
+  private final Set<SystemUrlInfo> urls = new HashSet<>();
 
   public CamundaSystemUrls(String strUrls) {
     if (strUrls != null) {
@@ -44,18 +44,18 @@ public class CamundaSystemUrls {
           urlInfo.setCamundaEngineIdentifier(systemConfigParts.nextToken().trim());
         }
 
-        camundaSystemUrls.add(urlInfo);
+        urls.add(urlInfo);
       }
     }
   }
 
   public Set<SystemUrlInfo> getUrls() {
-    return camundaSystemUrls;
+    return urls;
   }
 
   @Override
   public String toString() {
-    return "CamundaSystemUrls [camundaSystemUrls=" + camundaSystemUrls + "]";
+    return "CamundaSystemUrls [camundaSystemUrls=" + urls + "]";
   }
 
   /**

@@ -40,7 +40,4 @@ public class KadaiAdapterTestApplication {
   public static void main(String... args) {
     SpringApplication.run(KadaiAdapterTestApplication.class, args);
   }
-
-  // this method prevents checkstyle from thinking this class is a utility class
-  public void dummy() {}
 }

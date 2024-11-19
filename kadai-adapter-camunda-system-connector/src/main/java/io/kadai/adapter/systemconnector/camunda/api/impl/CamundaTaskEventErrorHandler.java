@@ -23,7 +23,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -32,12 +31,18 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class CamundaTaskEventErrorHandler {
 
-  public static final int EVENT_STORE_ERROR_COLUMN_LIMIT = 1000;
-  public static final String CAUSE_TREE_CUTOFF_TEXT = "...";
-  public static final int COMMA_LENGTH = 1;
+  private static final int EVENT_STORE_ERROR_COLUMN_LIMIT = 1000;
+  private static final String CAUSE_TREE_CUTOFF_TEXT = "...";
+  private static final int COMMA_LENGTH = 1;
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskEventErrorHandler.class);
-  @Autowired HttpHeaderProvider httpHeaderProvider;
-  @Autowired private RestTemplate restTemplate;
+  private final HttpHeaderProvider httpHeaderProvider;
+  private final RestTemplate restTemplate;
+
+  public CamundaTaskEventErrorHandler(
+      HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.restTemplate = restTemplate;
+  }
 
   public void decreaseRemainingRetriesAndLogErrorForReferencedTask(
       ReferencedTask referencedTask, Exception e, String camundaSystemTaskEventUrl) {
@@ -62,9 +67,7 @@ public class CamundaTaskEventErrorHandler {
 
     decreaseRemainingRetriesAndLogError(requestUrl, failedTaskEventIdAndErrorLog);
 
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("exit from decreaseRemainingRetriesAndLogErrorForReferencedTasks.");
-    }
+    LOGGER.debug("exit from decreaseRemainingRetriesAndLogErrorForReferencedTasks.");
   }
 
   public void unlockEvent(String eventId, String camundaSystemTaskEventUrl) {
@@ -86,9 +89,7 @@ public class CamundaTaskEventErrorHandler {
     } catch (Exception e) {
       LOGGER.error("Caught exception while trying to unlock event", e);
     }
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("exit from decreaseRemainingRetriesAndLogErrorForReferencedTasks.");
-    }
+    LOGGER.debug("exit from decreaseRemainingRetriesAndLogErrorForReferencedTasks.");
   }
 
   private static JSONObject createErrorLog(Exception e) {
