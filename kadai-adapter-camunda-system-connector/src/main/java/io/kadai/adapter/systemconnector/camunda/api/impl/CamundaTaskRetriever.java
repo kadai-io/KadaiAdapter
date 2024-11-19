@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -44,9 +43,16 @@ public class CamundaTaskRetriever {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskRetriever.class);
 
-  @Autowired private HttpHeaderProvider httpHeaderProvider;
-  @Autowired private ObjectMapper objectMapper;
-  @Autowired private RestTemplate restTemplate;
+  private final HttpHeaderProvider httpHeaderProvider;
+  private final ObjectMapper objectMapper;
+  private final RestTemplate restTemplate;
+
+  public CamundaTaskRetriever(
+      HttpHeaderProvider httpHeaderProvider, ObjectMapper objectMapper, RestTemplate restTemplate) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.objectMapper = objectMapper;
+    this.restTemplate = restTemplate;
+  }
 
   public List<ReferencedTask> retrieveNewStartedCamundaTasks(
       String camundaSystemTaskEventUrl,
@@ -108,7 +114,7 @@ public class CamundaTaskRetriever {
           restTemplate.exchange(
               requestUrl,
               HttpMethod.GET,
-              new HttpEntity<Object>(headers),
+              new HttpEntity<>(headers),
               CamundaTaskEventListResource.class);
 
       camundaTaskEventListResource = responseEntity.getBody();

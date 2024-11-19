@@ -22,7 +22,6 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -35,8 +34,13 @@ import org.springframework.web.client.RestTemplate;
 public class CamundaTaskEventCleaner {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskEventCleaner.class);
-  @Autowired HttpHeaderProvider httpHeaderProvider;
-  @Autowired private RestTemplate restTemplate;
+  private final HttpHeaderProvider httpHeaderProvider;
+  private final RestTemplate restTemplate;
+
+  public CamundaTaskEventCleaner(HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.restTemplate = restTemplate;
+  }
 
   public void cleanEventsForReferencedTasks(
       List<ReferencedTask> referencedTasks, String camundaSystemTaskEventUrl) {

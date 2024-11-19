@@ -62,16 +62,14 @@ public class CamundaListenerConfiguration {
 
         outboxProperties.load(propertiesStream);
 
-        LOGGER.info(
-            String.format("Outbox properties were loaded from file %s.", outboxPropertiesFile));
+        LOGGER.info("Outbox properties were loaded from file {}.", outboxPropertiesFile);
 
       } catch (Exception e) {
         LOGGER.warn(
-            String.format(
-                "Caught Exception while trying to load properties from "
-                    + "provided properties file %s. "
-                    + "Trying to read properties from classpath",
-                outboxPropertiesFile),
+            "Caught Exception while trying to load properties from "
+                + "provided properties file {}. "
+                + "Trying to read properties from classpath",
+            outboxPropertiesFile,
             e);
 
         readPropertiesFromClasspath();
@@ -151,11 +149,10 @@ public class CamundaListenerConfiguration {
     } catch (NumberFormatException e) {
       initialNumberOfTaskCreationRetries = INITIAL_NUMBER_OF_TASK_CREATION_RETRIES_DEFAULT;
       LOGGER.warn(
-          String.format(
-              "Attempted to retrieve initial number of task creation retries and caught "
-                  + "Exception. Setting default for initial number of "
-                  + "task creation retries to %d ",
-              initialNumberOfTaskCreationRetries),
+          "Attempted to retrieve initial number of task creation retries and caught "
+              + "Exception. Setting default for initial number of "
+              + "task creation retries to {} ",
+          initialNumberOfTaskCreationRetries,
           e);
     }
 
@@ -169,17 +166,12 @@ public class CamundaListenerConfiguration {
 
       outboxProperties.load(propertiesStream);
 
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(
-            String.format(
-                "Outbox properties were loaded from file %s from classpath.",
-                KADAI_OUTBOX_PROPERTIES));
-      }
+      LOGGER.debug(
+          "Outbox properties were loaded from file {} from classpath.", KADAI_OUTBOX_PROPERTIES);
     } catch (Exception e) {
       LOGGER.warn(
-          String.format(
-              "Caught Exception while trying to load properties from file %s from classpath",
-              KADAI_OUTBOX_PROPERTIES),
+          "Caught Exception while trying to load properties from file {} from classpath",
+          KADAI_OUTBOX_PROPERTIES,
           e);
       throw new SystemException(
           String.format(

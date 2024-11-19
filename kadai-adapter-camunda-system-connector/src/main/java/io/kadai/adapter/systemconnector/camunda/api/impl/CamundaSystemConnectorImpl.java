@@ -46,21 +46,21 @@ public class CamundaSystemConnectorImpl implements SystemConnector {
   static final String BODY_SET_ASSIGNEE = "{\"userId\":";
   static final String UNCLAIM_TASK = "/unclaim";
 
-  private CamundaSystemUrls.SystemUrlInfo camundaSystemUrl;
+  private final CamundaSystemUrls.SystemUrlInfo camundaSystemUrl;
 
-  private CamundaTaskRetriever taskRetriever;
+  private final CamundaTaskRetriever taskRetriever;
 
-  private CamundaTaskCompleter taskCompleter;
+  private final CamundaTaskCompleter taskCompleter;
 
-  private CamundaTaskClaimer taskClaimer;
+  private final CamundaTaskClaimer taskClaimer;
 
-  private CamundaTaskClaimCanceler taskClaimCanceler;
+  private final CamundaTaskClaimCanceler taskClaimCanceler;
 
-  private CamundaTaskEventCleaner taskEventCleaner;
+  private final CamundaTaskEventCleaner taskEventCleaner;
 
-  private CamundaTaskEventErrorHandler taskEventErrorHandler;
+  private final CamundaTaskEventErrorHandler taskEventErrorHandler;
 
-  private Duration lockDuration;
+  private final Duration lockDuration;
 
   public CamundaSystemConnectorImpl(CamundaSystemUrls.SystemUrlInfo camundaSystemUrl) {
     this.camundaSystemUrl = camundaSystemUrl;

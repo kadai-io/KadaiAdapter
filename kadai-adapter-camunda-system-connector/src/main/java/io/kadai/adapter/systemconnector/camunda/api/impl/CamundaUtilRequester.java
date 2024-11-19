@@ -30,6 +30,8 @@ import org.springframework.web.client.RestTemplate;
 /** Util class for camunda requests used in multiple components of CamundaSystemConnectorImpl. */
 public class CamundaUtilRequester {
 
+  private CamundaUtilRequester() {}
+
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaUtilRequester.class);
 
   public static boolean isTaskNotExisting(
@@ -38,14 +40,10 @@ public class CamundaUtilRequester {
       CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo,
       String camundaTaskId) {
 
-    StringBuilder requestUrlBuilder = new StringBuilder();
-
     String requestUrl =
-        requestUrlBuilder
-            .append(camundaSystemUrlInfo.getSystemRestUrl())
-            .append(CamundaSystemConnectorImpl.URL_GET_CAMUNDA_TASKS)
-            .append(camundaTaskId)
-            .toString();
+        camundaSystemUrlInfo.getSystemRestUrl()
+            + CamundaSystemConnectorImpl.URL_GET_CAMUNDA_TASKS
+            + camundaTaskId;
 
     HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi();
     try {

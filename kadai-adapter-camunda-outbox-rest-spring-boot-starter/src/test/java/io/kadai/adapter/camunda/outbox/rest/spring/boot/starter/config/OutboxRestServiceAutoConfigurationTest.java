@@ -21,8 +21,6 @@ package io.kadai.adapter.camunda.outbox.rest.spring.boot.starter.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxRestServiceConfig;
-import io.kadai.adapter.camunda.outbox.rest.controller.CamundaTaskEventsController;
-import io.kadai.adapter.camunda.parselistener.KadaiParseListenerProcessEnginePlugin;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -34,18 +32,9 @@ class OutboxRestServiceAutoConfigurationTest {
 
   private final OutboxRestServiceConfig outboxRestServiceConfig;
 
-  private final CamundaTaskEventsController camundaTaskEventsController;
-
-  private final KadaiParseListenerProcessEnginePlugin kadaiParseListenerProcessEnginePlugin;
-
   OutboxRestServiceAutoConfigurationTest(
-      @Autowired(required = false) OutboxRestServiceConfig outboxRestServiceConfig,
-      @Autowired(required = false) CamundaTaskEventsController camundaTaskEventsController,
-      @Autowired(required = false)
-          KadaiParseListenerProcessEnginePlugin kadaiParseListenerProcessEnginePlugin) {
+      @Autowired(required = false) OutboxRestServiceConfig outboxRestServiceConfig) {
     this.outboxRestServiceConfig = outboxRestServiceConfig;
-    this.camundaTaskEventsController = camundaTaskEventsController;
-    this.kadaiParseListenerProcessEnginePlugin = kadaiParseListenerProcessEnginePlugin;
   }
 
   @Test

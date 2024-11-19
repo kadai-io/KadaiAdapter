@@ -117,8 +117,7 @@ abstract class AbsIntegrationTest {
               .build();
 
       kadaiEngine =
-          KadaiEngine.buildKadaiEngine(
-              kadaiConfiguration, ConnectionManagementMode.AUTOCOMMIT);
+          KadaiEngine.buildKadaiEngine(kadaiConfiguration, ConnectionManagementMode.AUTOCOMMIT);
 
       DbCleaner cleaner = new DbCleaner();
       cleaner.clearDb(kadaiDataSource, DbCleaner.ApplicationDatabaseType.KADAI);
@@ -176,14 +175,12 @@ abstract class AbsIntegrationTest {
     createClassification(kadaiEngineUnsecure, "L1050", "DOMAIN_B");
   }
 
-  void createWorkbasket(KadaiEngine engine, String workbasketKey, String domain)
-      throws Exception {
+  void createWorkbasket(KadaiEngine engine, String workbasketKey, String domain) throws Exception {
     WorkbasketService workbasketService = engine.getWorkbasketService();
-    Workbasket wb;
     try {
-      wb = workbasketService.getWorkbasket(workbasketKey, domain);
+      workbasketService.getWorkbasket(workbasketKey, domain);
     } catch (WorkbasketNotFoundException e) {
-      wb = workbasketService.newWorkbasket(workbasketKey, domain);
+      Workbasket wb = workbasketService.newWorkbasket(workbasketKey, domain);
       wb.setName(workbasketKey);
       wb.setOwner("teamlead_1");
       wb.setType(WorkbasketType.PERSONAL);
@@ -205,18 +202,16 @@ abstract class AbsIntegrationTest {
     workbasketService.createWorkbasketAccessItem(workbasketAccessItem);
   }
 
-  private Classification createClassification(
-      KadaiEngine engine, String classificationKey, String domain) throws Exception {
+  private void createClassification(KadaiEngine engine, String classificationKey, String domain)
+      throws Exception {
     ClassificationService myClassificationService = engine.getClassificationService();
-
-    Classification classification;
     try {
-      classification = myClassificationService.getClassification(classificationKey, domain);
+      myClassificationService.getClassification(classificationKey, domain);
     } catch (ClassificationNotFoundException e) {
-      classification = myClassificationService.newClassification(classificationKey, domain, "TASK");
+      Classification classification =
+          myClassificationService.newClassification(classificationKey, domain, "TASK");
       classification.setServiceLevel("P1D");
-      classification = myClassificationService.createClassification(classification);
+      myClassificationService.createClassification(classification);
     }
-    return classification;
   }
 }

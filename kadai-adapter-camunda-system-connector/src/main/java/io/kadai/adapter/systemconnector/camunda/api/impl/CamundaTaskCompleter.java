@@ -24,7 +24,6 @@ import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import io.kadai.common.api.exceptions.SystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -38,8 +37,13 @@ public class CamundaTaskCompleter {
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskCompleter.class);
 
   private static final String COMPLETED_BY_KADAI_ADAPTER_LOCAL_VARIABLE = "completedByKadaiAdapter";
-  @Autowired HttpHeaderProvider httpHeaderProvider;
-  @Autowired private RestTemplate restTemplate;
+  private final HttpHeaderProvider httpHeaderProvider;
+  private final RestTemplate restTemplate;
+
+  public CamundaTaskCompleter(HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.restTemplate = restTemplate;
+  }
 
   public SystemResponse completeCamundaTask(
       CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {

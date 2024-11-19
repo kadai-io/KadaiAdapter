@@ -40,14 +40,14 @@ public class DbCleaner {
   private static final String KADAI_ADAPTER_DB_CLEAR_POSTGRES =
       "/sql/clear-kadai-adapter-db-postgres.sql";
   private static final String OUTBOX_DB_CLEAR_POSTGRES = "/sql/clear-outbox-db-postgres.sql";
-  private Map<ApplicationDatabaseType, String> typeScriptMap =
+  private final Map<ApplicationDatabaseType, String> typeScriptMap =
       new HashMap<ApplicationDatabaseType, String>();
-  private Map<ApplicationDatabaseType, String> typeScriptMapPostgres =
+  private final Map<ApplicationDatabaseType, String> typeScriptMapPostgres =
       new HashMap<ApplicationDatabaseType, String>();
-  private StringWriter outWriter = new StringWriter();
-  private PrintWriter logWriter = new PrintWriter(outWriter);
-  private StringWriter errorWriter = new StringWriter();
-  private PrintWriter errorLogWriter = new PrintWriter(errorWriter);
+  private final StringWriter outWriter = new StringWriter();
+  private final PrintWriter logWriter = new PrintWriter(outWriter);
+  private final StringWriter errorWriter = new StringWriter();
+  private final PrintWriter errorLogWriter = new PrintWriter(errorWriter);
 
   public DbCleaner() {
     this.typeScriptMap.put(ApplicationDatabaseType.KADAI, KADAI_DB_CLEAR_SCRIPT);
@@ -86,12 +86,12 @@ public class DbCleaner {
       runner.runScript(new InputStreamReader(this.getClass().getResourceAsStream(scriptName)));
 
     } catch (Exception e) {
-      LOGGER.error("caught Exception " + e);
+      LOGGER.error("caught Exception {}", e.getMessage(), e);
     }
     LOGGER.debug(outWriter.toString());
     String errorMsg = errorWriter.toString().trim();
 
-    if (!errorMsg.isEmpty() && errorMsg.indexOf("SQLCODE=-204, SQLSTATE=42704") == -1) {
+    if (!errorMsg.isEmpty() && !errorMsg.contains("SQLCODE=-204, SQLSTATE=42704")) {
       LOGGER.error(errorWriter.toString());
     }
   }

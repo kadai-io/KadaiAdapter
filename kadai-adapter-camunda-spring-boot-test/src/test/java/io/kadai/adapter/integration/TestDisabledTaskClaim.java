@@ -47,10 +47,8 @@ import org.springframework.test.context.ContextConfiguration;
 @ExtendWith(JaasExtension.class)
 class TestDisabledTaskClaim extends AbsIntegrationTest {
 
-  @Autowired
-  CamundaTaskClaimer camundaTaskClaimer;
-  @Autowired
-  CamundaTaskClaimCanceler camundaTaskClaimCanceler;
+  @Autowired CamundaTaskClaimer camundaTaskClaimer;
+  @Autowired CamundaTaskClaimCanceler camundaTaskClaimCanceler;
 
   @Value("${kadai.adapter.camunda.claiming.enabled}")
   private boolean claimingEnabled;
@@ -76,8 +74,7 @@ class TestDisabledTaskClaim extends AbsIntegrationTest {
 
     // retrieve and check external task id of created kadai task
     String camundaTaskId = camundaTaskIds.get(0);
-    TaskSummary kadaiTask =
-        this.taskService.createTaskQuery().externalIdIn(camundaTaskId).single();
+    TaskSummary kadaiTask = this.taskService.createTaskQuery().externalIdIn(camundaTaskId).single();
 
     String kadaiTaskExternalId = kadaiTask.getExternalId();
     assertThat(kadaiTaskExternalId).isEqualTo(camundaTaskId);
@@ -117,13 +114,13 @@ class TestDisabledTaskClaim extends AbsIntegrationTest {
   }
 
   private void setClaimingEnabled(boolean claimingEnbaled) throws Exception {
-
-    Field claimingEnabled = camundaTaskClaimer.getClass().getDeclaredField("claimingEnabled");
-    claimingEnabled.setAccessible(true);
-    claimingEnabled.setBoolean(camundaTaskClaimer, claimingEnbaled);
-    Field cancelClaimingEnabled =
+    Field claimerClaimingEnabled =
+        camundaTaskClaimer.getClass().getDeclaredField("claimingEnabled");
+    claimerClaimingEnabled.setAccessible(true);
+    claimerClaimingEnabled.setBoolean(camundaTaskClaimer, claimingEnbaled);
+    Field claimCancelerClaimingEnabled =
         camundaTaskClaimCanceler.getClass().getDeclaredField("claimingEnabled");
-    cancelClaimingEnabled.setAccessible(true);
-    cancelClaimingEnabled.setBoolean(camundaTaskClaimCanceler, claimingEnbaled);
+    claimCancelerClaimingEnabled.setAccessible(true);
+    claimCancelerClaimingEnabled.setBoolean(camundaTaskClaimCanceler, claimingEnbaled);
   }
 }

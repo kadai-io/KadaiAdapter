@@ -47,12 +47,12 @@ public class KadaiOutboxSchemaCreator {
       SQL + "/postgres/kadai-outbox-schema-postgres.sql";
   private static final String DB_SCHEMA_ORACLE = SQL + "/oracle/kadai-outbox-schema-oracle.sql";
 
-  private DataSource dataSource;
-  private String schemaName;
-  private StringWriter outWriter = new StringWriter();
-  private PrintWriter logWriter = new PrintWriter(outWriter);
-  private StringWriter errorWriter = new StringWriter();
-  private PrintWriter errorLogWriter = new PrintWriter(errorWriter);
+  private final DataSource dataSource;
+  private final String schemaName;
+  private final StringWriter outWriter = new StringWriter();
+  private final PrintWriter logWriter = new PrintWriter(outWriter);
+  private final StringWriter errorWriter = new StringWriter();
+  private final PrintWriter errorLogWriter = new PrintWriter(errorWriter);
 
   public KadaiOutboxSchemaCreator(DataSource dataSource, String schemaName) {
     super();
@@ -111,7 +111,7 @@ public class KadaiOutboxSchemaCreator {
       }
 
     } catch (RuntimeSqlException | SQLException e) {
-      LOGGER.debug("KadaiOutbox schema doesn't exist. (Exception: " + e.getMessage() + ")");
+      LOGGER.debug("KadaiOutbox schema doesn't exist. (Exception: {})", e.getMessage());
       return false;
     }
   }

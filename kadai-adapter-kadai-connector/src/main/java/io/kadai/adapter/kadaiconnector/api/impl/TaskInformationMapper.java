@@ -35,13 +35,10 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/**
- * Maps properties between ReferencedTasks from external systems and corresponding KADAI tasks.
- */
+/** Maps properties between ReferencedTasks from external systems and corresponding KADAI tasks. */
 @Component
 public class TaskInformationMapper {
 
@@ -54,8 +51,7 @@ public class TaskInformationMapper {
   @Value("${kadai.adapter.mapping.default.objectreference.system:DEFAULT_SYSTEM}")
   private String defaultSystem;
 
-  @Value(
-      "${kadai.adapter.mapping.default.objectreference.system.instance:DEFAULT_SYSTEM_INSTANCE}")
+  @Value("${kadai.adapter.mapping.default.objectreference.system.instance:DEFAULT_SYSTEM_INSTANCE}")
   private String defaultSystemInstance;
 
   @Value("${kadai.adapter.mapping.default.objectreference.type:DEFAULT_TYPE}")
@@ -64,7 +60,11 @@ public class TaskInformationMapper {
   @Value("${kadai.adapter.mapping.default.objectreference.value:DEFAULT_VALUE}")
   private String defaultValue;
 
-  @Autowired private TaskService taskService;
+  private final TaskService taskService;
+
+  public TaskInformationMapper(TaskService taskService) {
+    this.taskService = taskService;
+  }
 
   public Task convertToKadaiTask(ReferencedTask referencedTask) {
 
@@ -177,7 +177,7 @@ public class TaskInformationMapper {
                     .append(entry.getValue())
                     .append(","));
 
-    if (builder.length() > 0) {
+    if (!builder.isEmpty()) {
       return builder.deleteCharAt(builder.length() - 1).toString();
     }
 
@@ -192,13 +192,11 @@ public class TaskInformationMapper {
     JSONObject jsonObject = new JSONObject(processVariables);
 
     jsonObject
-        .toMap()
-        .entrySet()
+        .keySet()
         .forEach(
-            entry ->
+            key ->
                 customAttributes.put(
-                    CAMUNDA_PROCESS_VARIABLE_PREFIX + entry.getKey(),
-                    String.valueOf(jsonObject.get(entry.getKey()))));
+                    CAMUNDA_PROCESS_VARIABLE_PREFIX + key, String.valueOf(jsonObject.get(key))));
 
     return customAttributes;
   }

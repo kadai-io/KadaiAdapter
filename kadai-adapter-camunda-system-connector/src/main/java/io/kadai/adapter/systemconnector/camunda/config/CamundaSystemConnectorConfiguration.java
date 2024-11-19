@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.systemconnector.camunda.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskClaimCanceler;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskClaimer;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskCompleter;
@@ -73,27 +74,34 @@ public class CamundaSystemConnectorConfiguration {
 
   @Bean
   @DependsOn(value = {"httpHeaderProvider"})
-  CamundaTaskRetriever camundaTaskRetriever() {
-    return new CamundaTaskRetriever();
+  CamundaTaskRetriever camundaTaskRetriever(
+      final HttpHeaderProvider httpHeaderProvider,
+      final ObjectMapper objectMapper,
+      final RestTemplate restTemplate) {
+    return new CamundaTaskRetriever(httpHeaderProvider, objectMapper, restTemplate);
   }
 
   @Bean
-  CamundaTaskCompleter camundaTaskCompleter() {
-    return new CamundaTaskCompleter();
+  CamundaTaskCompleter camundaTaskCompleter(
+      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
+    return new CamundaTaskCompleter(httpHeaderProvider, restTemplate);
   }
 
   @Bean
-  CamundaTaskClaimer camundaTaskClaimer() {
-    return new CamundaTaskClaimer();
+  CamundaTaskClaimer camundaTaskClaimer(
+      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
+    return new CamundaTaskClaimer(httpHeaderProvider, restTemplate);
   }
 
   @Bean
-  CamundaTaskClaimCanceler camundaTaskClaimCanceler() {
-    return new CamundaTaskClaimCanceler();
+  CamundaTaskClaimCanceler camundaTaskClaimCanceler(
+      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
+    return new CamundaTaskClaimCanceler(httpHeaderProvider, restTemplate);
   }
 
   @Bean
-  CamundaTaskEventCleaner camundaTaskEventCleaner() {
-    return new CamundaTaskEventCleaner();
+  CamundaTaskEventCleaner camundaTaskEventCleaner(
+      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
+    return new CamundaTaskEventCleaner(httpHeaderProvider, restTemplate);
   }
 }
