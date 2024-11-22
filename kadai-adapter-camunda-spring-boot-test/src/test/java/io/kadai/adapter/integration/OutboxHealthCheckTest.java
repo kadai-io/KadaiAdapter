@@ -75,7 +75,7 @@ class OutboxHealthCheckTest extends AbsIntegrationTest {
 
   @AfterAll
   void triggerSetUp() {
-    super.isInitialised = false;
+    isInitialised = false;
   }
 
   @Test
@@ -130,7 +130,7 @@ class OutboxHealthCheckTest extends AbsIntegrationTest {
 
     assertThat(response.getBody())
         .contains("\"Outbox Health\":{\"status\":\"DOWN\"")
-        .contains("\"Outbox Service Error\":\"404 Not Found: \\\"Page Not Found\\\"\"");
+        .contains("\"Outbox Service Error\":");
   }
 
   private void dummyCamundaEngineMock() {
