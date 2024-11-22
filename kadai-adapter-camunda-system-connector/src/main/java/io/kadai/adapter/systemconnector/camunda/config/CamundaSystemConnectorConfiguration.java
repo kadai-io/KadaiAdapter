@@ -43,8 +43,8 @@ public class CamundaSystemConnectorConfiguration {
   RestTemplate restTemplate(
       RestTemplateBuilder builder, HttpComponentsClientProperties httpComponentsClientProperties) {
     return builder
-        .setConnectTimeout(Duration.ofMillis(httpComponentsClientProperties.getConnectionTimeout()))
-        .setReadTimeout(Duration.ofMillis(httpComponentsClientProperties.getReadTimeout()))
+        .connectTimeout(Duration.ofMillis(httpComponentsClientProperties.getConnectionTimeout()))
+        .readTimeout(Duration.ofMillis(httpComponentsClientProperties.getReadTimeout()))
         .requestFactory(HttpComponentsClientHttpRequestFactory.class)
         .build();
   }

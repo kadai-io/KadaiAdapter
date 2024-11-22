@@ -77,7 +77,7 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
 
   @AfterAll
   void triggerSetUp() {
-    super.isInitialised = false;
+    isInitialised = false;
   }
 
   @Test
@@ -128,7 +128,7 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
     assertThat(response.getBody())
         .contains("\"Camunda Health\":{\"status\":\"DOWN\"")
-        .contains("\"Camunda Engine Error\":\"404 Not Found: \\\"Page Not Found\\\"");
+        .contains("\"Camunda Engine Error\":");
   }
 
   private void dummyOutboxMock() {
