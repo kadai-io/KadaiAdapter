@@ -43,6 +43,9 @@ public class HttpHeaderProvider {
   @Value("${kadai-system-connector-outbox-rest-api-user-password:undefined}")
   private String outboxRestApiUserPassword;
 
+  @Value("${kadai.adapter.xsrf.token:}")
+  private String xsrfToken;
+
   public HttpHeaders camundaRestApiHeaders() {
     if (undefined.equals(camundaRestApiUserName)) {
       return new HttpHeaders();
@@ -98,6 +101,10 @@ public class HttpHeaderProvider {
     String encodedCredentials = Base64.getEncoder().encodeToString(credentialsBytes);
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", "Basic " + encodedCredentials);
+    if (xsrfToken != null && !xsrfToken.isEmpty()) {
+      headers.add("Cookie", "XSRF-TOKEN=" + xsrfToken);
+      headers.add("X-XSRF-TOKEN", xsrfToken);
+    }
     return headers;
   }
 }
