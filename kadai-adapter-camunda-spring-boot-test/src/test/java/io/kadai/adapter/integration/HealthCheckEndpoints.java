@@ -6,6 +6,8 @@ public class HealthCheckEndpoints {
   public static final String CAMUNDA_ENGINE_ENDPOINT = BASE_URL + "/engine-rest/engine";
   public static final String OUTBOX_EVENTS_COUNT_ENDPOINT =
       BASE_URL + "/outbox-rest/events/count?retries=0";
+  public static final String OUTBOX_CSRF_ENDPOINT =
+      BASE_URL + "/outbox-rest/events/csrf";
 
   private HealthCheckEndpoints() {}
 }

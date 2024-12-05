@@ -40,14 +40,18 @@ public class ReferencedTaskClaimCanceler {
   private static final Logger LOGGER = LoggerFactory.getLogger(ReferencedTaskClaimCanceler.class);
   private final AdapterManager adapterManager;
   private final LastSchedulerRun lastSchedulerRun;
+  private final CsrfTokenRetriever csrfTokenRetriever;
 
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
   public ReferencedTaskClaimCanceler(
-      AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+      AdapterManager adapterManager,
+      LastSchedulerRun lastSchedulerRun,
+      CsrfTokenRetriever csrfTokenRetriever) {
     this.adapterManager = adapterManager;
     this.lastSchedulerRun = lastSchedulerRun;
+    this.csrfTokenRetriever = csrfTokenRetriever;
   }
 
   @Scheduled(
@@ -58,7 +62,7 @@ public class ReferencedTaskClaimCanceler {
   public void retrieveCancelledClaimKadaiTasksAndCancelClaimCorrespondingReferencedTasks() {
 
     synchronized (ReferencedTaskClaimCanceler.class) {
-      if (!adapterManager.isInitialized()) {
+      if (!adapterManager.isInitialized() || !csrfTokenRetriever.isCsrfTokenReceived()) {
         return;
       }
 

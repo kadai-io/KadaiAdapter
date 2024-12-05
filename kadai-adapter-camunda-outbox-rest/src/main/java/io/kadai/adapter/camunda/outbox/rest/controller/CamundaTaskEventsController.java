@@ -216,4 +216,11 @@ public class CamundaTaskEventsController {
 
     return Response.status(200).entity(failedEventsCount).build();
   }
+
+  @GET
+  @Path(Mapping.URL_CSRF)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getCsrfToken() {
+    return Response.status(204).build();
+  }
 }

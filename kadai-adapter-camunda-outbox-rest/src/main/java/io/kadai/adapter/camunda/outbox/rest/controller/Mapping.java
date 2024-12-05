@@ -29,6 +29,7 @@ public final class Mapping {
   public static final String URL_UNLOCK_EVENT = "/unlock-event" + URL_EVENT;
   public static final String DELETE_FAILED_EVENTS = "/delete-failed-events";
   public static final String URL_COUNT_FAILED_EVENTS = "/count";
+  public static final String URL_CSRF = "/csrf";
 
   private Mapping() {}
 }

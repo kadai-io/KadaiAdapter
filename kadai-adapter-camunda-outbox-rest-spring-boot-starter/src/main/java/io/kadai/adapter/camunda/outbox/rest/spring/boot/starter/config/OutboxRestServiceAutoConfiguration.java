@@ -20,7 +20,11 @@ package io.kadai.adapter.camunda.outbox.rest.spring.boot.starter.config;
 
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxRestServiceConfig;
 import io.kadai.adapter.camunda.outbox.rest.controller.CamundaTaskEventsController;
+import io.kadai.adapter.camunda.outbox.rest.filter.CsrfTokenIssuanceFilter;
+import io.kadai.adapter.camunda.outbox.rest.filter.CsrfTokenService;
+import io.kadai.adapter.camunda.outbox.rest.filter.CsrfValidationFilter;
 import io.kadai.adapter.camunda.parselistener.KadaiParseListenerProcessEnginePlugin;
+import java.security.NoSuchAlgorithmException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -47,5 +51,23 @@ public class OutboxRestServiceAutoConfiguration {
   @ConditionalOnMissingBean
   public KadaiParseListenerProcessEnginePlugin kadaiParseListenerProcessEnginePlugin() {
     return new KadaiParseListenerProcessEnginePlugin();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public CsrfTokenIssuanceFilter csrfTokenIssuanceFilter() {
+    return new CsrfTokenIssuanceFilter();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public CsrfValidationFilter csrfValidationFilter() {
+    return new CsrfValidationFilter();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public CsrfTokenService csrfTokenService() throws NoSuchAlgorithmException {
+    return new CsrfTokenService();
   }
 }
