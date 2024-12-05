@@ -154,6 +154,9 @@
                         <goals>
                             <goal>repackage</goal>
                         </goals>
+                        <configuration>
+                          <mainClass>io.kadai.adapter.test.KadaiAdapterTestApplication</mainClass>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
