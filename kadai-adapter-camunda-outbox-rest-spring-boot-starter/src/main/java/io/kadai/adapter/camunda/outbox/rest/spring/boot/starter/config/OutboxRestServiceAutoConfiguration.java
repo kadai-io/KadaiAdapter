@@ -20,6 +20,7 @@ package io.kadai.adapter.camunda.outbox.rest.spring.boot.starter.config;
 
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxRestServiceConfig;
 import io.kadai.adapter.camunda.outbox.rest.controller.CamundaTaskEventsController;
+import io.kadai.adapter.camunda.outbox.rest.filter.CorsFilter;
 import io.kadai.adapter.camunda.parselistener.KadaiParseListenerProcessEnginePlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -47,5 +48,11 @@ public class OutboxRestServiceAutoConfiguration {
   @ConditionalOnMissingBean
   public KadaiParseListenerProcessEnginePlugin kadaiParseListenerProcessEnginePlugin() {
     return new KadaiParseListenerProcessEnginePlugin();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public CorsFilter corsFilter() {
+    return new CorsFilter();
   }
 }
