@@ -76,6 +76,34 @@ public class CamundaTaskRetriever {
     return referencedTasks;
   }
 
+  public void retrieveCsrfToken(String camundaSystemTaskEventUrl) throws Exception {
+    LOGGER.debug("entry to retrieveCsrfToken.");
+
+    String requestUrl = camundaSystemTaskEventUrl + CamundaSystemConnectorImpl.URL_GET_CSRF_TOKEN;
+
+    ResponseEntity<String> responseEntity =
+        restTemplate.exchange(requestUrl, HttpMethod.GET, null, String.class);
+    HttpHeaders responseHeaders = responseEntity.getHeaders();
+    List<String> cookies = responseHeaders.get(HttpHeaders.SET_COOKIE);
+
+    if (cookies == null || cookies.isEmpty()) {
+      throw new Exception("No cookies found in the response.");
+    }
+
+    String xsrfToken;
+
+    for (String cookie : cookies) {
+      if (cookie.startsWith("XSRF-TOKEN=")) {
+        xsrfToken = cookie.split(";")[0].substring("XSRF-TOKEN=".length());
+        httpHeaderProvider.setCsrfToken(xsrfToken);
+        LOGGER.info("Received XSRF-TOKEN: {}", xsrfToken);
+        return;
+      }
+    }
+
+    throw new Exception("XSRF-TOKEN cookie not found in the response.");
+  }
+
   public List<ReferencedTask> retrieveFinishedCamundaTasks(
       String camundaSystemUrl, String camundaSystemEngineIdentifier, Duration lockDuration) {
     LOGGER.debug("entry to retrieveFinishedCamundaTasks. CamundSystemURL = {} ", camundaSystemUrl);

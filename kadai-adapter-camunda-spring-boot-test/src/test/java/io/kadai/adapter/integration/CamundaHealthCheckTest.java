@@ -2,6 +2,7 @@ package io.kadai.adapter.integration;
 
 import static io.kadai.adapter.integration.HealthCheckEndpoints.CAMUNDA_ENGINE_ENDPOINT;
 import static io.kadai.adapter.integration.HealthCheckEndpoints.HEALTH_ENDPOINT;
+import static io.kadai.adapter.integration.HealthCheckEndpoints.OUTBOX_CSRF_ENDPOINT;
 import static io.kadai.adapter.integration.HealthCheckEndpoints.OUTBOX_EVENTS_COUNT_ENDPOINT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -10,6 +11,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import io.kadai.adapter.camunda.outbox.rest.filter.CsrfTokenService;
 import io.kadai.adapter.monitoring.CamundaHealthCheck;
 import io.kadai.adapter.monitoring.SchedulerHealthCheck;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
@@ -29,6 +31,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -59,6 +62,8 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
 
   @Autowired private TestRestTemplate testRestTemplate;
 
+  @Autowired private CsrfTokenService csrfTokenService;
+
   @BeforeEach
   @WithAccessId(user = "admin")
   void setUp() throws Exception {
@@ -68,6 +73,8 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
     Instant validRunTime = Instant.now().minus(Duration.ofMinutes(5));
     when(spySchedulerHealthCheck.health())
         .thenReturn(Health.up().withDetail("Last Run", validRunTime).build());
+    dummyCsrfMock();
+    dummyOutboxMock();
   }
 
   @AfterEach
@@ -86,7 +93,6 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
         .expect(ExpectedCount.manyTimes(), requestTo(CAMUNDA_ENGINE_ENDPOINT))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess("[{\"name\": \"default\"}]", MediaType.APPLICATION_JSON));
-    dummyOutboxMock();
 
     ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
@@ -102,7 +108,6 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
         .expect(ExpectedCount.manyTimes(), requestTo(CAMUNDA_ENGINE_ENDPOINT))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
-    dummyOutboxMock();
 
     ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
@@ -121,7 +126,6 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
             withStatus(HttpStatus.NOT_FOUND)
                 .body("Page Not Found")
                 .contentType(MediaType.TEXT_PLAIN));
-    dummyOutboxMock();
 
     ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
@@ -136,5 +140,16 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
         .expect(ExpectedCount.manyTimes(), requestTo(OUTBOX_EVENTS_COUNT_ENDPOINT))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess("{\"eventsCount\": 5}", MediaType.APPLICATION_JSON));
+  }
+
+  private void dummyCsrfMock() {
+    String randomToken = csrfTokenService.createRandomToken();
+    HttpHeaders responseHeaders = new HttpHeaders();
+    String tokenCookie = "XSRF-TOKEN=" + randomToken + "; Path=/; HttpOnly";
+    responseHeaders.add(HttpHeaders.SET_COOKIE, tokenCookie);
+    mockServer
+        .expect(ExpectedCount.manyTimes(), requestTo(OUTBOX_CSRF_ENDPOINT))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(withStatus(HttpStatus.NO_CONTENT).headers(responseHeaders));
   }
 }

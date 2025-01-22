@@ -44,17 +44,22 @@ public class KadaiTaskStarter {
 
   private final AdapterManager adapterManager;
   private final LastSchedulerRun lastSchedulerRun;
+  private final CsrfTokenRetriever csrfTokenRetriever;
 
-  public KadaiTaskStarter(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+  public KadaiTaskStarter(
+      AdapterManager adapterManager,
+      LastSchedulerRun lastSchedulerRun,
+      CsrfTokenRetriever csrfTokenRetriever) {
     this.adapterManager = adapterManager;
     this.lastSchedulerRun = lastSchedulerRun;
+    this.csrfTokenRetriever = csrfTokenRetriever;
   }
 
   @Scheduled(
       fixedRateString =
           "${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
   public void retrieveNewReferencedTasksAndCreateCorrespondingKadaiTasks() {
-    if (!adapterIsInitialized()) {
+    if (!adapterIsInitialized() || !csrfTokenRetriever.isCsrfTokenReceived()) {
       return;
     }
     synchronized (KadaiTaskStarter.class) {
