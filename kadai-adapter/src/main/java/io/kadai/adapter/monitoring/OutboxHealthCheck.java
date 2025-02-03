@@ -23,7 +23,7 @@ public class OutboxHealthCheck implements HealthIndicator {
   @Value("${camundaOutboxService.port:8090}")
   private int camundaOutboxPort;
 
-  @Value("${server.servlet.context-path:}")
+  @Value("${outbox.context-path:}")
   private String contextPath;
 
   private URI url;
