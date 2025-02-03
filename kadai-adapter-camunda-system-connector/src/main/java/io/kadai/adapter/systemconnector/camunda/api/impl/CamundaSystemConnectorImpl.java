@@ -45,6 +45,7 @@ public class CamundaSystemConnectorImpl implements SystemConnector {
   static final String SET_ASSIGNEE = "/assignee";
   static final String BODY_SET_ASSIGNEE = "{\"userId\":";
   static final String UNCLAIM_TASK = "/unclaim";
+  static final String URL_GET_CSRF_TOKEN = "/events/csrf";
 
   private final CamundaSystemUrls.SystemUrlInfo camundaSystemUrl;
 
@@ -80,6 +81,11 @@ public class CamundaSystemConnectorImpl implements SystemConnector {
         camundaSystemUrl.getSystemTaskEventUrl(),
         camundaSystemUrl.getCamundaEngineIdentifier(),
         lockDuration);
+  }
+
+  @Override
+  public void retrieveCsrfToken() throws Exception {
+    taskRetriever.retrieveCsrfToken(camundaSystemUrl.getSystemTaskEventUrl());
   }
 
   @Override
