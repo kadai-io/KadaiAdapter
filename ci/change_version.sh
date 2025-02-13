@@ -94,9 +94,7 @@ function main() {
 
   if [[ "$GITHUB_REF" =~ ^refs/tags/([0-9]+\.[0-9]+\.[0-9]+)/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
     version=$([[ -n "$INCREMENT" ]] && echo $(increment_version "${BASH_REMATCH[@]:1:1}")-SNAPSHOT || echo "${BASH_REMATCH[@]:1:1}")
-    # Use commented version when Sonatype Central will offer SNAPSHOTS again
-    # prop_version=$([[ -n "$INCREMENT" ]] && echo $(increment_version "${BASH_REMATCH[@]:2:2}")-SNAPSHOT || echo "${BASH_REMATCH[@]:2:2}")
-    prop_version="${BASH_REMATCH[@]:2:2}"
+    prop_version=$([[ -n "$INCREMENT" ]] && echo $(increment_version "${BASH_REMATCH[@]:2:2}")-SNAPSHOT || echo "${BASH_REMATCH[@]:2:2}")
     for dir in ${MODULES[@]}; do
       change_version "$dir" "$version"
       change_version_of_property "$dir" "version.kadai" "$prop_version"
