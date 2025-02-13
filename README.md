@@ -1,7 +1,10 @@
 # KadaiAdapter
 
-[![Build Status](https://travis-ci.com/Kadai/KadaiAdapter.svg?branch=master)](https://travis-ci.com/Kadai/KadaiAdapter)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.kadai/kadai-adapter/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.kadai/kadai-adapter)
+
+[![Contributors](https://img.shields.io/github/contributors/kadai-io/KadaiAdapter.svg)](https://github.com/kadai-io/KadaiAdapter/graphs/contributors)
+[![CI KADAI adapter](https://github.com/kadai-io/KadaiAdapter/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/kadai-io/KadaiAdapter/actions/workflows/continuous-integration.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kadai-io_KadaiAdapter&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=kadai-io_KadaiAdapter)
+[![Maven Central](https://img.shields.io/maven-central/v/io.kadai/kadai-adapter.svg)](https://central.sonatype.com/artifact/io.kadai/kadai-adapter)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 Adapter to sync tasks between KADAI and an external workflow system, e.g. Camunda BPM.
