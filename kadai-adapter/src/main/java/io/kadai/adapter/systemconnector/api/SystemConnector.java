@@ -115,4 +115,12 @@ public interface SystemConnector {
    * @param eventId the id of the event that needs to be unlocked
    */
   void unlockEvent(String eventId);
+
+  /**
+   * Get a randomly generated CSRF Token and token will be automatically included in HTTP Headers in
+   * further requests.
+   *
+   * @throws Exception if no cookie is returned from the system when retrieving it.
+   */
+  void retrieveCsrfToken() throws Exception;
 }

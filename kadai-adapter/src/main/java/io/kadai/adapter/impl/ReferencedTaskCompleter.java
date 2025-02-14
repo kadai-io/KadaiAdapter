@@ -46,10 +46,15 @@ public class ReferencedTaskCompleter {
 
   private final AdapterManager adapterManager;
   private final LastSchedulerRun lastSchedulerRun;
+  private final CsrfTokenRetriever csrfTokenRetriever;
 
-  public ReferencedTaskCompleter(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+  public ReferencedTaskCompleter(
+      AdapterManager adapterManager,
+      LastSchedulerRun lastSchedulerRun,
+      CsrfTokenRetriever csrfTokenRetriever) {
     this.adapterManager = adapterManager;
     this.lastSchedulerRun = lastSchedulerRun;
+    this.csrfTokenRetriever = csrfTokenRetriever;
   }
 
   @Scheduled(
@@ -60,7 +65,7 @@ public class ReferencedTaskCompleter {
   public void retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTasks() {
 
     synchronized (ReferencedTaskCompleter.class) {
-      if (!adapterManager.isInitialized()) {
+      if (!adapterManager.isInitialized() || !csrfTokenRetriever.isCsrfTokenReceived()) {
         return;
       }
 
