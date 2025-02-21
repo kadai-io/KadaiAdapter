@@ -29,7 +29,7 @@ jobs:
 
   compile_and_test:
     name: Test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
         run: rm -rf ~/.m2/repository/io/kadai
 
   release_artifacts:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     name: Release artifacts to Sonatype-Central
     if: github.repository == 'kadai-io/KadaiAdapter' && ( startsWith(github.ref, 'refs/tags') || github.ref == 'refs/heads/master' ) && github.head_ref == ''
     needs: [ compile_and_test ]
@@ -119,7 +119,7 @@ jobs:
         uses: andymckay/cancel-action@0.5
 
   upload_to_sonar:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     name: Upload SonarQube analysis to sonarcloud
     # no pull request and not on release
     if: github.head_ref == '' && !startsWith(github.ref, 'refs/tags')
