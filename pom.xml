@@ -65,7 +65,7 @@
         <version.spring.mybatis>3.0.4</version.spring.mybatis>
 
         <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
-        <version.spring.boot>3.4.1</version.spring.boot>
+        <version.spring.boot>3.4.3</version.spring.boot>
 
         <version.camunda>7.22.0</version.camunda>
         <version.camunda.spin>1.23.0</version.camunda.spin>
