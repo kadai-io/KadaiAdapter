@@ -59,7 +59,7 @@ class KadaiAdapterWildflyTest extends AbstractAccTest {
   void should_HaveConnectionErrorInLogs_When_ApplicationIsDeployedCorrectly() throws Exception {
     assertThat(parseServerLog())
         .contains(
-            "Caught exception while trying to retrieve CamundaTaskEvents"
-                + " from system with URL http://localhost:7001");
+            "Error while retrieving CSRF Token from system with URL "
+                + "http://localhost:7001/engine-rest continuing without CSRF Cookie");
   }
 }

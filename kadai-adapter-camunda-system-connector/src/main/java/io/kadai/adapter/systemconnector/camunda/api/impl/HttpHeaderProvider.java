@@ -40,6 +40,16 @@ public class HttpHeaderProvider {
   @Value("${kadai-system-connector-outbox-rest-api-user-name:undefined}")
   private String outboxRestApiUserName;
 
+  public void setCsrfToken(String csrfToken) {
+    this.csrfToken = csrfToken;
+  }
+
+  public String getCsrfToken() {
+    return csrfToken;
+  }
+
+  private String csrfToken;
+
   @Value("${kadai-system-connector-outbox-rest-api-user-password:undefined}")
   private String outboxRestApiUserPassword;
 
@@ -98,6 +108,10 @@ public class HttpHeaderProvider {
     String encodedCredentials = Base64.getEncoder().encodeToString(credentialsBytes);
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", "Basic " + encodedCredentials);
+    if (csrfToken != null && !csrfToken.isEmpty()) {
+      headers.add("Cookie", "XSRF-TOKEN=" + csrfToken); // Add token to Cookie header
+      headers.add("X-XSRF-TOKEN", csrfToken);          // Add token to custom header
+    }
     return headers;
   }
 }

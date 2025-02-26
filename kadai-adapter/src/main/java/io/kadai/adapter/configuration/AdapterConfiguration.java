@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.configuration;
 
+import io.kadai.adapter.impl.CsrfTokenRetriever;
 import io.kadai.adapter.impl.KadaiTaskStarter;
 import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.impl.LastSchedulerRun;
@@ -43,35 +44,45 @@ public class AdapterConfiguration {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public ReferencedTaskCompleter referencedTaskCompleter(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
-    return new ReferencedTaskCompleter(adapterManager, lastSchedulerRun);
+      final AdapterManager adapterManager,
+      final LastSchedulerRun lastSchedulerRun,
+      final CsrfTokenRetriever csrfTokenRetriever) {
+    return new ReferencedTaskCompleter(adapterManager, lastSchedulerRun, csrfTokenRetriever);
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public ReferencedTaskClaimer referencedTaskClaimer(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
-    return new ReferencedTaskClaimer(adapterManager, lastSchedulerRun);
+      final AdapterManager adapterManager,
+      final LastSchedulerRun lastSchedulerRun,
+      final CsrfTokenRetriever csrfTokenRetriever) {
+    return new ReferencedTaskClaimer(adapterManager, lastSchedulerRun, csrfTokenRetriever);
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public ReferencedTaskClaimCanceler referencedTaskClaimCanceler(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
-    return new ReferencedTaskClaimCanceler(adapterManager, lastSchedulerRun);
+      final AdapterManager adapterManager,
+      final LastSchedulerRun lastSchedulerRun,
+      final CsrfTokenRetriever csrfTokenRetriever) {
+    return new ReferencedTaskClaimCanceler(adapterManager, lastSchedulerRun, csrfTokenRetriever);
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public KadaiTaskStarter kadaiTaskStarter(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
-    return new KadaiTaskStarter(adapterManager, lastSchedulerRun);
+      final AdapterManager adapterManager,
+      final LastSchedulerRun lastSchedulerRun,
+      final CsrfTokenRetriever csrfTokenRetriever) {
+    return new KadaiTaskStarter(adapterManager, lastSchedulerRun, csrfTokenRetriever);
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   KadaiTaskTerminator kadaiTaskTerminator(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
-    return new KadaiTaskTerminator(adapterManager, lastSchedulerRun);
+      final AdapterManager adapterManager,
+      final LastSchedulerRun lastSchedulerRun,
+      final CsrfTokenRetriever csrfTokenRetriever) {
+    return new KadaiTaskTerminator(adapterManager, lastSchedulerRun, csrfTokenRetriever);
   }
 }
