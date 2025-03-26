@@ -72,7 +72,6 @@
         <version.camunda.template-engines-velocity>2.1.0</version.camunda.template-engines-velocity>
 
         <version.jakarta.annotation>3.0.0</version.jakarta.annotation>
-        <version.jakarta.servlet>6.0.0</version.jakarta.servlet>
         <version.jakarta-ws-rs-api>3.0.0</version.jakarta-ws-rs-api>
 
         <version.resteasy.spring.boot>6.3.0.Final</version.resteasy.spring.boot>
