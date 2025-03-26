@@ -55,7 +55,7 @@
         <version.maven.javadoc>3.11.2</version.maven.javadoc>
         <version.maven.jboss-as.plugin>7.9.Final</version.maven.jboss-as.plugin>
         <version.maven.resources>3.3.1</version.maven.resources>
-        <version.maven.sonar>5.0.0.4389</version.maven.sonar>
+        <version.maven.sonar>5.1.0.4751</version.maven.sonar>
         <version.maven.source>3.3.1</version.maven.source>
         <version.maven.surefire.plugin>3.2.5</version.maven.surefire.plugin>
         <version.maven-war-plugin>3.4.0</version.maven-war-plugin>
@@ -64,7 +64,7 @@
         <version.spring.mybatis>3.0.4</version.spring.mybatis>
 
         <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
-        <version.spring.boot>3.4.3</version.spring.boot>
+        <version.spring.boot>3.4.4</version.spring.boot>
 
         <version.camunda>7.22.0</version.camunda>
         <version.camunda.spin>1.23.0</version.camunda.spin>
