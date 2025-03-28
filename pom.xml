@@ -59,7 +59,6 @@
         <version.maven.source>3.3.1</version.maven.source>
         <version.maven.surefire.plugin>3.2.5</version.maven.surefire.plugin>
         <version.maven-war-plugin>3.4.0</version.maven-war-plugin>
-        <version.maven.wildfly.plugin>5.1.2.Final</version.maven.wildfly.plugin>
 
         <version.mybatis>3.5.19</version.mybatis>
         <version.spring.mybatis>3.0.4</version.spring.mybatis>
@@ -73,20 +72,10 @@
         <version.camunda.template-engines-velocity>2.1.0</version.camunda.template-engines-velocity>
 
         <version.jakarta.annotation>3.0.0</version.jakarta.annotation>
-        <version.jakarta.servlet>6.0.0</version.jakarta.servlet>
         <version.jakarta-ws-rs-api>3.0.0</version.jakarta-ws-rs-api>
 
         <version.resteasy.spring.boot>6.3.0.Final</version.resteasy.spring.boot>
         <version.org.webjars.bootstrap>5.3.3</version.org.webjars.bootstrap>
-        <version.org.jboss.spec>3.0.3.Final</version.org.jboss.spec>
-
-        <version.wildfly>31.0.1.Final</version.wildfly>
-        <version.arquillian>1.9.3.Final</version.arquillian>
-        <version.arquillian.managed.wildfly>5.0.1.Final</version.arquillian.managed.wildfly>
-        <version.shrinkwrap>3.3.4</version.shrinkwrap>
-        <version.arquillian.jakarta>10.0.0.Final</version.arquillian.jakarta>
-        <version.junit.bom>5.12.1</version.junit.bom>
-
 
         <version.archunit>1.4.0</version.archunit>
         <version.hamcrest.json>0.3</version.hamcrest.json>
@@ -117,7 +106,6 @@
         <module>kadai-adapter-camunda-listener-example</module>
         <module>kadai-adapter-camunda-outbox-rest</module>
         <module>kadai-adapter-camunda-outbox-rest-spring-boot-starter</module>
-        <module>kadai-adapter-camunda-wildfly-example</module>
         <module>kadai-adapter-camunda-spring-boot-test</module>
         <module>camunda-outbox-example-boot</module>
         <module>ci/kadai-adapter-sonar-test-coverage</module>
