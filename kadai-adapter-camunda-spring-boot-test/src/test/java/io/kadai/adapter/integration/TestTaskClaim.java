@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,7 +53,9 @@ import org.springframework.test.context.ContextConfiguration;
 @ExtendWith(JaasExtension.class)
 @ContextConfiguration
 class TestTaskClaim extends AbsIntegrationTest {
-  @Autowired private LastSchedulerRun lastSchedulerRun;
+  @Autowired
+  @Qualifier("referencedTaskClaimerLastRun")
+  private LastSchedulerRun lastSchedulerRun;
 
   @WithAccessId(
       user = "teamlead_1",
