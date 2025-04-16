@@ -4,14 +4,22 @@ import static io.kadai.adapter.integration.HealthCheckEndpoints.CAMUNDA_ENGINE_E
 import static io.kadai.adapter.integration.HealthCheckEndpoints.HEALTH_ENDPOINT;
 import static io.kadai.adapter.integration.HealthCheckEndpoints.OUTBOX_EVENTS_COUNT_ENDPOINT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.monitoring.CamundaHealthCheck;
 import io.kadai.adapter.monitoring.SchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.KadaiTaskStarterSchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.KadaiTaskTerminatorSchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.ReferencedTaskClaimCancelerSchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.ReferencedTaskClaimerSchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.ReferencedTaskCompleterSchedulerHealthCheck;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
@@ -24,11 +32,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,6 +58,40 @@ import org.springframework.web.client.RestTemplate;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CamundaHealthCheckTest extends AbsIntegrationTest {
 
+  @TestConfiguration
+  static class TestConfig {
+    @Bean
+    SchedulerHealthCheck schedulerHealthCheck() {
+      LastSchedulerRun starterLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun terminatorLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun claimerLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun completerLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun cancelerLastRun = mock(LastSchedulerRun.class);
+
+      Instant dummyRunTime = Instant.now().minus(Duration.ofMinutes(5));
+      when(starterLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+      when(terminatorLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+      when(claimerLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+      when(completerLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+      when(cancelerLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+
+      KadaiTaskStarterSchedulerHealthCheck starter =
+          spy(new KadaiTaskStarterSchedulerHealthCheck(starterLastRun));
+      KadaiTaskTerminatorSchedulerHealthCheck terminator =
+          spy(new KadaiTaskTerminatorSchedulerHealthCheck(terminatorLastRun));
+      ReferencedTaskClaimerSchedulerHealthCheck claimer =
+          spy(new ReferencedTaskClaimerSchedulerHealthCheck(claimerLastRun));
+      ReferencedTaskCompleterSchedulerHealthCheck completer =
+          spy(new ReferencedTaskCompleterSchedulerHealthCheck(completerLastRun));
+      ReferencedTaskClaimCancelerSchedulerHealthCheck canceler =
+          spy(new ReferencedTaskClaimCancelerSchedulerHealthCheck(cancelerLastRun));
+
+      SchedulerHealthCheck composite =
+          new SchedulerHealthCheck(starter, terminator, canceler, claimer, completer);
+      return spy(composite);
+    }
+  }
+
   @Autowired private SchedulerHealthCheck schedulerHealthIndicator;
 
   private MockRestServiceServer mockServer;
@@ -61,13 +104,8 @@ class CamundaHealthCheckTest extends AbsIntegrationTest {
 
   @BeforeEach
   @WithAccessId(user = "admin")
-  void setUp() throws Exception {
+  void setUp() {
     mockServer = MockRestServiceServer.bindTo(restTemplate).ignoreExpectOrder(true).build();
-
-    SchedulerHealthCheck spySchedulerHealthCheck = schedulerHealthIndicator;
-    Instant validRunTime = Instant.now().minus(Duration.ofMinutes(5));
-    when(spySchedulerHealthCheck.health())
-        .thenReturn(Health.up().withDetail("Last Run", validRunTime).build());
   }
 
   @AfterEach

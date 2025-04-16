@@ -2,10 +2,18 @@ package io.kadai.adapter.integration;
 
 import static io.kadai.adapter.integration.HealthCheckEndpoints.HEALTH_ENDPOINT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.monitoring.KadaiHealthCheck;
 import io.kadai.adapter.monitoring.SchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.KadaiTaskStarterSchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.KadaiTaskTerminatorSchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.ReferencedTaskClaimCancelerSchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.ReferencedTaskClaimerSchedulerHealthCheck;
+import io.kadai.adapter.monitoring.schedulers.ReferencedTaskCompleterSchedulerHealthCheck;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import java.time.Duration;
@@ -43,6 +51,37 @@ class KadaiHealthCheckTest extends AbsIntegrationTest {
 
       return spyHealthCheck;
     }
+
+    @Bean
+    SchedulerHealthCheck schedulerHealthCheck() {
+      LastSchedulerRun starterLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun terminatorLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun claimerLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun completerLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun cancelerLastRun = mock(LastSchedulerRun.class);
+
+      Instant dummyRunTime = Instant.now().minus(Duration.ofMinutes(5));
+      when(starterLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+      when(terminatorLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+      when(claimerLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+      when(completerLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+      when(cancelerLastRun.getLastRunTime()).thenReturn(dummyRunTime);
+
+      KadaiTaskStarterSchedulerHealthCheck starter =
+          spy(new KadaiTaskStarterSchedulerHealthCheck(starterLastRun));
+      KadaiTaskTerminatorSchedulerHealthCheck terminator =
+          spy(new KadaiTaskTerminatorSchedulerHealthCheck(terminatorLastRun));
+      ReferencedTaskClaimerSchedulerHealthCheck claimer =
+          spy(new ReferencedTaskClaimerSchedulerHealthCheck(claimerLastRun));
+      ReferencedTaskCompleterSchedulerHealthCheck completer =
+          spy(new ReferencedTaskCompleterSchedulerHealthCheck(completerLastRun));
+      ReferencedTaskClaimCancelerSchedulerHealthCheck canceler =
+          spy(new ReferencedTaskClaimCancelerSchedulerHealthCheck(cancelerLastRun));
+
+      SchedulerHealthCheck composite =
+          new SchedulerHealthCheck(starter, terminator, canceler, claimer, completer);
+      return spy(composite);
+    }
   }
 
   @Autowired private SchedulerHealthCheck schedulerHealthIndicator;
@@ -56,10 +95,6 @@ class KadaiHealthCheckTest extends AbsIntegrationTest {
   @BeforeEach
   void setUp() {
     spyHealthCheck = kadaiHealthIndicator;
-    SchedulerHealthCheck spySchedulerHealthCheck = schedulerHealthIndicator;
-    Instant validRunTime = Instant.now().minus(Duration.ofMinutes(5));
-    when(spySchedulerHealthCheck.health())
-        .thenReturn(Health.up().withDetail("Last Run", validRunTime).build());
   }
 
   @Test
@@ -91,9 +126,7 @@ class KadaiHealthCheckTest extends AbsIntegrationTest {
     when(spyHealthCheck.health())
         .thenReturn(Health.up().withDetail("Kadai Version", "1.0.0").build());
 
-    ResponseEntity<String> response =
-        testRestTemplate.getForEntity(
-            HEALTH_ENDPOINT, String.class);
+    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).contains("Kadai Version", "1.0.0");
@@ -104,9 +137,7 @@ class KadaiHealthCheckTest extends AbsIntegrationTest {
     when(spyHealthCheck.health())
         .thenReturn(Health.down().withDetail("Kadai Service Error", "Simulated failure").build());
 
-    ResponseEntity<String> response =
-        testRestTemplate.getForEntity(
-            HEALTH_ENDPOINT, String.class);
+    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
     assertThat(response.getBody()).contains("Kadai Service Error", "Simulated failure");
