@@ -8,8 +8,6 @@ import io.kadai.adapter.monitoring.KadaiHealthCheck;
 import io.kadai.adapter.monitoring.SchedulerHealthCheck;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
-import java.time.Duration;
-import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,10 +54,6 @@ class KadaiHealthCheckTest extends AbsIntegrationTest {
   @BeforeEach
   void setUp() {
     spyHealthCheck = kadaiHealthIndicator;
-    SchedulerHealthCheck spySchedulerHealthCheck = schedulerHealthIndicator;
-    Instant validRunTime = Instant.now().minus(Duration.ofMinutes(5));
-    when(spySchedulerHealthCheck.health())
-        .thenReturn(Health.up().withDetail("Last Run", validRunTime).build());
   }
 
   @Test
@@ -91,9 +85,7 @@ class KadaiHealthCheckTest extends AbsIntegrationTest {
     when(spyHealthCheck.health())
         .thenReturn(Health.up().withDetail("Kadai Version", "1.0.0").build());
 
-    ResponseEntity<String> response =
-        testRestTemplate.getForEntity(
-            HEALTH_ENDPOINT, String.class);
+    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).contains("Kadai Version", "1.0.0");
@@ -104,9 +96,7 @@ class KadaiHealthCheckTest extends AbsIntegrationTest {
     when(spyHealthCheck.health())
         .thenReturn(Health.down().withDetail("Kadai Service Error", "Simulated failure").build());
 
-    ResponseEntity<String> response =
-        testRestTemplate.getForEntity(
-            HEALTH_ENDPOINT, String.class);
+    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
     assertThat(response.getBody()).contains("Kadai Service Error", "Simulated failure");
