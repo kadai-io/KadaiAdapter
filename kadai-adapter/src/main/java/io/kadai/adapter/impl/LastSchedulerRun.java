@@ -2,9 +2,7 @@ package io.kadai.adapter.impl;
 
 import jakarta.annotation.PostConstruct;
 import java.time.Instant;
-import org.springframework.stereotype.Component;
 
-@Component
 public class LastSchedulerRun {
   private Instant lastRunTime;
 
@@ -17,7 +15,7 @@ public class LastSchedulerRun {
     return lastRunTime;
   }
 
-  void touch() {
+  public void touch() {
     lastRunTime = Instant.now();
   }
 }

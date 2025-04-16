@@ -25,6 +25,7 @@ import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
 import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.ReferencedTaskCompleter;
 import io.kadai.adapter.manager.AdapterManager;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,35 +44,40 @@ public class AdapterConfiguration {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public ReferencedTaskCompleter referencedTaskCompleter(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
+      final AdapterManager adapterManager,
+      @Qualifier("referencedTaskCompleterLastRun") final LastSchedulerRun lastSchedulerRun) {
     return new ReferencedTaskCompleter(adapterManager, lastSchedulerRun);
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public ReferencedTaskClaimer referencedTaskClaimer(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
+      final AdapterManager adapterManager,
+      @Qualifier("referencedTaskClaimerLastRun") final LastSchedulerRun lastSchedulerRun) {
     return new ReferencedTaskClaimer(adapterManager, lastSchedulerRun);
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public ReferencedTaskClaimCanceler referencedTaskClaimCanceler(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
+      final AdapterManager adapterManager,
+      @Qualifier("referencedTaskClaimCancelerLastRun") final LastSchedulerRun lastSchedulerRun) {
     return new ReferencedTaskClaimCanceler(adapterManager, lastSchedulerRun);
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public KadaiTaskStarter kadaiTaskStarter(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
+      final AdapterManager adapterManager,
+      @Qualifier("kadaiTaskStarterLastRun") final LastSchedulerRun lastSchedulerRun) {
     return new KadaiTaskStarter(adapterManager, lastSchedulerRun);
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   KadaiTaskTerminator kadaiTaskTerminator(
-      final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
+      final AdapterManager adapterManager,
+      @Qualifier("kadaiTaskTerminatorLastRun") final LastSchedulerRun lastSchedulerRun) {
     return new KadaiTaskTerminator(adapterManager, lastSchedulerRun);
   }
 }
