@@ -91,4 +91,4 @@ camunda.bpm.filter.create = All tasks
 
 ######################################################################################
 ## Testing properties
-adapter.polling.inverval.adjustment.factor = 2
+adapter.polling.interval.adjustment.factor = 2

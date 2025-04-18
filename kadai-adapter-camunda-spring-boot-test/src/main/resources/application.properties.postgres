@@ -91,4 +91,4 @@ camunda.datasource.password = postgres
 
 ######################################################################################
 ## Testing properties
-adapter.polling.inverval.adjustment.factor = 2
+adapter.polling.interval.adjustment.factor = 2

@@ -76,8 +76,8 @@ abstract class AbsIntegrationTest {
       "${kadai.adapter.scheduler.run.interval.for.cancel.claim.referenced.tasks.in.milliseconds}")
   protected long adapterCancelPollingInterval;
 
-  @Value("${adapter.polling.inverval.adjustment.factor}")
-  protected double adapterPollingInvervalAdjustmentFactor;
+  @Value("${adapter.polling.interval.adjustment.factor}")
+  protected double adapterPollingIntervalAdjustmentFactor;
 
   @Value(
       "${kadai.adapter.scheduler.run.interval.for.retries.and.blocking.taskevents.in.milliseconds}")
@@ -142,11 +142,11 @@ abstract class AbsIntegrationTest {
 
     // adjust polling interval, give adapter a little more time
     this.adapterTaskPollingInterval =
-        (long) (this.adapterTaskPollingInterval * adapterPollingInvervalAdjustmentFactor);
+        (long) (this.adapterTaskPollingInterval * adapterPollingIntervalAdjustmentFactor);
     this.adapterCompletionPollingInterval =
-        (long) (this.adapterCompletionPollingInterval * adapterPollingInvervalAdjustmentFactor);
+        (long) (this.adapterCompletionPollingInterval * adapterPollingIntervalAdjustmentFactor);
     this.adapterCancelPollingInterval =
-        (long) (this.adapterCancelPollingInterval * adapterPollingInvervalAdjustmentFactor);
+        (long) (this.adapterCancelPollingInterval * adapterPollingIntervalAdjustmentFactor);
     initInfrastructure();
   }
 
