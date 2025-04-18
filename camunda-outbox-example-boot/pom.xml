@@ -72,6 +72,12 @@
             <groupId>org.camunda.bpm.springboot</groupId>
             <artifactId>camunda-bpm-spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+              <exclusion>
+                <groupId>com.vaadin.external.google</groupId>
+                <artifactId>android-json</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
