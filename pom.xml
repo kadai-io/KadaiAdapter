@@ -109,6 +109,7 @@
         <module>kadai-adapter-camunda-spring-boot-test</module>
         <module>camunda-outbox-example-boot</module>
         <module>ci/kadai-adapter-sonar-test-coverage</module>
+        <module>kadai-adapter-camunda-8-system-connector</module>
     </modules>
 
     <dependencyManagement>
