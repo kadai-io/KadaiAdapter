@@ -1,12 +1,11 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
-import java.util.List;
-
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
+import java.util.List;
 
-public class Camunda8SystemConnectorImpl implements SystemConnector{
+public class Camunda8SystemConnectorImpl implements SystemConnector {
 
   @Override
   public List<ReferencedTask> retrieveNewStartedReferencedTasks() {
