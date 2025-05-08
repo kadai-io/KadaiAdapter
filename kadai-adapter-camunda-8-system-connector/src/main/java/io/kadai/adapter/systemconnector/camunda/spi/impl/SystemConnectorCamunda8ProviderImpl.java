@@ -1,10 +1,9 @@
 package io.kadai.adapter.systemconnector.camunda.spi.impl;
 
-import java.util.List;
-
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8SystemConnectorImpl;
 import io.kadai.adapter.systemconnector.spi.SystemConnectorProvider;
+import java.util.List;
 
 public class SystemConnectorCamunda8ProviderImpl implements SystemConnectorProvider {
 
