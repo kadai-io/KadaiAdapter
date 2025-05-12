@@ -1,21 +1,28 @@
 package io.kadai.adapter.integration;
 
 import static io.kadai.adapter.integration.HealthCheckEndpoints.HEALTH_ENDPOINT;
+import static io.kadai.adapter.integration.SchedulerHealthCheckTest.TestConfig.DUMMY_RUN_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.monitoring.SchedulerHealthCheck;
+import io.kadai.adapter.monitoring.SchedulerHealthIndicator;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -36,16 +43,36 @@ class SchedulerHealthCheckTest extends AbsIntegrationTest {
 
   @TestConfiguration
   static class TestConfig {
+    public static final Instant DUMMY_RUN_TIME = Instant.now().minus(Duration.ofMinutes(5));
+
     @Bean
-    SchedulerHealthCheck schedulerHealthCheck() throws Exception {
-      LastSchedulerRun lastSchedulerRunMock = Mockito.mock(LastSchedulerRun.class);
-      Instant dummyRunTime = Instant.now().minus(Duration.ofMinutes(10));
-      when(lastSchedulerRunMock.getLastRunTime()).thenReturn(dummyRunTime);
+    SchedulerHealthCheck schedulerHealthCheck() {
+      LastSchedulerRun starterLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun terminatorLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun claimerLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun completerLastRun = mock(LastSchedulerRun.class);
+      LastSchedulerRun cancelerLastRun = mock(LastSchedulerRun.class);
 
-      SchedulerHealthCheck realHealthCheck = new SchedulerHealthCheck(lastSchedulerRunMock);
-      SchedulerHealthCheck spyHealthCheck = Mockito.spy(realHealthCheck);
+      when(starterLastRun.getLastRunTime()).thenReturn(DUMMY_RUN_TIME);
+      when(terminatorLastRun.getLastRunTime()).thenReturn(DUMMY_RUN_TIME);
+      when(claimerLastRun.getLastRunTime()).thenReturn(DUMMY_RUN_TIME);
+      when(completerLastRun.getLastRunTime()).thenReturn(DUMMY_RUN_TIME);
+      when(cancelerLastRun.getLastRunTime()).thenReturn(DUMMY_RUN_TIME);
 
-      return spyHealthCheck;
+      HealthIndicator starter =
+          spy(new SchedulerHealthIndicator(starterLastRun, Duration.ofMinutes(10)));
+      HealthIndicator terminator =
+          spy(new SchedulerHealthIndicator(terminatorLastRun, Duration.ofMinutes(10)));
+      HealthIndicator claimer =
+          spy(new SchedulerHealthIndicator(claimerLastRun, Duration.ofMinutes(10)));
+      HealthIndicator completer =
+          spy(new SchedulerHealthIndicator(completerLastRun, Duration.ofMinutes(10)));
+      HealthIndicator canceler =
+          spy(new SchedulerHealthIndicator(cancelerLastRun, Duration.ofMinutes(10)));
+
+      SchedulerHealthCheck composite =
+          new SchedulerHealthCheck(starter, terminator, canceler, claimer, completer);
+      return spy(composite);
     }
   }
 
@@ -60,55 +87,64 @@ class SchedulerHealthCheckTest extends AbsIntegrationTest {
     spyHealthCheck = schedulerHealthIndicator;
   }
 
-  @Test
-  void should_ReturnUp_When_SchedulerRuns() throws Exception {
-    LastSchedulerRun spy = Mockito.spy(new LastSchedulerRun());
-    Instant validRunTime = Instant.now().minus(Duration.ofMinutes(5));
-    when(spy.getLastRunTime()).thenReturn(validRunTime);
-
-    SchedulerHealthCheck schedulerHealthCheck = new SchedulerHealthCheck(spy);
-    Health health = Health.up().withDetail("Last Run", spy.getLastRunTime()).build();
-
-    assertThat(schedulerHealthCheck.health()).isEqualTo(health);
+  static Stream<String> schedulerNames() {
+    return Stream.of(
+        "Kadai Task Starter",
+        "Kadai Task Terminator",
+        "Referenced Task Claimer",
+        "Referenced Task Completer",
+        "Referenced Task Claim Canceler");
   }
 
-  @Test
-  void should_ReturnDown_When_SchedulerDoesNotRun() {
-    LastSchedulerRun spy = Mockito.spy(new LastSchedulerRun());
-    Instant invalidRunTime = Instant.now().minus(Duration.ofMinutes(15));
-    when(spy.getLastRunTime()).thenReturn(invalidRunTime);
+  @ParameterizedTest(name = "{0} should be UP")
+  @MethodSource("schedulerNames")
+  void should_ReturnUp_When_SchedulerRuns(String name) {
+    Instant recentRun = Instant.now().minus(Duration.ofMillis(1000));
+    LastSchedulerRun mockRun = mock(LastSchedulerRun.class);
+    when(mockRun.getLastRunTime()).thenReturn(recentRun);
 
-    SchedulerHealthCheck schedulerHealthCheck = new SchedulerHealthCheck(spy);
-    Health health = Health.down().withDetail("Last Run", spy.getLastRunTime()).build();
+    HealthIndicator indicator = new SchedulerHealthIndicator(mockRun, Duration.ofMillis(1500));
+    Health expected = Health.up().withDetail("Last Run", recentRun).build();
 
-    assertThat(schedulerHealthCheck.health()).isEqualTo(health);
+    assertThat(indicator.health()).isEqualTo(expected);
+  }
+
+  @ParameterizedTest(name = "{0} should be DOWN")
+  @MethodSource("schedulerNames")
+  void should_ReturnDown_When_SchedulerRuns(String name) {
+    Instant recentRun = Instant.now().minus(Duration.ofMillis(2000));
+    LastSchedulerRun mockRun = mock(LastSchedulerRun.class);
+    when(mockRun.getLastRunTime()).thenReturn(recentRun);
+
+    HealthIndicator indicator = new SchedulerHealthIndicator(mockRun, Duration.ofMillis(1500));
+    Health expected = Health.down().withDetail("Last Run", recentRun).build();
+
+    assertThat(indicator.health()).isEqualTo(expected);
   }
 
   @Test
   void should_ReturnUp_When_CallingHealthEndpoint() {
-    Instant validRunTime = Instant.now().minus(Duration.ofMinutes(5));
-    when(spyHealthCheck.health())
-        .thenReturn(Health.up().withDetail("Last Run", validRunTime).build());
-
-    ResponseEntity<String> response =
-        testRestTemplate.getForEntity(
-            HEALTH_ENDPOINT, String.class);
+    HealthIndicator starterHealthCheck =
+        (HealthIndicator) schedulerHealthIndicator.getContributor("Kadai Task Starter");
+    when(starterHealthCheck.health())
+        .thenReturn(Health.up().withDetail("Last Run", DUMMY_RUN_TIME).build());
+    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).contains("Last Run", validRunTime.toString());
+    assertThat(response.getBody()).contains("Last Run", DUMMY_RUN_TIME.toString());
   }
 
   @Test
   void should_ReturnDown_When_CallingHealthEndpoint() {
-    Instant validRunTime = Instant.now().minus(Duration.ofMinutes(15));
-    when(spyHealthCheck.health())
-        .thenReturn(Health.down().withDetail("Last Run", validRunTime).build());
+    Instant invalidRunTime = Instant.now().minus(Duration.ofMinutes(15));
+    HealthIndicator starterHealthCheck =
+        (HealthIndicator) schedulerHealthIndicator.getContributor("Kadai Task Starter");
+    when(starterHealthCheck.health())
+        .thenReturn(Health.down().withDetail("Last Run", invalidRunTime).build());
 
-    ResponseEntity<String> response =
-        testRestTemplate.getForEntity(
-            HEALTH_ENDPOINT, String.class);
+    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-    assertThat(response.getBody()).contains("Last Run", validRunTime.toString());
+    assertThat(response.getBody()).contains("Last Run", invalidRunTime.toString());
   }
 }
