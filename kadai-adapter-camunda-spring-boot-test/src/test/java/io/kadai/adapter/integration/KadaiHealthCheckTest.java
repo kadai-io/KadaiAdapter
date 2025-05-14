@@ -5,6 +5,8 @@ import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.monitoring.KadaiHealthCheck;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -12,12 +14,14 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-@SpringBootTest(
-    classes = KadaiAdapterTestApplication.class,
-    webEnvironment = WebEnvironment.DEFINED_PORT)
 class KadaiHealthCheckTest {
 
-  @Spy private KadaiHealthCheck kadaiHealthCheckSpy;
+  private KadaiHealthCheck kadaiHealthCheckSpy;
+
+  @BeforeEach
+  void setUp() {
+    this.kadaiHealthCheckSpy = Mockito.spy(new KadaiHealthCheck());
+  }
 
   @Test
   void should_ReturnUp_When_ReturnValidSchemaVersion() {
