@@ -11,7 +11,6 @@ import org.mockito.Spy;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest(
     classes = KadaiAdapterTestApplication.class,
