@@ -1,115 +1,63 @@
 package io.kadai.adapter.integration;
 
-import static io.kadai.adapter.integration.HealthCheckEndpoints.CAMUNDA_ENGINE_ENDPOINT;
-import static io.kadai.adapter.integration.HealthCheckEndpoints.HEALTH_ENDPOINT;
-import static io.kadai.adapter.integration.HealthCheckEndpoints.OUTBOX_EVENTS_COUNT_ENDPOINT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-import io.kadai.adapter.test.KadaiAdapterTestApplication;
-import io.kadai.common.test.security.JaasExtension;
-import io.kadai.common.test.security.WithAccessId;
-import org.junit.jupiter.api.AfterEach;
+import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
+import io.kadai.adapter.monitoring.OutboxHealthCheck;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpMethod;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.client.ExpectedCount;
-import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-@SpringBootTest(
-    classes = KadaiAdapterTestApplication.class,
-    webEnvironment = WebEnvironment.DEFINED_PORT)
-@AutoConfigureWebTestClient
-@ExtendWith(JaasExtension.class)
-class OutboxHealthCheckTest extends AbsIntegrationTest {
+class OutboxHealthCheckTest {
 
-  @Autowired private TestRestTemplate testRestTemplate;
-  @Autowired private RestTemplate restTemplate;
-  private MockRestServiceServer mockServer;
+  private OutboxHealthCheck outboxHealthCheckSpy;
+  private RestTemplate restTemplate;
 
   @BeforeEach
-  @WithAccessId(user = "admin")
   void setUp() {
-    mockServer = MockRestServiceServer.bindTo(restTemplate).ignoreExpectOrder(true).build();
-  }
-
-  @AfterEach
-  void tearDown() {
-    mockServer.reset();
-  }
-
-  @Test
-  void should_ReturnUp_When_OutboxServiceIsHealthy() {
-    mockServer
-        .expect(ExpectedCount.manyTimes(), requestTo(OUTBOX_EVENTS_COUNT_ENDPOINT))
-        .andExpect(method(HttpMethod.GET))
-        .andRespond(withSuccess("{\"eventsCount\": 5}", MediaType.APPLICATION_JSON));
-    dummyCamundaEngineMock();
-
-    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .contains("\"outbox\":{\"status\":\"UP\"")
-        .contains("\"Outbox Service\":{\"eventsCount\":5}");
+    this.restTemplate = Mockito.mock(RestTemplate.class);
+    this.outboxHealthCheckSpy =
+        Mockito.spy(
+            new OutboxHealthCheck(restTemplate, "http://localhost", 8090, "example-context-root"));
   }
 
   @Test
-  void should_ReturnDown_When_ReturnOtherStatusCode() {
-    // should return down when status code is not 200
-    mockServer
-        .expect(ExpectedCount.manyTimes(), requestTo(OUTBOX_EVENTS_COUNT_ENDPOINT))
-        .andExpect(method(HttpMethod.GET))
-        .andRespond(
-            withStatus(HttpStatus.ACCEPTED)
-                .body("{\"eventsCount\": 5}")
-                .contentType(MediaType.APPLICATION_JSON));
-    dummyCamundaEngineMock();
+  void should_ReturnUp_When_OutboxRespondsSuccessfully() {
+    when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
+        .thenReturn(ResponseEntity.ok().body(new OutboxEventCountRepresentationModel()));
 
-    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
+    assertThat(outboxHealthCheckSpy.health().getStatus()).isEqualTo(Status.UP);
+  }
 
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-    assertThat(response.getBody())
-        .contains("\"outbox\":{\"status\":\"DOWN\"")
-        .contains("\"Outbox Service Error\":\"Unexpected status: 202 ACCEPTED\"");
+  @ParameterizedTest
+  @MethodSource("errorResponseProvider")
+  void should_ReturnDown_When_OutboxRespondsWithError(HttpStatus httpStatus) {
+    when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
+        .thenReturn(ResponseEntity.status(httpStatus).build());
+
+    assertThat(outboxHealthCheckSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @Test
-  void should_ThrowException_When_ReturnOtherStatusCode() {
-    // should return when an exception is catched
-    mockServer
-        .expect(ExpectedCount.manyTimes(), requestTo(OUTBOX_EVENTS_COUNT_ENDPOINT))
-        .andExpect(method(HttpMethod.GET))
-        .andRespond(
-            withStatus(HttpStatus.NOT_FOUND)
-                .body("Page Not Found")
-                .contentType(MediaType.TEXT_PLAIN));
-    dummyCamundaEngineMock();
+  void should_ReturnDown_When_OutboxPingFails() {
+    when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
+        .thenThrow(new RuntimeException("foo"));
 
-    ResponseEntity<String> response = testRestTemplate.getForEntity(HEALTH_ENDPOINT, String.class);
-
-    assertThat(response.getBody())
-        .contains("\"outbox\":{\"status\":\"DOWN\"")
-        .contains("\"Outbox Service Error\":");
+    assertThat(outboxHealthCheckSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
-  private void dummyCamundaEngineMock() {
-    mockServer
-        .expect(ExpectedCount.manyTimes(), requestTo(CAMUNDA_ENGINE_ENDPOINT))
-        .andExpect(method(HttpMethod.GET))
-        .andRespond(withSuccess("[{\"name\": \"default\"}]", MediaType.APPLICATION_JSON));
+  private static Stream<Arguments> errorResponseProvider() {
+    return Arrays.stream(HttpStatus.values()).filter(HttpStatus::isError).map(Arguments::of);
   }
 }

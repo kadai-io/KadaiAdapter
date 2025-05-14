@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.actuate.health.Health;
 
-class SchedulerHealthCheckTest extends AbsIntegrationTest {
+class SchedulerHealthCheckTest {
 
   private SchedulerHealthCheck schedulerHealthCheckSpy;
   private LastSchedulerRun lastSchedulerRunSpy;
