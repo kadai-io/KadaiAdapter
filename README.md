@@ -30,7 +30,6 @@ the [Transactional-Outbox-Pattern](https://microservices.io/patterns/data/transa
 | **kadai-adapter-camunda-outbox-rest-spring-boot-starter** | SpringBoot-Starter in case the REST-Service is used within a SpringBoot-Application.                                                                                                                                                              |
 | **kadai-adapter-camunda-spring-boot-sample**              | SpringBoot-Application containing the adapter with the sample camunda-system-connector implementation.                                                                                                                                            |
 | **kadai-adapter-camunda-spring-boot-test**                | SpringBoot-Application containing camunda, the adapter, and the outbox REST-Service to test a complete scenario.                                                                                                                                  |
-| **kadai-adapter-camunda-wildfly-example**                 | Example that can be deployed on Wildfly and contains the adapter with the sample camunda-system-connector implementation.                                                                                                                         |
 | **kadai-adapter-camunda-listener-example**                | Example Process-Application that can be deployed to camunda.                                                                                                                                                                                      |
 
 ## 🔗The Adapter defines two SPIs
@@ -88,8 +87,9 @@ The adapter performs periodically the following tasks
 
 # 📨Contact
 
-If you have any questions or ideas feel free to create an [issue](https://github.com/kadai-io/KadaiAdapter/issues) or contact us
-via [GitHub Discussions](https://github.com/kadai-io/kadai/discussions).
+If you have any questions or ideas feel free to create an [issue](https://github.com/kadai-io/kadai/issues), 
+contact us via [GitHub Discussions](https://github.com/kadai-io/kadai/discussions) 
+or E-mail us at [kadai@envite.de](mailto:kadai@envite.de).
 
 We love listening to your feedback, and of course also discussing the project roadmap and possible use cases with you!
 
