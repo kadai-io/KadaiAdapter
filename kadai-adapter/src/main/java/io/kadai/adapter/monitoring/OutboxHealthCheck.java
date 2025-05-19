@@ -1,49 +1,32 @@
 package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
-import jakarta.annotation.PostConstruct;
 import java.net.URI;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@Component
 public class OutboxHealthCheck implements HealthIndicator {
 
   private final RestTemplate restTemplate;
-
-  @Value("${camundaOutboxService.address:http://localhost}")
-  private String camundaOutboxAddress;
-
-  @Value("${camundaOutboxService.port:8090}")
-  private int camundaOutboxPort;
-
-  @Value("${outbox.context-path:}")
-  private String contextPath;
-
+  private final String camundaOutboxAddress;
+  private final int camundaOutboxPort;
+  private final String contextPath;
   private URI url;
 
-  public OutboxHealthCheck(RestTemplate restTemplate) {
+  public OutboxHealthCheck(
+      RestTemplate restTemplate,
+      String camundaOutboxAddress,
+      int camundaOutboxPort,
+      String contextPath) {
     this.restTemplate = restTemplate;
-  }
-
-  @PostConstruct
-  public void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("outbox-rest")
-            .pathSegment("events")
-            .pathSegment("count")
-            .queryParam("retries", 0)
-            .build()
-            .toUri();
+    this.camundaOutboxAddress = camundaOutboxAddress;
+    this.camundaOutboxPort = camundaOutboxPort;
+    this.contextPath = contextPath;
+    init();
   }
 
   @Override
@@ -64,7 +47,20 @@ public class OutboxHealthCheck implements HealthIndicator {
     }
   }
 
-  private ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() throws Exception {
+  private void init() {
+    this.url =
+        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
+            .port(camundaOutboxPort)
+            .pathSegment(contextPath)
+            .pathSegment("outbox-rest")
+            .pathSegment("events")
+            .pathSegment("count")
+            .queryParam("retries", 0)
+            .build()
+            .toUri();
+  }
+
+  private ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
     return restTemplate.getForEntity(url, OutboxEventCountRepresentationModel.class);
   }
 }
