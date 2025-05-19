@@ -1,46 +1,32 @@
 package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.models.CamundaEngineInfoRepresentationModel;
-import jakarta.annotation.PostConstruct;
 import java.net.URI;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@Component
 public class CamundaHealthCheck implements HealthIndicator {
 
   private final RestTemplate restTemplate;
-
-  @Value("${camundaOutboxService.address:http://localhost}")
-  private String camundaOutboxAddress;
-
-  @Value("${camundaOutboxService.port:8090}")
-  private int camundaOutboxPort;
-
-  @Value("${outbox.context-path:}")
-  private String contextPath;
+  private final String camundaOutboxAddress;
+  private final int camundaOutboxPort;
+  private final String contextPath;
 
   private URI url;
 
-  public CamundaHealthCheck(RestTemplate restTemplate) {
+  public CamundaHealthCheck(
+      RestTemplate restTemplate,
+      String camundaOutboxAddress,
+      int camundaOutboxPort,
+      String contextPath) {
     this.restTemplate = restTemplate;
-  }
-
-  @PostConstruct
-  public void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("engine-rest")
-            .pathSegment("engine")
-            .build()
-            .toUri();
+    this.camundaOutboxAddress = camundaOutboxAddress;
+    this.camundaOutboxPort = camundaOutboxPort;
+    this.contextPath = contextPath;
+    init();
   }
 
   @Override
@@ -58,9 +44,18 @@ public class CamundaHealthCheck implements HealthIndicator {
     }
   }
 
-  private ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest()
-      throws Exception {
+  private void init() {
+    this.url =
+        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
+            .port(camundaOutboxPort)
+            .pathSegment(contextPath)
+            .pathSegment("engine-rest")
+            .pathSegment("engine")
+            .build()
+            .toUri();
+  }
 
+  private ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {
     return restTemplate.getForEntity(url, CamundaEngineInfoRepresentationModel[].class);
   }
 }

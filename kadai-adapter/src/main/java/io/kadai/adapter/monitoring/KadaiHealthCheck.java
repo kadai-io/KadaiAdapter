@@ -3,9 +3,7 @@ package io.kadai.adapter.monitoring;
 import io.kadai.KadaiConfiguration;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.stereotype.Component;
 
-@Component
 public class KadaiHealthCheck implements HealthIndicator {
 
   @Override
@@ -14,12 +12,11 @@ public class KadaiHealthCheck implements HealthIndicator {
       String version = getCurrentSchemaVersion();
       return Health.up().withDetail("Kadai Version", version).build();
     } catch (Exception e) {
-      Health health = Health.down().withDetail("Kadai Service Error", e.getMessage()).build();
-      return health;
+      return Health.down().withDetail("Kadai Service Error", e.getMessage()).build();
     }
   }
 
-  public String getCurrentSchemaVersion() throws Exception {
+  public String getCurrentSchemaVersion() {
     return KadaiConfiguration.class.getPackage().getImplementationVersion();
   }
 }
