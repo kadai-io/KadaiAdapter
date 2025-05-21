@@ -1,10 +1,10 @@
-package io.kadai.adapter.integration;
+package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.impl.LastSchedulerRun;
-import io.kadai.adapter.monitoring.scheduler.SchedulerHealthComposite;
+import io.kadai.adapter.monitoring.scheduler.SchedulerHealthIndicator;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,26 +12,27 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.actuate.health.Health;
 
-class SchedulerHealthCompositeTest {
+class SchedulerHealthIndicatorTest {
 
-  private SchedulerHealthComposite schedulerHealthCompositeSpy;
+  private SchedulerHealthIndicator schedulerHealthIndicatorSpy;
   private LastSchedulerRun lastSchedulerRunSpy;
 
   @BeforeEach
   void setUp() {
     this.lastSchedulerRunSpy = Mockito.spy(new LastSchedulerRun());
-    this.schedulerHealthCompositeSpy = Mockito.spy(new SchedulerHealthComposite(lastSchedulerRunSpy));
+    this.schedulerHealthIndicatorSpy =
+        Mockito.spy(new SchedulerHealthIndicator(lastSchedulerRunSpy, Duration.ofMinutes(5)));
   }
 
   @Test
   void should_ReturnUp_When_SchedulerRuns() {
-    Instant validRunTime = Instant.now().minus(Duration.ofMinutes(5));
+    Instant validRunTime = Instant.now().minus(Duration.ofMinutes(3));
     when(lastSchedulerRunSpy.getLastRunTime()).thenReturn(validRunTime);
 
     Health health =
-        Health.up().withDetail("Last Run", lastSchedulerRunSpy.getLastRunTime()).build();
+        Health.up().withDetail("lastRun", lastSchedulerRunSpy.getLastRunTime()).build();
 
-    assertThat(schedulerHealthCompositeSpy.health()).isEqualTo(health);
+    assertThat(schedulerHealthIndicatorSpy.health()).isEqualTo(health);
   }
 
   @Test
@@ -40,8 +41,8 @@ class SchedulerHealthCompositeTest {
     when(lastSchedulerRunSpy.getLastRunTime()).thenReturn(invalidRunTime);
 
     Health health =
-        Health.down().withDetail("Last Run", lastSchedulerRunSpy.getLastRunTime()).build();
+        Health.down().withDetail("lastRun", lastSchedulerRunSpy.getLastRunTime()).build();
 
-    assertThat(schedulerHealthCompositeSpy.health()).isEqualTo(health);
+    assertThat(schedulerHealthIndicatorSpy.health()).isEqualTo(health);
   }
 }
