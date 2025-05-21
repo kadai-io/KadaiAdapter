@@ -1,4 +1,4 @@
-package io.kadai.adapter.monitoring.scheduler;
+package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.impl.ScheduledComponent;

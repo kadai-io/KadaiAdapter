@@ -1,4 +1,4 @@
-package io.kadai.adapter.monitoring.scheduler;
+package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
 import io.kadai.adapter.impl.KadaiTaskStarter;
