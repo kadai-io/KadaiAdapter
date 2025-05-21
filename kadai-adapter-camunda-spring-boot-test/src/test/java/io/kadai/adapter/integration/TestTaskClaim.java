@@ -24,7 +24,8 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.kadai.adapter.impl.LastSchedulerRun;
+
+import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaUtilRequester;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
@@ -52,7 +53,8 @@ import org.springframework.test.context.ContextConfiguration;
 @ExtendWith(JaasExtension.class)
 @ContextConfiguration
 class TestTaskClaim extends AbsIntegrationTest {
-  @Autowired private LastSchedulerRun lastSchedulerRun;
+
+  @Autowired private ReferencedTaskClaimer referencedTaskClaimer;
 
   @WithAccessId(
       user = "teamlead_1",
@@ -99,7 +101,7 @@ class TestTaskClaim extends AbsIntegrationTest {
           this.camundaProcessengineRequester.isCorrectAssignee(camundaTaskId, "teamlead_1");
       assertThat(assigneeSetSuccessfully).isTrue();
     }
-    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
+    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getLastRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
@@ -203,7 +205,7 @@ class TestTaskClaim extends AbsIntegrationTest {
           this.camundaProcessengineRequester.isCorrectAssignee(camundaTaskId, null);
       assertThat(noAssigneeSet).isTrue();
     }
-    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
+    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getLastRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
