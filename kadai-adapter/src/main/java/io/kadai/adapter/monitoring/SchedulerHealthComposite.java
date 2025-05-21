@@ -55,7 +55,7 @@ public class SchedulerHealthComposite implements CompositeHealthContributor {
   @Override
   public Iterator<NamedContributor<HealthContributor>> iterator() {
     return healthContributors.entrySet().stream()
-        .map((entry) -> NamedContributor.of(entry.getKey(), entry.getValue()))
+        .map(entry -> NamedContributor.of(entry.getKey(), entry.getValue()))
         .iterator();
   }
 }
