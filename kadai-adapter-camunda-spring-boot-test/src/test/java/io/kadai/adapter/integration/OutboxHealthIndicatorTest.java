@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
-import io.kadai.adapter.monitoring.OutboxHealthCheck;
+import io.kadai.adapter.monitoring.OutboxHealthIndicator;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,17 +19,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-class OutboxHealthCheckTest {
+class OutboxHealthIndicatorTest {
 
-  private OutboxHealthCheck outboxHealthCheckSpy;
+  private OutboxHealthIndicator outboxHealthIndicatorSpy;
   private RestTemplate restTemplate;
 
   @BeforeEach
   void setUp() {
     this.restTemplate = Mockito.mock(RestTemplate.class);
-    this.outboxHealthCheckSpy =
+    this.outboxHealthIndicatorSpy =
         Mockito.spy(
-            new OutboxHealthCheck(restTemplate, "http://localhost", 8090, "example-context-root"));
+            new OutboxHealthIndicator(restTemplate, "http://localhost", 8090, "example-context-root"));
   }
 
   @Test
@@ -37,7 +37,7 @@ class OutboxHealthCheckTest {
     when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
         .thenReturn(ResponseEntity.ok().body(new OutboxEventCountRepresentationModel()));
 
-    assertThat(outboxHealthCheckSpy.health().getStatus()).isEqualTo(Status.UP);
+    assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.UP);
   }
 
   @ParameterizedTest
@@ -46,7 +46,7 @@ class OutboxHealthCheckTest {
     when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
         .thenReturn(ResponseEntity.status(httpStatus).build());
 
-    assertThat(outboxHealthCheckSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @Test
@@ -54,7 +54,7 @@ class OutboxHealthCheckTest {
     when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
         .thenThrow(new RuntimeException("foo"));
 
-    assertThat(outboxHealthCheckSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   private static Stream<Arguments> errorResponseProvider() {

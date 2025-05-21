@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.impl.LastSchedulerRun;
-import io.kadai.adapter.monitoring.SchedulerHealthCheck;
+import io.kadai.adapter.monitoring.scheduler.SchedulerHealthComposite;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,15 +12,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.actuate.health.Health;
 
-class SchedulerHealthCheckTest {
+class SchedulerHealthCompositeTest {
 
-  private SchedulerHealthCheck schedulerHealthCheckSpy;
+  private SchedulerHealthComposite schedulerHealthCompositeSpy;
   private LastSchedulerRun lastSchedulerRunSpy;
 
   @BeforeEach
   void setUp() {
     this.lastSchedulerRunSpy = Mockito.spy(new LastSchedulerRun());
-    this.schedulerHealthCheckSpy = Mockito.spy(new SchedulerHealthCheck(lastSchedulerRunSpy));
+    this.schedulerHealthCompositeSpy = Mockito.spy(new SchedulerHealthComposite(lastSchedulerRunSpy));
   }
 
   @Test
@@ -31,7 +31,7 @@ class SchedulerHealthCheckTest {
     Health health =
         Health.up().withDetail("Last Run", lastSchedulerRunSpy.getLastRunTime()).build();
 
-    assertThat(schedulerHealthCheckSpy.health()).isEqualTo(health);
+    assertThat(schedulerHealthCompositeSpy.health()).isEqualTo(health);
   }
 
   @Test
@@ -42,6 +42,6 @@ class SchedulerHealthCheckTest {
     Health health =
         Health.down().withDetail("Last Run", lastSchedulerRunSpy.getLastRunTime()).build();
 
-    assertThat(schedulerHealthCheckSpy.health()).isEqualTo(health);
+    assertThat(schedulerHealthCompositeSpy.health()).isEqualTo(health);
   }
 }

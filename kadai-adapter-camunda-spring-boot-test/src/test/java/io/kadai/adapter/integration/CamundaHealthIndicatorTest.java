@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.models.CamundaEngineInfoRepresentationModel;
-import io.kadai.adapter.monitoring.CamundaHealthCheck;
+import io.kadai.adapter.monitoring.CamundaHealthIndicator;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,17 +19,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-class CamundaHealthCheckTest {
+class CamundaHealthIndicatorTest {
 
-  private CamundaHealthCheck camundaHealthCheckSpy;
+  private CamundaHealthIndicator camundaHealthIndicatorSpy;
   private RestTemplate restTemplate;
 
   @BeforeEach
   void setUp() {
     this.restTemplate = Mockito.mock(RestTemplate.class);
-    this.camundaHealthCheckSpy =
+    this.camundaHealthIndicatorSpy =
         Mockito.spy(
-            new CamundaHealthCheck(restTemplate, "http://localhost", 8090, "example-context-root"));
+            new CamundaHealthIndicator(restTemplate, "http://localhost", 8090, "example-context-root"));
   }
 
   @Test
@@ -42,7 +42,7 @@ class CamundaHealthCheckTest {
                       new CamundaEngineInfoRepresentationModel()
                     }));
 
-    assertThat(camundaHealthCheckSpy.health().getStatus()).isEqualTo(Status.UP);
+    assertThat(camundaHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.UP);
   }
 
   @Test
@@ -50,7 +50,7 @@ class CamundaHealthCheckTest {
     when(restTemplate.<CamundaEngineInfoRepresentationModel[]>getForEntity(any(), any()))
         .thenReturn(ResponseEntity.ok().body(new CamundaEngineInfoRepresentationModel[] {}));
 
-    assertThat(camundaHealthCheckSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(camundaHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @ParameterizedTest
@@ -59,7 +59,7 @@ class CamundaHealthCheckTest {
     when(restTemplate.<CamundaEngineInfoRepresentationModel[]>getForEntity(any(), any()))
         .thenReturn(ResponseEntity.status(httpStatus).build());
 
-    assertThat(camundaHealthCheckSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(camundaHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @Test
@@ -67,7 +67,7 @@ class CamundaHealthCheckTest {
     when(restTemplate.<CamundaEngineInfoRepresentationModel[]>getForEntity(any(), any()))
         .thenThrow(new RuntimeException("foo"));
 
-    assertThat(camundaHealthCheckSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(camundaHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   private static Stream<Arguments> errorResponseProvider() {

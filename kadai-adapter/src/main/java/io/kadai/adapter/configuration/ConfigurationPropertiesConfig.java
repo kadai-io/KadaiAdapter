@@ -1,4 +1,4 @@
-package io.kadai.adapter.configuration.health;
+package io.kadai.adapter.configuration;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

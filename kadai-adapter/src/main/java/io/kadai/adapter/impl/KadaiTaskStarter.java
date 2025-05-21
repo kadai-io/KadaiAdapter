@@ -25,29 +25,34 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.task.api.exceptions.TaskAlreadyExistException;
 import io.kadai.task.api.models.Task;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /** Retrieves tasks in an external system and starts corresponding tasks in KADAI. */
 @Component
-public class KadaiTaskStarter {
+public class KadaiTaskStarter implements ScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskStarter.class);
+  private final AdapterManager adapterManager;
+  private final LastSchedulerRun lastSchedulerRun;
 
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
-  private final AdapterManager adapterManager;
-  private final LastSchedulerRun lastSchedulerRun;
+  @Value("${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
+  private int runIntervalMillis;
 
-  public KadaiTaskStarter(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+  @Autowired
+  public KadaiTaskStarter(AdapterManager adapterManager) {
     this.adapterManager = adapterManager;
-    this.lastSchedulerRun = lastSchedulerRun;
+    this.lastSchedulerRun = new LastSchedulerRun();
   }
 
   @Scheduled(
@@ -108,6 +113,16 @@ public class KadaiTaskStarter {
     connector.createKadaiTask(kadaiTask);
 
     LOGGER.trace("KadaiTaskStarter.createKadaiTask EXIT ");
+  }
+
+  @Override
+  public LastSchedulerRun getLastSchedulerRun() {
+    return lastSchedulerRun;
+  }
+
+  @Override
+  public Duration getRunInterval() {
+    return Duration.ofMillis(runIntervalMillis);
   }
 
   private List<ReferencedTask> createAndStartKadaiTasks(

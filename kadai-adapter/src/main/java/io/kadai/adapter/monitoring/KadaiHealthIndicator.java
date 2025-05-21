@@ -4,7 +4,7 @@ import io.kadai.KadaiConfiguration;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 
-public class KadaiHealthCheck implements HealthIndicator {
+public class KadaiHealthIndicator implements HealthIndicator {
 
   @Override
   public Health health() {
