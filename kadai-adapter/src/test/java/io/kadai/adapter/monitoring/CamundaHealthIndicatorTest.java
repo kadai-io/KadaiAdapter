@@ -1,11 +1,10 @@
-package io.kadai.adapter.integration;
+package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.models.CamundaEngineInfoRepresentationModel;
-import io.kadai.adapter.monitoring.CamundaHealthIndicator;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +28,8 @@ class CamundaHealthIndicatorTest {
     this.restTemplate = Mockito.mock(RestTemplate.class);
     this.camundaHealthIndicatorSpy =
         Mockito.spy(
-            new CamundaHealthIndicator(restTemplate, "http://localhost", 8090, "example-context-root"));
+            new CamundaHealthIndicator(
+                restTemplate, "http://localhost", 8090, "example-context-root"));
   }
 
   @Test

@@ -1,11 +1,10 @@
-package io.kadai.adapter.integration;
+package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
-import io.kadai.adapter.monitoring.OutboxHealthIndicator;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +28,8 @@ class OutboxHealthIndicatorTest {
     this.restTemplate = Mockito.mock(RestTemplate.class);
     this.outboxHealthIndicatorSpy =
         Mockito.spy(
-            new OutboxHealthIndicator(restTemplate, "http://localhost", 8090, "example-context-root"));
+            new OutboxHealthIndicator(
+                restTemplate, "http://localhost", 8090, "example-context-root"));
   }
 
   @Test

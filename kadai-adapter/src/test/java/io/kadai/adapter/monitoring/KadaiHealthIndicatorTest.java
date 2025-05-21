@@ -1,9 +1,8 @@
-package io.kadai.adapter.integration;
+package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.kadai.adapter.monitoring.KadaiHealthIndicator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
