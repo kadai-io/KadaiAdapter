@@ -165,9 +165,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
-  void
-      should_CreateKadaiTask_When_StartUserTaskProcessInstanceWithEmptyExtensionPropertyInCamunda()
-          throws Exception {
+  void should_CreateKadaiTask_When_StartUserTaskProcessInstanceWithEmptyExtensionPropertyInCamunda()
+      throws Exception {
 
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
@@ -297,8 +296,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       throws Exception {
 
     String variables =
-        "\"variables\": {\"kadai.manual-priority\": {\"value\":\"555\", "
-            + "\"type\":\"string\"}}";
+        "\"variables\": {\"kadai.manual-priority\": {\"value\":\"555\", " + "\"type\":\"string\"}}";
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
             "simple_user_task_process", variables);
@@ -317,9 +315,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
-  void
-      should_CreateKadaiTaskWithDefaultManualPriority_When_StartCamundaTaskWithoutManualPriority()
-          throws Exception {
+  void should_CreateKadaiTaskWithDefaultManualPriority_When_StartCamundaTaskWithoutManualPriority()
+      throws Exception {
 
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
@@ -609,9 +606,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
-  void
-      should_CreateKadaiTasksWithCorrectDomains_When_StartProcessWithDomainsInExtensionProperties()
-          throws Exception {
+  void should_CreateKadaiTasksWithCorrectDomains_When_StartProcessWithDomainsInExtensionProperties()
+      throws Exception {
 
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
