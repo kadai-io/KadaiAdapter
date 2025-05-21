@@ -24,10 +24,12 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.common.api.exceptions.SystemException;
 import io.kadai.task.api.CallbackState;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -37,19 +39,23 @@ import org.springframework.transaction.annotation.Transactional;
  * Completes ReferencedTasks in the external system after completion of corresponding KADAI tasks.
  */
 @Component
-public class ReferencedTaskCompleter {
+public class ReferencedTaskCompleter implements ScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReferencedTaskCompleter.class);
+  private final AdapterManager adapterManager;
+  private final LastSchedulerRun lastSchedulerRun;
 
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
-  private final AdapterManager adapterManager;
-  private final LastSchedulerRun lastSchedulerRun;
+  @Value(
+      "${kadai.adapter.scheduler.run.interval.for.complete.referenced.tasks.in.milliseconds:5000}")
+  private int runIntervalMillis;
 
-  public ReferencedTaskCompleter(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+  @Autowired
+  public ReferencedTaskCompleter(AdapterManager adapterManager) {
     this.adapterManager = adapterManager;
-    this.lastSchedulerRun = lastSchedulerRun;
+    this.lastSchedulerRun = new LastSchedulerRun();
   }
 
   @Scheduled(
@@ -123,6 +129,16 @@ public class ReferencedTaskCompleter {
     LOGGER.trace(
         "Exit from ReferencedTaskCompleter.completeReferencedTask, Success = {} ", success);
     return success;
+  }
+
+  @Override
+  public LastSchedulerRun getLastSchedulerRun() {
+    return lastSchedulerRun;
+  }
+
+  @Override
+  public Duration getRunInterval() {
+    return Duration.ofMillis(runIntervalMillis);
   }
 
   private List<ReferencedTask> completeReferencedTasksInExternalSystem(

@@ -24,10 +24,12 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.common.api.exceptions.SystemException;
 import io.kadai.task.api.CallbackState;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -35,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Cancels claims of ReferencedTasks in external system that have been cancel claimed in KADAI. */
 @Component
-public class ReferencedTaskClaimCanceler {
+public class ReferencedTaskClaimCanceler implements ScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReferencedTaskClaimCanceler.class);
   private final AdapterManager adapterManager;
@@ -44,10 +46,15 @@ public class ReferencedTaskClaimCanceler {
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
-  public ReferencedTaskClaimCanceler(
-      AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+  @Value(
+      "${kadai.adapter.scheduler.run.interval.for.cancel.claim.referenced.tasks.in.milliseconds"
+          + ":5000}")
+  private int runIntervalMillis;
+
+  @Autowired
+  public ReferencedTaskClaimCanceler(AdapterManager adapterManager) {
     this.adapterManager = adapterManager;
-    this.lastSchedulerRun = lastSchedulerRun;
+    this.lastSchedulerRun = new LastSchedulerRun();
   }
 
   @Scheduled(
@@ -96,6 +103,16 @@ public class ReferencedTaskClaimCanceler {
               + "retrieveCancelledClaimKadaiTasksAndCancel"
               + "ClaimCorrespondingReferencedTask EXIT ");
     }
+  }
+
+  @Override
+  public LastSchedulerRun getLastSchedulerRun() {
+    return lastSchedulerRun;
+  }
+
+  @Override
+  public Duration getRunInterval() {
+    return Duration.ofMillis(runIntervalMillis);
   }
 
   private List<ReferencedTask> cancelClaimReferencedTasksInExternalSystem(
