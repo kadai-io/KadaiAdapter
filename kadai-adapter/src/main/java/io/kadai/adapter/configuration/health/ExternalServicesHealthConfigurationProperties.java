@@ -49,6 +49,30 @@ public class ExternalServicesHealthConfigurationProperties
     this.scheduler = scheduler;
   }
 
+  public ExternalServicesHealthConfigurationProperties withCamunda(
+      CompositeHealthContributorConfigurationProperties camunda) {
+    this.camunda = camunda;
+    return this;
+  }
+
+  public ExternalServicesHealthConfigurationProperties withOutbox(
+      CompositeHealthContributorConfigurationProperties outbox) {
+    this.outbox = outbox;
+    return this;
+  }
+
+  public ExternalServicesHealthConfigurationProperties withKadai(
+      CompositeHealthContributorConfigurationProperties kadai) {
+    this.kadai = kadai;
+    return this;
+  }
+
+  public ExternalServicesHealthConfigurationProperties withScheduler(
+      SchedulerHealthConfigurationProperties scheduler) {
+    this.scheduler = scheduler;
+    return this;
+  }
+
   public static class SchedulerHealthConfigurationProperties
       extends CompositeHealthContributorConfigurationProperties {
 
@@ -106,6 +130,36 @@ public class ExternalServicesHealthConfigurationProperties
     public void setKadaiTaskTerminator(
         CompositeHealthContributorConfigurationProperties kadaiTaskTerminator) {
       this.kadaiTaskTerminator = kadaiTaskTerminator;
+    }
+
+    public SchedulerHealthConfigurationProperties withReferencedTaskCompleter(
+        CompositeHealthContributorConfigurationProperties referencedTaskCompleter) {
+      this.referencedTaskCompleter = referencedTaskCompleter;
+      return this;
+    }
+
+    public SchedulerHealthConfigurationProperties withReferencedTaskClaimer(
+        CompositeHealthContributorConfigurationProperties referencedTaskClaimer) {
+      this.referencedTaskClaimer = referencedTaskClaimer;
+      return this;
+    }
+
+    public SchedulerHealthConfigurationProperties withReferencedTaskClaimCanceler(
+        CompositeHealthContributorConfigurationProperties referencedTaskClaimCanceler) {
+      this.referencedTaskClaimCanceler = referencedTaskClaimCanceler;
+      return this;
+    }
+
+    public SchedulerHealthConfigurationProperties withKadaiTaskStarter(
+        CompositeHealthContributorConfigurationProperties kadaiTaskStarter) {
+      this.kadaiTaskStarter = kadaiTaskStarter;
+      return this;
+    }
+
+    public SchedulerHealthConfigurationProperties withKadaiTaskTerminator(
+        CompositeHealthContributorConfigurationProperties kadaiTaskTerminator) {
+      this.kadaiTaskTerminator = kadaiTaskTerminator;
+      return this;
     }
   }
 }

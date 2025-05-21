@@ -11,4 +11,9 @@ public class CompositeHealthContributorConfigurationProperties {
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
+
+  public CompositeHealthContributorConfigurationProperties withEnabled(boolean enabled) {
+    this.enabled = enabled;
+    return this;
+  }
 }
