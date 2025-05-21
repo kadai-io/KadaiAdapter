@@ -6,7 +6,7 @@ import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
 import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.ReferencedTaskCompleter;
-import io.kadai.adapter.monitoring.scheduler.SchedulerHealthComposite;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -20,7 +20,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-@Component("external-services")
+@Component("externalServices")
 @ConditionalOnEnabledHealthIndicator("external-services")
 public class ExternalServicesHealthComposite implements CompositeHealthContributor {
 

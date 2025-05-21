@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.impl.LastSchedulerRun;
-import io.kadai.adapter.monitoring.scheduler.SchedulerHealthIndicator;
+
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
