@@ -6,7 +6,6 @@ import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
 import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.ReferencedTaskCompleter;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
