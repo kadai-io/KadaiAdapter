@@ -35,6 +35,11 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.camunda</groupId>
+      <artifactId>spring-boot-starter-camunda-sdk</artifactId>
+      <version>8.6.5</version>
+    </dependency>
+    <dependency>
       <groupId>io.kadai</groupId>
       <artifactId>kadai-adapter</artifactId>
       <version>${project.version}</version>
