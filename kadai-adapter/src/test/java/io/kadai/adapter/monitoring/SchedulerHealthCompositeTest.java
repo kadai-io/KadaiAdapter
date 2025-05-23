@@ -34,7 +34,7 @@ public class SchedulerHealthCompositeTest {
         "kadaiTaskStarter",
         "kadaiTaskTerminator"
       })
-  void should_CreateAllContributingHealthIndicatorsByDefaultAndNameThemAccordingToJSON(
+  void should_CreateAllContributingHealthIndicatorsByDefaultAndNameThemAccordingToJson(
       String contributorName) {
     final SchedulerHealthComposite schedulerHealthComposite =
         new SchedulerHealthComposite(

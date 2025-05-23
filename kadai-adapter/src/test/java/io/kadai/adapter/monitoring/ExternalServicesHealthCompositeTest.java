@@ -29,7 +29,7 @@ public class ExternalServicesHealthCompositeTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"camunda", "kadai", "outbox", "scheduler"})
-  void should_CreateAllContributingHealthIndicatorsByDefaultAndNameThemAccordingToJSON(
+  void should_CreateAllContributingHealthIndicatorsByDefaultAndNameThemAccordingToJson(
       String contributorName) {
     final ExternalServicesHealthComposite externalServicesHealthComposite =
         new ExternalServicesHealthComposite(
