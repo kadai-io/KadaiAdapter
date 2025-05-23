@@ -4,6 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <packaging>jar</packaging>
+  <artifactId>kadai-adapter-camunda-8-spring-boot-example</artifactId>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <url>http://maven.apache.org</url>
@@ -12,9 +13,8 @@
     <groupId>io.kadai</groupId>
     <artifactId>kadai-adapter-parent</artifactId>
     <version>9.3.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
-
-  <artifactId>kadai-adapter-camunda-8-spring-boot-example</artifactId>
 
   <dependencies>
     <dependency>
@@ -53,23 +53,6 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>com.vaadin.external.google</groupId>
-          <artifactId>android-json</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.tngtech.archunit</groupId>
-      <artifactId>archunit</artifactId>
-      <version>${version.archunit}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -81,6 +64,5 @@
       </plugin>
     </plugins>
   </build>
-
 
 </project>
