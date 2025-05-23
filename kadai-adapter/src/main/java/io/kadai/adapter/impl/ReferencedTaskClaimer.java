@@ -24,10 +24,12 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.common.api.exceptions.SystemException;
 import io.kadai.task.api.CallbackState;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -35,19 +37,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Claims ReferencedTasks in external system that have been claimed in KADAI. */
 @Component
-public class ReferencedTaskClaimer {
+public class ReferencedTaskClaimer implements ScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReferencedTaskClaimer.class);
+  private final AdapterManager adapterManager;
+  private final LastSchedulerRun lastSchedulerRun;
 
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
-  private final AdapterManager adapterManager;
-  private final LastSchedulerRun lastSchedulerRun;
+  @Value("${kadai.adapter.scheduler.run.interval.for.claim.referenced.tasks.in.milliseconds:5000}")
+  private int runIntervalMillis;
 
-  public ReferencedTaskClaimer(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+  @Autowired
+  public ReferencedTaskClaimer(AdapterManager adapterManager) {
     this.adapterManager = adapterManager;
-    this.lastSchedulerRun = lastSchedulerRun;
+    this.lastSchedulerRun = new LastSchedulerRun();
   }
 
   @Scheduled(
@@ -76,6 +81,16 @@ public class ReferencedTaskClaimer {
         LOGGER.debug("Caught exception while trying to claim referenced tasks", ex);
       }
     }
+  }
+
+  @Override
+  public LastSchedulerRun getLastSchedulerRun() {
+    return lastSchedulerRun;
+  }
+
+  @Override
+  public Duration getRunInterval() {
+    return Duration.ofMillis(runIntervalMillis);
   }
 
   private void retrieveClaimedKadaiTasksAndClaimCorrespondingReferencedTask() {

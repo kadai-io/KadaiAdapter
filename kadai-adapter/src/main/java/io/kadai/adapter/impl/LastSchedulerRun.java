@@ -1,15 +1,12 @@
 package io.kadai.adapter.impl;
 
-import jakarta.annotation.PostConstruct;
 import java.time.Instant;
-import org.springframework.stereotype.Component;
 
-@Component
 public class LastSchedulerRun {
+
   private Instant lastRunTime;
 
-  @PostConstruct
-  void init() {
+  public LastSchedulerRun() {
     this.touch();
   }
 
