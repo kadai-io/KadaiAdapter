@@ -21,7 +21,6 @@ import org.springframework.test.context.ContextConfiguration;
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
 @ContextConfiguration
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SuppressWarnings({"unchecked", "rawtypes"})
 class SchedulerHealthCompositeTest extends AbsIntegrationTest {
