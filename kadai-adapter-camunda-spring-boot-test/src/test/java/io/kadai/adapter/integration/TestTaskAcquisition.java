@@ -156,7 +156,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       assertThat(processInstanceId).isEqualTo(businessProcessId);
     }
 
-    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getLastRunTime();
+    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
