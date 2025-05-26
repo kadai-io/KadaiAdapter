@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class LowerMedianTest {
 
   @Test
+  @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
   void should_ReturnNothing_When_SampleIsEmpty() {
     final LowerMedian<Integer> lowerMedian = new LowerMedian<>(42);
 
@@ -28,17 +29,18 @@ class LowerMedianTest {
     for (int i = 0; i < maxSampleSize; i++) {
       lowerMedian.add(i * i);
     }
-    assertThat(lowerMedian.size()).isEqualTo(maxSampleSize);
-    assertThat(lowerMedian.contains(42)).isFalse();
+    assertThat(lowerMedian).hasSize(maxSampleSize);
+    assertThat(lowerMedian).doesNotContain(42);
 
     lowerMedian.add(42);
 
-    assertThat(lowerMedian.size()).isEqualTo(maxSampleSize);
-    assertThat(lowerMedian.contains(42)).isTrue();
+    assertThat(lowerMedian).hasSize(maxSampleSize);
+    assertThat(lowerMedian).contains(42);
   }
 
   @ParameterizedTest
   @MethodSource("unevenSampleProvider")
+  @SuppressWarnings("unused")
   <T extends Comparable<T>> void should_ReturnMedian_When_SampleSizeIsUneven(
       Class<T> clazz, List<T> sample, T expected) {
     final LowerMedian<T> lowerMedian = new LowerMedian<>(100);
@@ -47,11 +49,12 @@ class LowerMedianTest {
     final Optional<T> actual = lowerMedian.get();
 
     assertThat(actual).isPresent();
-    assertThat(actual.get()).isEqualTo(expected);
+    assertThat(actual).contains(expected);
   }
 
   @ParameterizedTest
   @MethodSource("evenSampleProvider")
+  @SuppressWarnings("unused")
   <T extends Comparable<T>> void should_ReturnRoundedCenter_When_SampleSizeIsEven(
       Class<T> clazz, List<T> sample, T expected) {
     final LowerMedian<T> lowerMedian = new LowerMedian<>(100);
@@ -60,7 +63,7 @@ class LowerMedianTest {
     final Optional<T> actual = lowerMedian.get();
 
     assertThat(actual).isPresent();
-    assertThat(actual.get()).isEqualTo(expected);
+    assertThat(actual).contains(expected);
   }
 
   private static Stream<Arguments> unevenSampleProvider() {
