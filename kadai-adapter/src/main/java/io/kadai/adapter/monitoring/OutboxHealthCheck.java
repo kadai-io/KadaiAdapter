@@ -13,19 +13,25 @@ public class OutboxHealthCheck implements HealthIndicator {
 
   private final RestTemplate restTemplate;
   private final String camundaOutboxAddress;
-  private final int camundaOutboxPort;
+  private final Integer camundaOutboxPort;
   private final String contextPath;
+  private final String outboxEndpointPath;
+  private final String outboxQuery;
   private URI url;
 
   public OutboxHealthCheck(
       RestTemplate restTemplate,
       String camundaOutboxAddress,
-      int camundaOutboxPort,
-      String contextPath) {
+      Integer camundaOutboxPort,
+      String contextPath,
+      String outboxEndpointPath,
+      String outboxQuery) {
     this.restTemplate = restTemplate;
     this.camundaOutboxAddress = camundaOutboxAddress;
     this.camundaOutboxPort = camundaOutboxPort;
     this.contextPath = contextPath;
+    this.outboxEndpointPath = outboxEndpointPath;
+    this.outboxQuery = outboxQuery;
     init();
   }
 
@@ -48,16 +54,19 @@ public class OutboxHealthCheck implements HealthIndicator {
   }
 
   private void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("outbox-rest")
-            .pathSegment("events")
-            .pathSegment("count")
-            .queryParam("retries", 0)
-            .build()
-            .toUri();
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(camundaOutboxAddress);
+
+    if (camundaOutboxPort != null && camundaOutboxPort > 0) {
+      builder.port(camundaOutboxPort);
+    }
+
+    builder.pathSegment(contextPath).pathSegment(outboxEndpointPath);
+
+    if (outboxQuery != null) {
+      builder.query(outboxQuery);
+    }
+
+    this.url = builder.build().toUri();
   }
 
   private ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
