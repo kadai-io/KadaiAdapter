@@ -87,6 +87,14 @@ public class ExternalServicesHealthConfigurationProperties
     private CompositeHealthContributorConfigurationProperties kadaiTaskTerminator =
         new CompositeHealthContributorConfigurationProperties();
 
+    /**
+     * The factor the expected run-time is multiplied with before checking for the next expected
+     * run.
+     *
+     * <p>The higher the value, the less strict.
+     */
+    private long runTimeAcceptanceMultiplier = 2L;
+
     public CompositeHealthContributorConfigurationProperties getReferencedTaskCompleter() {
       return referencedTaskCompleter;
     }
@@ -160,6 +168,14 @@ public class ExternalServicesHealthConfigurationProperties
         CompositeHealthContributorConfigurationProperties kadaiTaskTerminator) {
       this.kadaiTaskTerminator = kadaiTaskTerminator;
       return this;
+    }
+
+    public long getRunTimeAcceptanceMultiplier() {
+      return runTimeAcceptanceMultiplier;
+    }
+
+    public void setRunTimeAcceptanceMultiplier(long runTimeAcceptanceMultiplier) {
+      this.runTimeAcceptanceMultiplier = runTimeAcceptanceMultiplier;
     }
   }
 }

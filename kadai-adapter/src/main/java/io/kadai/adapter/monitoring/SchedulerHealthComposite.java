@@ -27,22 +27,33 @@ public class SchedulerHealthComposite implements CompositeHealthContributor {
       KadaiTaskTerminator kadaiTaskTerminator) {
     if (properties.getReferencedTaskCompleter().getEnabled()) {
       healthContributors.put(
-          "referencedTaskCompleter", new SchedulerHealthIndicator(referencedTaskCompleter));
+          "referencedTaskCompleter",
+          new SchedulerHealthIndicator(
+              referencedTaskCompleter, properties.getRunTimeAcceptanceMultiplier()));
     }
     if (properties.getReferencedTaskClaimer().getEnabled()) {
       healthContributors.put(
-          "referencedTaskClaimer", new SchedulerHealthIndicator(referencedTaskClaimer));
+          "referencedTaskClaimer",
+          new SchedulerHealthIndicator(
+              referencedTaskClaimer, properties.getRunTimeAcceptanceMultiplier()));
     }
     if (properties.getReferencedTaskClaimCanceler().getEnabled()) {
       healthContributors.put(
-          "referencedTaskClaimCanceler", new SchedulerHealthIndicator(referencedTaskClaimCanceler));
+          "referencedTaskClaimCanceler",
+          new SchedulerHealthIndicator(
+              referencedTaskClaimCanceler, properties.getRunTimeAcceptanceMultiplier()));
     }
     if (properties.getKadaiTaskStarter().getEnabled()) {
-      healthContributors.put("kadaiTaskStarter", new SchedulerHealthIndicator(kadaiTaskStarter));
+      healthContributors.put(
+          "kadaiTaskStarter",
+          new SchedulerHealthIndicator(
+              kadaiTaskStarter, properties.getRunTimeAcceptanceMultiplier()));
     }
     if (properties.getKadaiTaskTerminator().getEnabled()) {
       healthContributors.put(
-          "kadaiTaskTerminator", new SchedulerHealthIndicator(kadaiTaskTerminator));
+          "kadaiTaskTerminator",
+          new SchedulerHealthIndicator(
+              kadaiTaskTerminator, properties.getRunTimeAcceptanceMultiplier()));
     }
   }
 
