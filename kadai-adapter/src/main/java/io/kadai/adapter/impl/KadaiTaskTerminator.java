@@ -24,7 +24,6 @@ import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.util.LowerMedian;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
