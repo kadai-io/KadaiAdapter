@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.CompositeHealthContributor;
 import org.springframework.boot.actuate.health.HealthContributor;
@@ -24,15 +23,19 @@ public class ExternalServicesHealthCheck implements CompositeHealthContributor {
   public ExternalServicesHealthCheck(
       ExternalServicesHealthConfigurationProperties properties,
       RestTemplate restTemplate,
-      @Value("${camundaOutboxService.address:http://localhost}") String camundaOutboxAddress,
-      @Value("${camundaOutboxService.port:8090}") int camundaOutboxPort,
-      @Value("${outbox.context-path:}") String contextPath,
+      CamundaSystemConfigurationProperties camundaSystemConfigurationProperties,
+      OutboxSystemConfigurationProperties outboxSystemConfigurationProperties,
       LastSchedulerRun lastSchedulerRun) {
     if (properties.getCamunda().getEnabled()) {
       healthContributors.put(
           "camunda",
           new CamundaHealthCheck(
-              restTemplate, camundaOutboxAddress, camundaOutboxPort, contextPath));
+              restTemplate,
+              camundaSystemConfigurationProperties.getAddress(),
+              camundaSystemConfigurationProperties.getPort(),
+              camundaSystemConfigurationProperties.getContextPath(),
+              camundaSystemConfigurationProperties.getEndpoint(),
+              camundaSystemConfigurationProperties.getQuery()));
     }
     if (properties.getKadai().getEnabled()) {
       healthContributors.put("kadai", new KadaiHealthCheck());
@@ -41,7 +44,12 @@ public class ExternalServicesHealthCheck implements CompositeHealthContributor {
       healthContributors.put(
           "outbox",
           new OutboxHealthCheck(
-              restTemplate, camundaOutboxAddress, camundaOutboxPort, contextPath));
+              restTemplate,
+              outboxSystemConfigurationProperties.getAddress(),
+              outboxSystemConfigurationProperties.getPort(),
+              outboxSystemConfigurationProperties.getContextPath(),
+              outboxSystemConfigurationProperties.getEndpoint(),
+              outboxSystemConfigurationProperties.getQuery()));
     }
     if (properties.getScheduler().getEnabled()) {
       healthContributors.put("scheduler", new SchedulerHealthCheck(lastSchedulerRun));

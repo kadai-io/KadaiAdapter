@@ -11,21 +11,27 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class CamundaHealthCheck implements HealthIndicator {
 
   private final RestTemplate restTemplate;
-  private final String camundaOutboxAddress;
-  private final int camundaOutboxPort;
+  private final String camundaAddress;
+  private final Integer camundaPort;
   private final String contextPath;
+  private final String camundaEndpointPath;
+  private final String camundaQuery;
 
   private URI url;
 
   public CamundaHealthCheck(
       RestTemplate restTemplate,
-      String camundaOutboxAddress,
-      int camundaOutboxPort,
-      String contextPath) {
+      String camundaAddress,
+      Integer camundaPort,
+      String contextPath,
+      String camundaEndpointPath,
+      String camundaQuery) {
     this.restTemplate = restTemplate;
-    this.camundaOutboxAddress = camundaOutboxAddress;
-    this.camundaOutboxPort = camundaOutboxPort;
+    this.camundaAddress = camundaAddress;
+    this.camundaPort = camundaPort;
     this.contextPath = contextPath;
+    this.camundaEndpointPath = camundaEndpointPath;
+    this.camundaQuery = camundaQuery;
     init();
   }
 
@@ -45,14 +51,25 @@ public class CamundaHealthCheck implements HealthIndicator {
   }
 
   private void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("engine-rest")
-            .pathSegment("engine")
-            .build()
-            .toUri();
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(camundaAddress);
+
+    if (camundaPort != null) {
+      if (camundaPort <= 0) {
+        throw new IllegalArgumentException(
+            "Port must be a positive integer. Provided: " + camundaPort);
+      }
+      builder.port(camundaPort);
+    }
+
+    if (contextPath != null) {
+      builder.pathSegment(contextPath).pathSegment(camundaEndpointPath);
+    }
+
+    if (camundaQuery != null) {
+      builder.query(camundaQuery);
+    }
+
+    this.url = builder.build().toUri();
   }
 
   private ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {

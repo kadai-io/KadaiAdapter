@@ -12,20 +12,26 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class OutboxHealthCheck implements HealthIndicator {
 
   private final RestTemplate restTemplate;
-  private final String camundaOutboxAddress;
-  private final int camundaOutboxPort;
+  private final String outboxAddress;
+  private final Integer outboxPort;
   private final String contextPath;
+  private final String outboxEndpointPath;
+  private final String outboxQuery;
   private URI url;
 
   public OutboxHealthCheck(
       RestTemplate restTemplate,
-      String camundaOutboxAddress,
-      int camundaOutboxPort,
-      String contextPath) {
+      String outboxAddress,
+      Integer outboxPort,
+      String contextPath,
+      String outboxEndpointPath,
+      String outboxQuery) {
     this.restTemplate = restTemplate;
-    this.camundaOutboxAddress = camundaOutboxAddress;
-    this.camundaOutboxPort = camundaOutboxPort;
+    this.outboxAddress = outboxAddress;
+    this.outboxPort = outboxPort;
     this.contextPath = contextPath;
+    this.outboxEndpointPath = outboxEndpointPath;
+    this.outboxQuery = outboxQuery;
     init();
   }
 
@@ -48,16 +54,25 @@ public class OutboxHealthCheck implements HealthIndicator {
   }
 
   private void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("outbox-rest")
-            .pathSegment("events")
-            .pathSegment("count")
-            .queryParam("retries", 0)
-            .build()
-            .toUri();
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(outboxAddress);
+
+    if (outboxPort != null) {
+      if (outboxPort <= 0) {
+        throw new IllegalArgumentException(
+            "Port must be a positive integer. Provided: " + outboxPort);
+      }
+      builder.port(outboxPort);
+    }
+
+    if (contextPath != null) {
+      builder.pathSegment(contextPath).pathSegment(outboxEndpointPath);
+    }
+
+    if (outboxQuery != null) {
+      builder.query(outboxQuery);
+    }
+
+    this.url = builder.build().toUri();
   }
 
   private ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
