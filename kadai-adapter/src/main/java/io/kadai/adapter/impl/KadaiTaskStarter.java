@@ -110,7 +110,7 @@ public class KadaiTaskStarter {
     LOGGER.trace("KadaiTaskStarter.createKadaiTask EXIT ");
   }
 
-  private List<ReferencedTask> createAndStartKadaiTasks(
+  public List<ReferencedTask> createAndStartKadaiTasks(
       SystemConnector systemConnector, List<ReferencedTask> tasksToStart) {
     List<ReferencedTask> newCreatedTasksInKadai = new ArrayList<>();
     for (ReferencedTask referencedTask : tasksToStart) {

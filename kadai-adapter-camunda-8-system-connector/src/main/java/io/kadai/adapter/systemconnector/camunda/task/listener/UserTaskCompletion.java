@@ -1,22 +1,23 @@
 package io.kadai.adapter.systemconnector.camunda.task.listener;
 
+import io.camunda.spring.client.annotation.JobWorker;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.worker.JobClient;
-import io.camunda.zeebe.spring.client.annotation.JobWorker;
 import io.kadai.adapter.impl.KadaiTaskTerminator;
+
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserTaskListener {
+public class UserTaskCompletion {
 
-  // It would be nicer to use an interface or so...
   private final KadaiTaskTerminator taskTerminator;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskListener.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCompletion.class);
 
-  public UserTaskListener(KadaiTaskTerminator taskTerminator) {
+  public UserTaskCompletion(KadaiTaskTerminator taskTerminator) {
     this.taskTerminator = taskTerminator;
   }
 
@@ -27,10 +28,10 @@ public class UserTaskListener {
     // ! mit ActivateJob: alle Variablen werden mitgeladen
 
     try {
-      // todo: transform job to referenced task
-
       // Logic to handle task completion event
       LOGGER.info("ToDo!");
+
+      // todo: implement logic to transform job to referenced task, using custom headers
 
       // taskTerminator.terminateKadaiTask(null);
     } catch (Exception e) {
