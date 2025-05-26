@@ -36,11 +36,11 @@ public class CamundaHealthIndicator implements HealthIndicator {
       CamundaEngineInfoRepresentationModel[] engines = response.getBody();
 
       if (engines == null || engines.length == 0) {
-        return Health.down().withDetail("Camunda Engine Error", "No engines found").build();
+        return Health.down().withDetail("camundaEngineError", "No engines found").build();
       }
-      return Health.up().withDetail("Camunda Engines", engines).build();
+      return Health.up().withDetail("camundaEngines", engines).build();
     } catch (Exception e) {
-      return Health.down().withDetail("Camunda Engine Error", e.getMessage()).build();
+      return Health.down().withDetail("camundaEngines", e.getMessage()).build();
     }
   }
 

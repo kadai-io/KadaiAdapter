@@ -10,9 +10,9 @@ public class KadaiHealthIndicator implements HealthIndicator {
   public Health health() {
     try {
       String version = getCurrentSchemaVersion();
-      return Health.up().withDetail("Kadai Version", version).build();
+      return Health.up().withDetail("kadaiVersion", version).build();
     } catch (Exception e) {
-      return Health.down().withDetail("Kadai Service Error", e.getMessage()).build();
+      return Health.down().withDetail("kadaiServiceError", e.getMessage()).build();
     }
   }
 

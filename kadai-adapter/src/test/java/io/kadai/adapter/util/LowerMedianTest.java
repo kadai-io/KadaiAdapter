@@ -29,13 +29,11 @@ class LowerMedianTest {
     for (int i = 0; i < maxSampleSize; i++) {
       lowerMedian.add(i * i);
     }
-    assertThat(lowerMedian).hasSize(maxSampleSize);
-    assertThat(lowerMedian).doesNotContain(42);
+    assertThat(lowerMedian).hasSize(maxSampleSize).doesNotContain(42);
 
     lowerMedian.add(42);
 
-    assertThat(lowerMedian).hasSize(maxSampleSize);
-    assertThat(lowerMedian).contains(42);
+    assertThat(lowerMedian).hasSize(maxSampleSize).contains(42);
   }
 
   @ParameterizedTest
@@ -48,8 +46,7 @@ class LowerMedianTest {
     lowerMedian.addAll(sample);
     final Optional<T> actual = lowerMedian.get();
 
-    assertThat(actual).isPresent();
-    assertThat(actual).contains(expected);
+    assertThat(actual).isPresent().contains(expected);
   }
 
   @ParameterizedTest
@@ -62,8 +59,7 @@ class LowerMedianTest {
     lowerMedian.addAll(sample);
     final Optional<T> actual = lowerMedian.get();
 
-    assertThat(actual).isPresent();
-    assertThat(actual).contains(expected);
+    assertThat(actual).isPresent().contains(expected);
   }
 
   private static Stream<Arguments> unevenSampleProvider() {
