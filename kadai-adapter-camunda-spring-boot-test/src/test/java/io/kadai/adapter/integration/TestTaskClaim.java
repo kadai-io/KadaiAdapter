@@ -100,7 +100,7 @@ class TestTaskClaim extends AbsIntegrationTest {
           this.camundaProcessengineRequester.isCorrectAssignee(camundaTaskId, "teamlead_1");
       assertThat(assigneeSetSuccessfully).isTrue();
     }
-    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getLastRunTime();
+    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
@@ -204,7 +204,7 @@ class TestTaskClaim extends AbsIntegrationTest {
           this.camundaProcessengineRequester.isCorrectAssignee(camundaTaskId, null);
       assertThat(noAssigneeSet).isTrue();
     }
-    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getLastRunTime();
+    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }

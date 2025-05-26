@@ -22,9 +22,11 @@ import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
+import io.kadai.adapter.util.LowerMedian;
 import io.kadai.common.api.exceptions.SystemException;
 import io.kadai.task.api.CallbackState;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -43,7 +45,8 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReferencedTaskCompleter.class);
   private final AdapterManager adapterManager;
-  private final LastSchedulerRun lastSchedulerRun;
+  private final SchedulerRun schedulerRun;
+  private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
@@ -55,7 +58,7 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
   @Autowired
   public ReferencedTaskCompleter(AdapterManager adapterManager) {
     this.adapterManager = adapterManager;
-    this.lastSchedulerRun = new LastSchedulerRun();
+    this.schedulerRun = new SchedulerRun();
   }
 
   @Scheduled(
@@ -64,6 +67,7 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
               + "in.milliseconds:5000}")
   @Transactional
   public void retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTasks() {
+    final Instant start = Instant.now();
 
     synchronized (ReferencedTaskCompleter.class) {
       if (!adapterManager.isInitialized()) {
@@ -79,9 +83,11 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
               retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTask();
               return null;
             });
-        lastSchedulerRun.touch();
+        schedulerRun.touch();
       } catch (Exception ex) {
         LOGGER.debug("Caught exception while trying to complete referenced tasks", ex);
+      } finally {
+        runDurationLowerMedian.add(Duration.between(start, Instant.now()));
       }
     }
   }
@@ -132,13 +138,18 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
   }
 
   @Override
-  public LastSchedulerRun getLastSchedulerRun() {
-    return lastSchedulerRun;
+  public SchedulerRun getLastSchedulerRun() {
+    return schedulerRun;
   }
 
   @Override
   public Duration getRunInterval() {
     return Duration.ofMillis(runIntervalMillis);
+  }
+
+  @Override
+  public Duration getExpectedRunDuration() {
+    return runDurationLowerMedian.get().orElse(Duration.ZERO);
   }
 
   private List<ReferencedTask> completeReferencedTasksInExternalSystem(
