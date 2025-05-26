@@ -52,7 +52,6 @@ public class KadaiTaskStarter implements ScheduledComponent {
   @Value("${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
   private int runIntervalMillis;
 
-
   @Autowired
   public KadaiTaskStarter(AdapterManager adapterManager) {
     this.adapterManager = adapterManager;
