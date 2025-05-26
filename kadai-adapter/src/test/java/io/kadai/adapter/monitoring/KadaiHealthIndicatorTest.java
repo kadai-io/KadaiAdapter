@@ -21,7 +21,7 @@ class KadaiHealthIndicatorTest {
   void should_ReturnUp_When_ReturnValidSchemaVersion() {
     when(kadaiHealthIndicatorSpy.getCurrentSchemaVersion()).thenReturn("1.0.0");
 
-    Health health = Health.up().withDetail("Kadai Version", "1.0.0").build();
+    Health health = Health.up().withDetail("kadaiVersion", "1.0.0").build();
     assertThat(kadaiHealthIndicatorSpy.health()).isEqualTo(health);
   }
 
@@ -31,7 +31,7 @@ class KadaiHealthIndicatorTest {
         .when(kadaiHealthIndicatorSpy)
         .getCurrentSchemaVersion();
 
-    Health health = Health.down().withDetail("Kadai Service Error", "Simulated exception").build();
+    Health health = Health.down().withDetail("kadaiServiceError", "Simulated exception").build();
     assertThat(kadaiHealthIndicatorSpy.health()).isEqualTo(health);
   }
 }
