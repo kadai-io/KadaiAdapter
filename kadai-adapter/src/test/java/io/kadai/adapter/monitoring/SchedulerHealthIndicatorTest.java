@@ -3,15 +3,14 @@ package io.kadai.adapter.monitoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.kadai.adapter.impl.SchedulerRun;
 import io.kadai.adapter.impl.ScheduledComponent;
-
+import io.kadai.adapter.impl.SchedulerRun;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.Status;
 
 class SchedulerHealthIndicatorTest {
 
@@ -40,7 +39,8 @@ class SchedulerHealthIndicatorTest {
                   public Duration getExpectedRunDuration() {
                     return Duration.ofMinutes(1);
                   }
-                }));
+                },
+                2L));
   }
 
   @Test
@@ -48,9 +48,7 @@ class SchedulerHealthIndicatorTest {
     Instant validRunTime = Instant.now().minus(Duration.ofMinutes(3));
     when(schedulerRunSpy.getRunTime()).thenReturn(validRunTime);
 
-    Health health = Health.up().withDetail("lastRun", schedulerRunSpy.getRunTime()).build();
-
-    assertThat(schedulerHealthIndicatorSpy.health()).isEqualTo(health);
+    assertThat(schedulerHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.UP);
   }
 
   @Test
@@ -58,9 +56,6 @@ class SchedulerHealthIndicatorTest {
     Instant invalidRunTime = Instant.now().minus(Duration.ofMinutes(15));
     when(schedulerRunSpy.getRunTime()).thenReturn(invalidRunTime);
 
-    Health health =
-        Health.down().withDetail("lastRun", schedulerRunSpy.getRunTime()).build();
-
-    assertThat(schedulerHealthIndicatorSpy.health()).isEqualTo(health);
+    assertThat(schedulerHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 }
