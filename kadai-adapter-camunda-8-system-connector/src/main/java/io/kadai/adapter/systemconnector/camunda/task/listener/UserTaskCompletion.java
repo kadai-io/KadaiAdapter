@@ -1,11 +1,11 @@
 package io.kadai.adapter.systemconnector.camunda.task.listener;
 
+import io.camunda.client.api.response.ActivatedJob;
+import io.camunda.client.api.worker.JobClient;
 import io.camunda.spring.client.annotation.JobWorker;
-import io.camunda.zeebe.client.api.response.ActivatedJob;
-import io.camunda.zeebe.client.api.worker.JobClient;
 import io.kadai.adapter.impl.KadaiTaskTerminator;
+import io.kadai.adapter.systemconnector.api.ReferencedTask;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,11 +14,14 @@ import org.springframework.stereotype.Component;
 public class UserTaskCompletion {
 
   private final KadaiTaskTerminator taskTerminator;
+  private final ReferencedTaskCreator referencedTaskCreator;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCompletion.class);
 
-  public UserTaskCompletion(KadaiTaskTerminator taskTerminator) {
+  public UserTaskCompletion(
+      KadaiTaskTerminator taskTerminator, ReferencedTaskCreator referencedTaskCreator) {
     this.taskTerminator = taskTerminator;
+    this.referencedTaskCreator = referencedTaskCreator;
   }
 
   // todo: info, trace and warning logging
@@ -31,9 +34,9 @@ public class UserTaskCompletion {
       // Logic to handle task completion event
       LOGGER.info("ToDo!");
 
-      // todo: implement logic to transform job to referenced task, using custom headers
+      ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
 
-      // taskTerminator.terminateKadaiTask(null);
+      taskTerminator.terminateKadaiTask(referencedTask);
     } catch (Exception e) {
       LOGGER.warn(
           "caught exception while trying to retrieve "
