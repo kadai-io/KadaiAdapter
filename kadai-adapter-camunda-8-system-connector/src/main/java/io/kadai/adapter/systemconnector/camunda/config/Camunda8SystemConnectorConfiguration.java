@@ -3,6 +3,7 @@ package io.kadai.adapter.systemconnector.camunda.config;
 import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.camunda.task.listener.ReferencedTaskCreator;
 import io.kadai.adapter.systemconnector.camunda.task.listener.UserTaskCompletion;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,6 @@ public class Camunda8SystemConnectorConfiguration {
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   UserTaskCompletion userTaskListener(
       final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
-    return new UserTaskCompletion(new KadaiTaskTerminator(adapterManager, lastSchedulerRun));
+    return new UserTaskCompletion(new KadaiTaskTerminator(adapterManager, lastSchedulerRun), new ReferencedTaskCreator());
   }
 }
