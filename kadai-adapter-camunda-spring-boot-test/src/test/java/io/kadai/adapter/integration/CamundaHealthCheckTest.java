@@ -29,7 +29,7 @@ class CamundaHealthCheckTest {
     this.restTemplate = Mockito.mock(RestTemplate.class);
     this.camundaHealthCheckSpy =
         Mockito.spy(
-            new CamundaHealthCheck(restTemplate, "http://localhost", 8090, "example-context-root"));
+            new CamundaHealthCheck(restTemplate, "http://localhost", 8090, "example-context-root", "engine-rest/engine", null));
   }
 
   @Test

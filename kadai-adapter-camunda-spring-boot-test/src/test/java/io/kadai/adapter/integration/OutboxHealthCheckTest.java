@@ -29,7 +29,7 @@ class OutboxHealthCheckTest {
     this.restTemplate = Mockito.mock(RestTemplate.class);
     this.outboxHealthCheckSpy =
         Mockito.spy(
-            new OutboxHealthCheck(restTemplate, "http://localhost", 8090, "example-context-root"));
+            new OutboxHealthCheck(restTemplate, "http://localhost", 8090, "example-context-root", "outbox-rest/events/count", "retries=0"));
   }
 
   @Test
