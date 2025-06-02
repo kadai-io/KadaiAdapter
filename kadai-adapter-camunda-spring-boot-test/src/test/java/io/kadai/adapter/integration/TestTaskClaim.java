@@ -24,6 +24,8 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+
+import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
 import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaUtilRequester;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
@@ -54,6 +56,7 @@ import org.springframework.test.context.ContextConfiguration;
 class TestTaskClaim extends AbsIntegrationTest {
 
   @Autowired private ReferencedTaskClaimer referencedTaskClaimer;
+  @Autowired private ReferencedTaskClaimCanceler referencedTaskClaimCanceler;
 
   @WithAccessId(
       user = "teamlead_1",
@@ -109,7 +112,7 @@ class TestTaskClaim extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
-  void should_ClaimAlreadyClaimedCamundaTaska_When_ClaimKadaiTask() throws Exception {
+  void should_ClaimAlreadyClaimedCamundaTask_When_ClaimKadaiTask() throws Exception {
 
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
@@ -204,7 +207,7 @@ class TestTaskClaim extends AbsIntegrationTest {
           this.camundaProcessengineRequester.isCorrectAssignee(camundaTaskId, null);
       assertThat(noAssigneeSet).isTrue();
     }
-    Instant lastRunTime = referencedTaskClaimer.getLastSchedulerRun().getRunTime();
+    Instant lastRunTime = referencedTaskClaimCanceler.getLastSchedulerRun().getRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
