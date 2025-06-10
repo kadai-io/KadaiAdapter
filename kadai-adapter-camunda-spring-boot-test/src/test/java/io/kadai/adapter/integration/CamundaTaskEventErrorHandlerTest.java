@@ -35,7 +35,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +111,6 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
   }
 
   @Test
-  @Disabled("Insanely flaky in CI. Failing >13 times in a row!")
   void should_CutErrorLog_When_ExceptionCauseTreeIsTooLong() {
     final Exception testException = new NumberFormatException("exception");
     final Exception testCause = new NumberFormatException("cause");
