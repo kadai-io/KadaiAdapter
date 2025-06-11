@@ -8,6 +8,7 @@ import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.ReferencedTaskCompleter;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,28 +30,19 @@ public class ExternalServicesHealthComposite implements CompositeHealthContribut
   public ExternalServicesHealthComposite(
       ExternalServicesHealthConfigurationProperties properties,
       RestTemplate restTemplate,
-      @Value("${camundaOutboxService.address:http://localhost}") String camundaOutboxAddress,
-      @Value("${camundaOutboxService.port:8090}") int camundaOutboxPort,
-      @Value("${outbox.context-path:}") String contextPath,
       ReferencedTaskCompleter referencedTaskCompleter,
       ReferencedTaskClaimer referencedTaskClaimer,
       ReferencedTaskClaimCanceler referencedTaskClaimCanceler,
       KadaiTaskStarter kadaiTaskStarter,
-      KadaiTaskTerminator kadaiTaskTerminator) {
-    if (properties.getCamunda().getEnabled()) {
+      KadaiTaskTerminator kadaiTaskTerminator,
+      @Value("${kadai-system-connector-camundaSystemURLs}") List<String> camundaSystemUrls) {
+    if (properties.getCamundaSystem().getEnabled()) {
       healthContributors.put(
-          "camunda",
-          new CamundaHealthIndicator(
-              restTemplate, camundaOutboxAddress, camundaOutboxPort, contextPath));
+          "camundaSystems",
+          new CamundaSystemsHealthComposite(restTemplate, camundaSystemUrls, properties));
     }
     if (properties.getKadai().getEnabled()) {
       healthContributors.put("kadai", new KadaiHealthIndicator());
-    }
-    if (properties.getOutbox().getEnabled()) {
-      healthContributors.put(
-          "outbox",
-          new OutboxHealthIndicator(
-              restTemplate, camundaOutboxAddress, camundaOutboxPort, contextPath));
     }
     if (properties.getScheduler().getEnabled()) {
       healthContributors.put(

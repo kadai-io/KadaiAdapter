@@ -11,22 +11,22 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 public class OutboxHealthIndicator implements HealthIndicator {
 
-  private final RestTemplate restTemplate;
-  private final String camundaOutboxAddress;
-  private final int camundaOutboxPort;
-  private final String contextPath;
-  private URI url;
+  private static final String BASE_URL = "baseUrl";
 
-  public OutboxHealthIndicator(
-      RestTemplate restTemplate,
-      String camundaOutboxAddress,
-      int camundaOutboxPort,
-      String contextPath) {
+  private final RestTemplate restTemplate;
+  private URI url;
+  private String urlString;
+
+  public OutboxHealthIndicator(RestTemplate restTemplate, String urlString) {
     this.restTemplate = restTemplate;
-    this.camundaOutboxAddress = camundaOutboxAddress;
-    this.camundaOutboxPort = camundaOutboxPort;
-    this.contextPath = contextPath;
-    init();
+    this.url =
+        UriComponentsBuilder.fromUriString(urlString)
+            .pathSegment("events")
+            .pathSegment("count")
+            .queryParam("retries", 0)
+            .build()
+            .toUri();
+    this.urlString = urlString;
   }
 
   @Override
@@ -35,29 +35,23 @@ public class OutboxHealthIndicator implements HealthIndicator {
       ResponseEntity<OutboxEventCountRepresentationModel> response = pingOutBoxRest();
 
       if (response.getStatusCode() == HttpStatus.OK) {
-        return Health.up().withDetail("Outbox Service", response.getBody()).build();
+        return Health.up()
+            .withDetail("outboxService", response.getBody())
+            .withDetail(BASE_URL, urlString)
+            .build();
       } else {
         return Health.down()
-            .withDetail("Outbox Service Error", "Unexpected status: " + response.getStatusCode())
+            .withDetail("outboxServiceError", "Unexpected status: " + response.getStatusCode())
+            .withDetail(BASE_URL, urlString)
             .build();
       }
 
     } catch (Exception e) {
-      return Health.down().withDetail("Outbox Service Error", e.getMessage()).build();
+      return Health.down()
+          .withDetail("outboxServiceError", e.getMessage())
+          .withDetail(BASE_URL, urlString)
+          .build();
     }
-  }
-
-  private void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("outbox-rest")
-            .pathSegment("events")
-            .pathSegment("count")
-            .queryParam("retries", 0)
-            .build()
-            .toUri();
   }
 
   private ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
