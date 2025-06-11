@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class CamundaHealthIndicator implements HealthIndicator {
+public class CamundaHealthCheck implements HealthIndicator {
 
   private final RestTemplate restTemplate;
   private final String camundaOutboxAddress;
@@ -17,7 +17,7 @@ public class CamundaHealthIndicator implements HealthIndicator {
 
   private URI url;
 
-  public CamundaHealthIndicator(
+  public CamundaHealthCheck(
       RestTemplate restTemplate,
       String camundaOutboxAddress,
       int camundaOutboxPort,
@@ -36,11 +36,11 @@ public class CamundaHealthIndicator implements HealthIndicator {
       CamundaEngineInfoRepresentationModel[] engines = response.getBody();
 
       if (engines == null || engines.length == 0) {
-        return Health.down().withDetail("camundaEngineError", "No engines found").build();
+        return Health.down().withDetail("Camunda Engine Error", "No engines found").build();
       }
-      return Health.up().withDetail("camundaEngines", engines).build();
+      return Health.up().withDetail("Camunda Engines", engines).build();
     } catch (Exception e) {
-      return Health.down().withDetail("camundaEngines", e.getMessage()).build();
+      return Health.down().withDetail("Camunda Engine Error", e.getMessage()).build();
     }
   }
 

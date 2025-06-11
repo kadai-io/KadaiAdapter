@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class OutboxHealthIndicator implements HealthIndicator {
+public class OutboxHealthCheck implements HealthIndicator {
 
   private final RestTemplate restTemplate;
   private final String camundaOutboxAddress;
@@ -17,7 +17,7 @@ public class OutboxHealthIndicator implements HealthIndicator {
   private final String contextPath;
   private URI url;
 
-  public OutboxHealthIndicator(
+  public OutboxHealthCheck(
       RestTemplate restTemplate,
       String camundaOutboxAddress,
       int camundaOutboxPort,

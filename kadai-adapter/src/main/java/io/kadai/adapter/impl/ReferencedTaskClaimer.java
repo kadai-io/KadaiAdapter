@@ -22,16 +22,12 @@ import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
-import io.kadai.adapter.util.LowerMedian;
 import io.kadai.common.api.exceptions.SystemException;
 import io.kadai.task.api.CallbackState;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -39,23 +35,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Claims ReferencedTasks in external system that have been claimed in KADAI. */
 @Component
-public class ReferencedTaskClaimer implements ScheduledComponent {
+public class ReferencedTaskClaimer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReferencedTaskClaimer.class);
-  private final AdapterManager adapterManager;
-  private final SchedulerRun schedulerRun;
-  private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
-  @Value("${kadai.adapter.scheduler.run.interval.for.claim.referenced.tasks.in.milliseconds:5000}")
-  private int runIntervalMillis;
+  private final AdapterManager adapterManager;
+  private final LastSchedulerRun lastSchedulerRun;
 
-  @Autowired
-  public ReferencedTaskClaimer(AdapterManager adapterManager) {
+  public ReferencedTaskClaimer(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
     this.adapterManager = adapterManager;
-    this.schedulerRun = new SchedulerRun();
+    this.lastSchedulerRun = lastSchedulerRun;
   }
 
   @Scheduled(
@@ -64,7 +56,6 @@ public class ReferencedTaskClaimer implements ScheduledComponent {
               + "in.milliseconds:5000}")
   @Transactional
   public void retrieveClaimedKadaiTasksAndClaimCorrespondingReferencedTasks() {
-    final Instant start = Instant.now();
 
     synchronized (ReferencedTaskClaimer.class) {
       if (!adapterManager.isInitialized()) {
@@ -80,28 +71,11 @@ public class ReferencedTaskClaimer implements ScheduledComponent {
               retrieveClaimedKadaiTasksAndClaimCorrespondingReferencedTask();
               return null;
             });
-        schedulerRun.touch();
+        lastSchedulerRun.touch();
       } catch (Exception ex) {
         LOGGER.debug("Caught exception while trying to claim referenced tasks", ex);
-      } finally {
-        runDurationLowerMedian.add(Duration.between(start, Instant.now()));
       }
     }
-  }
-
-  @Override
-  public SchedulerRun getLastSchedulerRun() {
-    return schedulerRun;
-  }
-
-  @Override
-  public Duration getRunInterval() {
-    return Duration.ofMillis(runIntervalMillis);
-  }
-
-  @Override
-  public Duration getExpectedRunDuration() {
-    return runDurationLowerMedian.get().orElse(Duration.ZERO);
   }
 
   private void retrieveClaimedKadaiTasksAndClaimCorrespondingReferencedTask() {

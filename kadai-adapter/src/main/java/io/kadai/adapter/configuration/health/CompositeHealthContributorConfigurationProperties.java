@@ -2,18 +2,13 @@ package io.kadai.adapter.configuration.health;
 
 public class CompositeHealthContributorConfigurationProperties {
 
-  private boolean enabled = true;
+  private Boolean enabled = true;
 
-  public boolean getEnabled() {
+  public Boolean getEnabled() {
     return enabled;
   }
 
-  public void setEnabled(boolean enabled) {
+  public void setEnabled(Boolean enabled) {
     this.enabled = enabled;
-  }
-
-  public CompositeHealthContributorConfigurationProperties withEnabled(boolean enabled) {
-    this.enabled = enabled;
-    return this;
   }
 }

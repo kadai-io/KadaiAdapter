@@ -1,13 +1,8 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
-import io.kadai.adapter.impl.KadaiTaskStarter;
-import io.kadai.adapter.impl.KadaiTaskTerminator;
-import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
-import io.kadai.adapter.impl.ReferencedTaskClaimer;
-import io.kadai.adapter.impl.ReferencedTaskCompleter;
-import java.util.HashMap;
+import io.kadai.adapter.impl.LastSchedulerRun;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,49 +14,37 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-@Component("externalServices")
+@Component("external-services")
 @ConditionalOnEnabledHealthIndicator("external-services")
-public class ExternalServicesHealthComposite implements CompositeHealthContributor {
+public class ExternalServicesHealthCheck implements CompositeHealthContributor {
 
-  private final Map<String, HealthContributor> healthContributors = new HashMap<>();
+  private final Map<String, HealthContributor> healthContributors = new LinkedHashMap<>();
 
   @Autowired
-  public ExternalServicesHealthComposite(
+  public ExternalServicesHealthCheck(
       ExternalServicesHealthConfigurationProperties properties,
       RestTemplate restTemplate,
       @Value("${camundaOutboxService.address:http://localhost}") String camundaOutboxAddress,
       @Value("${camundaOutboxService.port:8090}") int camundaOutboxPort,
       @Value("${outbox.context-path:}") String contextPath,
-      ReferencedTaskCompleter referencedTaskCompleter,
-      ReferencedTaskClaimer referencedTaskClaimer,
-      ReferencedTaskClaimCanceler referencedTaskClaimCanceler,
-      KadaiTaskStarter kadaiTaskStarter,
-      KadaiTaskTerminator kadaiTaskTerminator) {
+      LastSchedulerRun lastSchedulerRun) {
     if (properties.getCamunda().getEnabled()) {
       healthContributors.put(
           "camunda",
-          new CamundaHealthIndicator(
+          new CamundaHealthCheck(
               restTemplate, camundaOutboxAddress, camundaOutboxPort, contextPath));
     }
     if (properties.getKadai().getEnabled()) {
-      healthContributors.put("kadai", new KadaiHealthIndicator());
+      healthContributors.put("kadai", new KadaiHealthCheck());
     }
     if (properties.getOutbox().getEnabled()) {
       healthContributors.put(
           "outbox",
-          new OutboxHealthIndicator(
+          new OutboxHealthCheck(
               restTemplate, camundaOutboxAddress, camundaOutboxPort, contextPath));
     }
     if (properties.getScheduler().getEnabled()) {
-      healthContributors.put(
-          "scheduler",
-          new SchedulerHealthComposite(
-              properties.getScheduler(),
-              referencedTaskCompleter,
-              referencedTaskClaimer,
-              referencedTaskClaimCanceler,
-              kadaiTaskStarter,
-              kadaiTaskTerminator));
+      healthContributors.put("scheduler", new SchedulerHealthCheck(lastSchedulerRun));
     }
   }
 
@@ -74,7 +57,7 @@ public class ExternalServicesHealthComposite implements CompositeHealthContribut
   @Override
   public Iterator<NamedContributor<HealthContributor>> iterator() {
     return healthContributors.entrySet().stream()
-        .map(entry -> NamedContributor.of(entry.getKey(), entry.getValue()))
+        .map((entry) -> NamedContributor.of(entry.getKey(), entry.getValue()))
         .iterator();
   }
 }

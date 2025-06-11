@@ -20,7 +20,7 @@ package io.kadai.adapter.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kadai.adapter.impl.KadaiTaskTerminator;
+import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
@@ -46,7 +46,7 @@ import org.springframework.test.context.ContextConfiguration;
 class TestTaskTermination extends AbsIntegrationTest {
 
   @Autowired private JobExecutor jobExecutor;
-  @Autowired private KadaiTaskTerminator kadaiTaskTerminator;
+  @Autowired private LastSchedulerRun lastSchedulerRun;
 
   @WithAccessId(
       user = "teamlead_1",
@@ -80,7 +80,7 @@ class TestTaskTermination extends AbsIntegrationTest {
           this.camundaProcessengineRequester.getTaskFromTaskId(camundaTaskId);
       assertThat(taskRetrievalSuccessful).isFalse();
     }
-    Instant lastRunTime = kadaiTaskTerminator.getLastSchedulerRun().getRunTime();
+    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }

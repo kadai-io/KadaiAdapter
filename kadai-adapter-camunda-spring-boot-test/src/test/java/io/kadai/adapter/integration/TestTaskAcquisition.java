@@ -21,7 +21,7 @@ package io.kadai.adapter.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import io.kadai.adapter.impl.KadaiTaskStarter;
+import io.kadai.adapter.impl.LastSchedulerRun;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaSystemConnectorImpl;
@@ -73,7 +73,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TestTaskAcquisition.class);
   @Autowired AdapterManager adapterManager;
-  @Autowired KadaiTaskStarter kadaiTaskStarter;
+  @Autowired
+  private LastSchedulerRun lastSchedulerRun;
 
   @Value("${kadai-system-connector-camundaSystemURLs}")
   private String configuredSystemConnectorUrls;
@@ -156,7 +157,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       assertThat(processInstanceId).isEqualTo(businessProcessId);
     }
 
-    Instant lastRunTime = kadaiTaskStarter.getLastSchedulerRun().getRunTime();
+    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
@@ -165,8 +166,9 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
-  void should_CreateKadaiTask_When_StartUserTaskProcessInstanceWithEmptyExtensionPropertyInCamunda()
-      throws Exception {
+  void
+      should_CreateKadaiTask_When_StartUserTaskProcessInstanceWithEmptyExtensionPropertyInCamunda()
+          throws Exception {
 
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
@@ -296,7 +298,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       throws Exception {
 
     String variables =
-        "\"variables\": {\"kadai.manual-priority\": {\"value\":\"555\", " + "\"type\":\"string\"}}";
+        "\"variables\": {\"kadai.manual-priority\": {\"value\":\"555\", "
+            + "\"type\":\"string\"}}";
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
             "simple_user_task_process", variables);
@@ -315,8 +318,9 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
-  void should_CreateKadaiTaskWithDefaultManualPriority_When_StartCamundaTaskWithoutManualPriority()
-      throws Exception {
+  void
+      should_CreateKadaiTaskWithDefaultManualPriority_When_StartCamundaTaskWithoutManualPriority()
+          throws Exception {
 
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
@@ -606,8 +610,9 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
-  void should_CreateKadaiTasksWithCorrectDomains_When_StartProcessWithDomainsInExtensionProperties()
-      throws Exception {
+  void
+      should_CreateKadaiTasksWithCorrectDomains_When_StartProcessWithDomainsInExtensionProperties()
+          throws Exception {
 
     String processInstanceId =
         this.camundaProcessengineRequester.startCamundaProcessAndReturnId(

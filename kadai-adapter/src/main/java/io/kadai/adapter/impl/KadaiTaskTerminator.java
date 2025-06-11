@@ -23,38 +23,28 @@ import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
-import io.kadai.adapter.util.LowerMedian;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /** Terminates KADAI tasks if the associated task in the external system was finished. */
 @Component
-public class KadaiTaskTerminator implements ScheduledComponent {
+public class KadaiTaskTerminator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskTerminator.class);
-  private final AdapterManager adapterManager;
-  private final SchedulerRun schedulerRun;
-  private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
-  @Value(
-      "${kadai.adapter.scheduler.run.interval.for.check.finished.referenced.tasks.in.milliseconds"
-          + ":5000}")
-  private int runIntervalMillis;
+  private final AdapterManager adapterManager;
+  private final LastSchedulerRun lastSchedulerRun;
 
-  @Autowired
-  public KadaiTaskTerminator(AdapterManager adapterManager) {
+  public KadaiTaskTerminator(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
     this.adapterManager = adapterManager;
-    this.schedulerRun = new SchedulerRun();
+    this.lastSchedulerRun = lastSchedulerRun;
   }
 
   @Scheduled(
@@ -62,7 +52,6 @@ public class KadaiTaskTerminator implements ScheduledComponent {
           "${kadai.adapter.scheduler.run.interval.for.check.finished.referenced.tasks."
               + "in.milliseconds:5000}")
   public void retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks() {
-    final Instant start = Instant.now();
 
     synchronized (AdapterManager.class) {
       if (!adapterManager.isInitialized()) {
@@ -90,14 +79,12 @@ public class KadaiTaskTerminator implements ScheduledComponent {
                 return null;
               });
         }
-        schedulerRun.touch();
+        lastSchedulerRun.touch();
       } catch (Exception e) {
         LOGGER.warn(
             "caught exception while trying to retrieve "
                 + "finished referenced tasks and terminate corresponding kadai tasks",
             e);
-      } finally {
-        runDurationLowerMedian.add(Duration.between(start, Instant.now()));
       }
     }
   }
@@ -137,21 +124,6 @@ public class KadaiTaskTerminator implements ScheduledComponent {
           "KadaiTaskTerminator."
               + "retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks EXIT ");
     }
-  }
-
-  @Override
-  public SchedulerRun getLastSchedulerRun() {
-    return schedulerRun;
-  }
-
-  @Override
-  public Duration getRunInterval() {
-    return Duration.ofMillis(runIntervalMillis);
-  }
-
-  @Override
-  public Duration getExpectedRunDuration() {
-    return runDurationLowerMedian.get().orElse(Duration.ZERO);
   }
 
   private void terminateKadaiTask(ReferencedTask referencedTask)
