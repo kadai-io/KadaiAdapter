@@ -12,21 +12,17 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class OutboxHealthIndicator implements HealthIndicator {
 
   private final RestTemplate restTemplate;
-  private final String camundaOutboxAddress;
-  private final int camundaOutboxPort;
-  private final String contextPath;
   private URI url;
 
-  public OutboxHealthIndicator(
-      RestTemplate restTemplate,
-      String camundaOutboxAddress,
-      int camundaOutboxPort,
-      String contextPath) {
+  public OutboxHealthIndicator(RestTemplate restTemplate, String urlString) {
     this.restTemplate = restTemplate;
-    this.camundaOutboxAddress = camundaOutboxAddress;
-    this.camundaOutboxPort = camundaOutboxPort;
-    this.contextPath = contextPath;
-    init();
+    this.url =
+        UriComponentsBuilder.fromUriString(urlString)
+            .pathSegment("events")
+            .pathSegment("count")
+            .queryParam("retries", 0)
+            .build()
+            .toUri();
   }
 
   @Override
@@ -45,19 +41,6 @@ public class OutboxHealthIndicator implements HealthIndicator {
     } catch (Exception e) {
       return Health.down().withDetail("Outbox Service Error", e.getMessage()).build();
     }
-  }
-
-  private void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("outbox-rest")
-            .pathSegment("events")
-            .pathSegment("count")
-            .queryParam("retries", 0)
-            .build()
-            .toUri();
   }
 
   private ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {

@@ -6,8 +6,10 @@ import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
 import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.ReferencedTaskCompleter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,33 +26,37 @@ import org.springframework.web.client.RestTemplate;
 public class ExternalServicesHealthComposite implements CompositeHealthContributor {
 
   private final Map<String, HealthContributor> healthContributors = new HashMap<>();
+  private final List<String> camundaUrls = new ArrayList<>();
+  private final List<String> outboxUrls = new ArrayList<>();
 
   @Autowired
   public ExternalServicesHealthComposite(
       ExternalServicesHealthConfigurationProperties properties,
       RestTemplate restTemplate,
-      @Value("${camundaOutboxService.address:http://localhost}") String camundaOutboxAddress,
-      @Value("${camundaOutboxService.port:8090}") int camundaOutboxPort,
-      @Value("${outbox.context-path:}") String contextPath,
       ReferencedTaskCompleter referencedTaskCompleter,
       ReferencedTaskClaimer referencedTaskClaimer,
       ReferencedTaskClaimCanceler referencedTaskClaimCanceler,
       KadaiTaskStarter kadaiTaskStarter,
-      KadaiTaskTerminator kadaiTaskTerminator) {
+      KadaiTaskTerminator kadaiTaskTerminator,
+      @Value("${kadai-system-connector-camundaSystemURLs}") String urlCamundaSystem) {
+    String[] entries = urlCamundaSystem.split(",");
+    for (String entry : entries) {
+      String[] parts = entry.split("\\|");
+      if (parts.length == 2) {
+        camundaUrls.add(parts[0].trim());
+        outboxUrls.add(parts[1].trim());
+      } else {
+        throw new IllegalArgumentException("Invalid Camunda System URL format for: " + entry);
+      }
+    }
     if (properties.getCamunda().getEnabled()) {
-      healthContributors.put(
-          "camunda",
-          new CamundaHealthIndicator(
-              restTemplate, camundaOutboxAddress, camundaOutboxPort, contextPath));
+      healthContributors.put("camunda", new CamundaHealthComposite(restTemplate, camundaUrls));
     }
     if (properties.getKadai().getEnabled()) {
       healthContributors.put("kadai", new KadaiHealthIndicator());
     }
     if (properties.getOutbox().getEnabled()) {
-      healthContributors.put(
-          "outbox",
-          new OutboxHealthIndicator(
-              restTemplate, camundaOutboxAddress, camundaOutboxPort, contextPath));
+      healthContributors.put("outbox", new OutboxHealthComposite(restTemplate, outboxUrls));
     }
     if (properties.getScheduler().getEnabled()) {
       healthContributors.put(
