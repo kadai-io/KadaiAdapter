@@ -11,22 +11,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class CamundaHealthIndicator implements HealthIndicator {
 
   private final RestTemplate restTemplate;
-  private final String camundaOutboxAddress;
-  private final int camundaOutboxPort;
-  private final String contextPath;
-
   private URI url;
 
-  public CamundaHealthIndicator(
-      RestTemplate restTemplate,
-      String camundaOutboxAddress,
-      int camundaOutboxPort,
-      String contextPath) {
+  public CamundaHealthIndicator(RestTemplate restTemplate, String urlString) {
     this.restTemplate = restTemplate;
-    this.camundaOutboxAddress = camundaOutboxAddress;
-    this.camundaOutboxPort = camundaOutboxPort;
-    this.contextPath = contextPath;
-    init();
+    this.url =
+        UriComponentsBuilder.fromUriString(urlString)
+            .pathSegment("engine")
+            .build()
+            .toUri();
   }
 
   @Override
@@ -42,17 +35,6 @@ public class CamundaHealthIndicator implements HealthIndicator {
     } catch (Exception e) {
       return Health.down().withDetail("camundaEngines", e.getMessage()).build();
     }
-  }
-
-  private void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("engine-rest")
-            .pathSegment("engine")
-            .build()
-            .toUri();
   }
 
   private ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {

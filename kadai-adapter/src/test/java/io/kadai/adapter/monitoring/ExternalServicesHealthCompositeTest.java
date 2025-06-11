@@ -20,7 +20,14 @@ class ExternalServicesHealthCompositeTest {
       ExternalServicesHealthConfigurationProperties properties, long expectedEnabledCount) {
     final ExternalServicesHealthComposite externalServicesHealthComposite =
         new ExternalServicesHealthComposite(
-            properties, mock(), "foo", 42, "bar", mock(), mock(), mock(), mock(), mock());
+            properties,
+            mock(),
+            mock(),
+            mock(),
+            mock(),
+            mock(),
+            mock(),
+            "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest");
 
     final long actual = externalServicesHealthComposite.stream().count();
 
@@ -35,14 +42,12 @@ class ExternalServicesHealthCompositeTest {
         new ExternalServicesHealthComposite(
             new ExternalServicesHealthConfigurationProperties(),
             mock(),
-            "foo",
-            42,
-            "bar",
             mock(),
             mock(),
             mock(),
             mock(),
-            mock());
+            mock(),
+            "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest");
 
     assertThat(externalServicesHealthComposite.getContributor(contributorName)).isNotNull();
   }
