@@ -29,7 +29,7 @@ class CamundaHealthIndicatorTest {
     this.camundaHealthIndicatorSpy =
         Mockito.spy(
             new CamundaHealthIndicator(
-                restTemplate, "http://localhost", 8090, "example-context-root"));
+                restTemplate, "http://localhost:10020/engine-rest"));
   }
 
   @Test
