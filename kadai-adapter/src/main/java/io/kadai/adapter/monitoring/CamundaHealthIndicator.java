@@ -11,22 +11,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class CamundaHealthIndicator implements HealthIndicator {
 
   private final RestTemplate restTemplate;
-  private final String camundaOutboxAddress;
-  private final int camundaOutboxPort;
-  private final String contextPath;
-
   private URI url;
+  private String urlString;
 
-  public CamundaHealthIndicator(
-      RestTemplate restTemplate,
-      String camundaOutboxAddress,
-      int camundaOutboxPort,
-      String contextPath) {
+  public CamundaHealthIndicator(RestTemplate restTemplate, String urlString) {
     this.restTemplate = restTemplate;
-    this.camundaOutboxAddress = camundaOutboxAddress;
-    this.camundaOutboxPort = camundaOutboxPort;
-    this.contextPath = contextPath;
-    init();
+    this.urlString = urlString;
+    this.url = UriComponentsBuilder.fromUriString(urlString).pathSegment("engine").build().toUri();
   }
 
   @Override
@@ -36,23 +27,18 @@ public class CamundaHealthIndicator implements HealthIndicator {
       CamundaEngineInfoRepresentationModel[] engines = response.getBody();
 
       if (engines == null || engines.length == 0) {
-        return Health.down().withDetail("camundaEngineError", "No engines found").build();
+        return Health.down()
+            .withDetail("camundaEngineError", "No engines found")
+            .withDetail("baseUrl", urlString)
+            .build();
       }
-      return Health.up().withDetail("camundaEngines", engines).build();
+      return Health.up().withDetail("camundaEngines", engines).withDetail("url", url).build();
     } catch (Exception e) {
-      return Health.down().withDetail("camundaEngines", e.getMessage()).build();
+      return Health.down()
+          .withDetail("camundaEngines", e.getMessage())
+          .withDetail("baseUrl", urlString)
+          .build();
     }
-  }
-
-  private void init() {
-    this.url =
-        UriComponentsBuilder.fromUriString(camundaOutboxAddress)
-            .port(camundaOutboxPort)
-            .pathSegment(contextPath)
-            .pathSegment("engine-rest")
-            .pathSegment("engine")
-            .build()
-            .toUri();
   }
 
   private ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {

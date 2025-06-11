@@ -8,30 +8,12 @@ import org.springframework.context.annotation.Configuration;
 public class ExternalServicesHealthConfigurationProperties
     extends CompositeHealthContributorConfigurationProperties {
 
-  private CompositeHealthContributorConfigurationProperties camunda =
-      new CompositeHealthContributorConfigurationProperties();
-  private CompositeHealthContributorConfigurationProperties outbox =
-      new CompositeHealthContributorConfigurationProperties();
+  private CamundaSystemHealthConfigurationProperties camundaSystem =
+      new CamundaSystemHealthConfigurationProperties();
   private CompositeHealthContributorConfigurationProperties kadai =
       new CompositeHealthContributorConfigurationProperties();
   private SchedulerHealthConfigurationProperties scheduler =
       new SchedulerHealthConfigurationProperties();
-
-  public CompositeHealthContributorConfigurationProperties getCamunda() {
-    return camunda;
-  }
-
-  public void setCamunda(CompositeHealthContributorConfigurationProperties camunda) {
-    this.camunda = camunda;
-  }
-
-  public CompositeHealthContributorConfigurationProperties getOutbox() {
-    return outbox;
-  }
-
-  public void setOutbox(CompositeHealthContributorConfigurationProperties outbox) {
-    this.outbox = outbox;
-  }
 
   public CompositeHealthContributorConfigurationProperties getKadai() {
     return kadai;
@@ -49,16 +31,12 @@ public class ExternalServicesHealthConfigurationProperties
     this.scheduler = scheduler;
   }
 
-  public ExternalServicesHealthConfigurationProperties withCamunda(
-      CompositeHealthContributorConfigurationProperties camunda) {
-    this.camunda = camunda;
-    return this;
+  public CamundaSystemHealthConfigurationProperties getCamundaSystem() {
+    return camundaSystem;
   }
 
-  public ExternalServicesHealthConfigurationProperties withOutbox(
-      CompositeHealthContributorConfigurationProperties outbox) {
-    this.outbox = outbox;
-    return this;
+  public void setCamundaSystem(CamundaSystemHealthConfigurationProperties camundaSystem) {
+    this.camundaSystem = camundaSystem;
   }
 
   public ExternalServicesHealthConfigurationProperties withKadai(
@@ -70,6 +48,12 @@ public class ExternalServicesHealthConfigurationProperties
   public ExternalServicesHealthConfigurationProperties withScheduler(
       SchedulerHealthConfigurationProperties scheduler) {
     this.scheduler = scheduler;
+    return this;
+  }
+
+  public ExternalServicesHealthConfigurationProperties withCamundaSystem(
+      CamundaSystemHealthConfigurationProperties camundaSystem) {
+    this.camundaSystem = camundaSystem;
     return this;
   }
 
@@ -176,6 +160,44 @@ public class ExternalServicesHealthConfigurationProperties
 
     public void setRunTimeAcceptanceMultiplier(long runTimeAcceptanceMultiplier) {
       this.runTimeAcceptanceMultiplier = runTimeAcceptanceMultiplier;
+    }
+  }
+
+  public static class CamundaSystemHealthConfigurationProperties
+      extends CompositeHealthContributorConfigurationProperties {
+
+    private CompositeHealthContributorConfigurationProperties camunda =
+        new CompositeHealthContributorConfigurationProperties();
+
+    private CompositeHealthContributorConfigurationProperties outbox =
+        new CompositeHealthContributorConfigurationProperties();
+
+    public CompositeHealthContributorConfigurationProperties getCamunda() {
+      return camunda;
+    }
+
+    public void setCamunda(CompositeHealthContributorConfigurationProperties camunda) {
+      this.camunda = camunda;
+    }
+
+    public CompositeHealthContributorConfigurationProperties getOutbox() {
+      return outbox;
+    }
+
+    public void setOutbox(CompositeHealthContributorConfigurationProperties outbox) {
+      this.outbox = outbox;
+    }
+
+    public CamundaSystemHealthConfigurationProperties withCamunda(
+        CompositeHealthContributorConfigurationProperties camunda) {
+      this.camunda = camunda;
+      return this;
+    }
+
+    public CamundaSystemHealthConfigurationProperties withOutbox(
+        CompositeHealthContributorConfigurationProperties outbox) {
+      this.outbox = outbox;
+      return this;
     }
   }
 }

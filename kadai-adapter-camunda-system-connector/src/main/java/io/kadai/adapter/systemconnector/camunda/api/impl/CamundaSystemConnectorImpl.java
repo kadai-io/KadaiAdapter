@@ -129,6 +129,11 @@ public class CamundaSystemConnectorImpl implements SystemConnector {
   }
 
   @Override
+  public String getSystemTaskEventUrl() {
+    return camundaSystemUrl.getSystemTaskEventUrl();
+  }
+
+  @Override
   public String getSystemIdentifier() {
     return camundaSystemUrl.getCamundaEngineIdentifier();
   }
