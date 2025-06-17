@@ -1,9 +1,8 @@
 package io.kadai.adapter.systemconnector.camunda.task.listener;
 
 import io.camunda.client.api.response.ActivatedJob;
-import java.util.Map;
-
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
+import java.util.Map;
 
 public class ReferencedTaskCreator {
 
@@ -24,9 +23,10 @@ public class ReferencedTaskCreator {
 
   private ReferencedTask fetchDetailsFromTaskApi(ReferencedTask task) {
     // Logic to fetch task details from theAPI using the taskId
-    // Will be able to use CamundaClient for this: https://forum.camunda.io/t/tasklist-api-and-zeebeclient/61011
+    // Will be able to use CamundaClient for this:
+    // https://forum.camunda.io/t/tasklist-api-and-zeebeclient/61011
     // This is a placeholder for the actual implementation
-    
+
     // fetch details like planned, name, description, etc.
     return task;
   }

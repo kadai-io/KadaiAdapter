@@ -5,7 +5,6 @@ import io.camunda.client.api.worker.JobClient;
 import io.camunda.spring.client.annotation.JobWorker;
 import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

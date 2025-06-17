@@ -3,8 +3,6 @@ package io.kadai.adapter.systemconnector.camunda.task.listener;
 import io.camunda.spring.client.annotation.JobWorker;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.worker.JobClient;
-import java.util.Map;
-
 import io.kadai.adapter.impl.KadaiTaskStarter;
 
 public class UserTaskCreation {
