@@ -41,6 +41,7 @@ public class Camunda8SystemConnectorConfiguration {
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   UserTaskCompletion userTaskListener(
       final AdapterManager adapterManager, final LastSchedulerRun lastSchedulerRun) {
-    return new UserTaskCompletion(new KadaiTaskTerminator(adapterManager, lastSchedulerRun), new ReferencedTaskCreator());
+    return new UserTaskCompletion(
+        new KadaiTaskTerminator(adapterManager, lastSchedulerRun), new ReferencedTaskCreator());
   }
 }
