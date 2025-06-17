@@ -25,6 +25,7 @@ public class UserTaskCompletion {
 
   // todo: info, trace and warning logging
 
+  // todo: do we really need to use ActivatedJob here? By doing so, we load all variables
   @JobWorker(type = "user-task-listener-completion")
   public void receiveTaskCompletedEvent(final JobClient jobClient, final ActivatedJob job) {
     // ! mit ActivateJob: alle Variablen werden mitgeladen
