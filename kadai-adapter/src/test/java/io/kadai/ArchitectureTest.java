@@ -133,7 +133,7 @@ class ArchitectureTest {
         .and()
         .areNotDeclaredIn(ArchitectureTest.class)
         .should(
-            new ArchCondition<JavaMethod>("call touch() method from LastSchedulerRun") {
+            new ArchCondition<JavaMethod>("call touch() method from SchedulerRun") {
               @Override
               public void check(JavaMethod method, ConditionEvents events) {
                 List<JavaMethodCall> touchCalls =
@@ -147,7 +147,7 @@ class ArchitectureTest {
                           method,
                           "Method "
                               + method.getFullName()
-                              + " does not call touch() from LastSchedulerRun"));
+                              + " does not call touch() from SchedulerRun"));
                 }
               }
             })

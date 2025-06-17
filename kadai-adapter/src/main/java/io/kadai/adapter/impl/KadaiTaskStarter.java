@@ -23,37 +23,46 @@ import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemConnector;
+import io.kadai.adapter.util.LowerMedian;
 import io.kadai.task.api.exceptions.TaskAlreadyExistException;
 import io.kadai.task.api.models.Task;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /** Retrieves tasks in an external system and starts corresponding tasks in KADAI. */
 @Component
-public class KadaiTaskStarter {
+public class KadaiTaskStarter implements ScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskStarter.class);
+  private final AdapterManager adapterManager;
+  private final SchedulerRun schedulerRun;
+  private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
   @Value("${kadai.adapter.run-as.user}")
   protected String runAsUser;
 
-  private final AdapterManager adapterManager;
-  private final LastSchedulerRun lastSchedulerRun;
+  @Value("${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
+  private int runIntervalMillis;
 
-  public KadaiTaskStarter(AdapterManager adapterManager, LastSchedulerRun lastSchedulerRun) {
+  @Autowired
+  public KadaiTaskStarter(AdapterManager adapterManager) {
     this.adapterManager = adapterManager;
-    this.lastSchedulerRun = lastSchedulerRun;
+    this.schedulerRun = new SchedulerRun();
   }
 
   @Scheduled(
       fixedRateString =
           "${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
   public void retrieveNewReferencedTasksAndCreateCorrespondingKadaiTasks() {
+    final Instant start = Instant.now();
     if (!adapterIsInitialized()) {
       return;
     }
@@ -71,10 +80,12 @@ public class KadaiTaskStarter {
               retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
               return null;
             });
-        lastSchedulerRun.touch();
+        schedulerRun.touch();
       } catch (Exception ex) {
         LOGGER.error(
             "Caught exception while trying to create Kadai tasks from referenced tasks", ex);
+      } finally {
+        runDurationLowerMedian.add(Duration.between(start, Instant.now()));
       }
     }
   }
@@ -108,6 +119,21 @@ public class KadaiTaskStarter {
     connector.createKadaiTask(kadaiTask);
 
     LOGGER.trace("KadaiTaskStarter.createKadaiTask EXIT ");
+  }
+
+  @Override
+  public SchedulerRun getLastSchedulerRun() {
+    return schedulerRun;
+  }
+
+  @Override
+  public Duration getRunInterval() {
+    return Duration.ofMillis(runIntervalMillis);
+  }
+
+  @Override
+  public Duration getExpectedRunDuration() {
+    return runDurationLowerMedian.get().orElse(Duration.ZERO);
   }
 
   public List<ReferencedTask> createAndStartKadaiTasks(

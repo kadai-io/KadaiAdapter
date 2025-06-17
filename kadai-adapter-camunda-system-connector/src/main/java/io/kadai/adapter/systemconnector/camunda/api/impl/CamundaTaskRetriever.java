@@ -78,7 +78,7 @@ public class CamundaTaskRetriever {
 
   public List<ReferencedTask> retrieveFinishedCamundaTasks(
       String camundaSystemUrl, String camundaSystemEngineIdentifier, Duration lockDuration) {
-    LOGGER.debug("entry to retrieveFinishedCamundaTasks. CamundSystemURL = {} ", camundaSystemUrl);
+    LOGGER.debug("entry to retrieveFinishedCamundaTasks. CamundaSystemURL = {} ", camundaSystemUrl);
 
     List<CamundaTaskEvent> camundaTaskEvents =
         getCamundaTaskEvents(

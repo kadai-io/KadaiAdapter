@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.kadai</groupId>
     <artifactId>kadai-adapter-parent</artifactId>
-    <version>9.3.1-SNAPSHOT</version>
+    <version>9.3.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -45,8 +45,8 @@
         <version.kadai>9.3.1-SNAPSHOT</version.kadai>
 
         <!-- build dependencies -->
-        <version.checkstyle>10.23.1</version.checkstyle>
-        <version.google-java-format>1.26.0</version.google-java-format>
+        <version.checkstyle>10.25.0</version.checkstyle>
+        <version.google-java-format>1.27.0</version.google-java-format>
         <version.maven.checkstyle>3.6.0</version.maven.checkstyle>
         <version.maven.compiler>3.13.0</version.maven.compiler>
         <version.maven.dependency>3.8.1</version.maven.dependency>
@@ -64,7 +64,7 @@
         <version.spring.mybatis>3.0.4</version.spring.mybatis>
 
         <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
-        <version.spring.boot>3.4.5</version.spring.boot>
+        <version.spring.boot>3.5.0</version.spring.boot>
 
         <version.camunda>7.23.0</version.camunda>
         <version.camunda.spin>1.23.0</version.camunda.spin>
@@ -77,9 +77,9 @@
         <version.jakarta-ws-rs-api>3.0.0</version.jakarta-ws-rs-api>
 
         <version.resteasy.spring.boot>6.3.0.Final</version.resteasy.spring.boot>
-        <version.org.webjars.bootstrap>5.3.5</version.org.webjars.bootstrap>
+        <version.org.webjars.bootstrap>5.3.6</version.org.webjars.bootstrap>
 
-        <version.archunit>1.4.0</version.archunit>
+        <version.archunit>1.4.1</version.archunit>
         <version.hamcrest.json>0.3</version.hamcrest.json>
 
         <version.maven.gpg>3.2.7</version.maven.gpg>
