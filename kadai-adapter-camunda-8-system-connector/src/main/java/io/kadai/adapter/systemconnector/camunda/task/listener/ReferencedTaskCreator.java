@@ -8,34 +8,55 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReferencedTaskCreator {
 
+  private static final org.slf4j.Logger LOGGER =
+      org.slf4j.LoggerFactory.getLogger(ReferencedTaskCreator.class);
+
   public ReferencedTask createReferencedTaskFromJob(ActivatedJob job) {
-    ReferencedTask task = new ReferencedTask(); // No variables are set
-    // custom headers: userTaskKey, assignee, formKey, priority, action
-    // how to get name?
+    ReferencedTask referencedTask = new ReferencedTask();
     Map<String, String> customHeaders = job.getCustomHeaders();
 
-    task.setId(customHeaders.get("io.camunda.zeebe:userTaskKey"));
+    referencedTask.setId(customHeaders.get("io.camunda.zeebe:userTaskKey"));
     // io.camunda.zeebe:userTaskKey -> 2251799813782683 or job.getElementInstanceKey:
     // 2251799813782682 ?
-    task.setManualPriority(
-        customHeaders.get(
-            "io.camunda.zeebe:priority")); // todo: should not use this because it is the default
-    // priority
-    task.setAssignee(customHeaders.get("io.camunda.zeebe:assignee"));
-    task.setDue(customHeaders.get("io.camunda.zeebe:dueDate"));
-    task.setTaskDefinitionKey(job.getElementId());
-    task.setBusinessProcessId(job.getBpmnProcessId());
-    // todo: use variables for custom attributes
-    return fetchDetailsFromTaskApi(task);
+    referencedTask.setManualPriority(
+        customHeaders.get("io.camunda.zeebe:priority")); // todo: use variable instead?
+    referencedTask.setAssignee(customHeaders.get("io.camunda.zeebe:assignee"));
+    referencedTask.setDue(customHeaders.get("io.camunda.zeebe:dueDate"));
+    referencedTask.setTaskDefinitionKey(job.getElementId());
+    referencedTask.setBusinessProcessId(job.getBpmnProcessId());
+
+    referencedTask.setWorkbasketKey(getVariable(job, "kadai.workbasket-key"));
+    referencedTask.setWorkbasketKey(getVariable(job, "kadai.classification-key"));
+    referencedTask.setWorkbasketKey(getVariable(job, "kadai.domain"));
+
+    referencedTask.setCustomInt1(getVariable(job, "kadai.custom-int-1"));
+    referencedTask.setCustomInt2(getVariable(job, "kadai.custom-int-2"));
+    referencedTask.setCustomInt3(getVariable(job, "kadai.custom-int-3"));
+    referencedTask.setCustomInt4(getVariable(job, "kadai.custom-int-4"));
+    referencedTask.setCustomInt5(getVariable(job, "kadai.custom-int-5"));
+    referencedTask.setCustomInt6(getVariable(job, "kadai.custom-int-6"));
+    referencedTask.setCustomInt7(getVariable(job, "kadai.custom-int-7"));
+    referencedTask.setCustomInt8(getVariable(job, "kadai.custom-int-8"));
+
+    // todo: missing name, documentation and extension properties
+    return referencedTask;
   }
 
-  private ReferencedTask fetchDetailsFromTaskApi(ReferencedTask task) {
-    // Logic to fetch task details from theAPI using the taskId
-    // Will be able to use CamundaClient for this:
-    // https://forum.camunda.io/t/tasklist-api-and-zeebeclient/61011
-    // This is a placeholder for the actual implementation
-
-    // fetch details like planned, name, description, etc.
-    return task;
+  private String getVariable(ActivatedJob job, String variableName) {
+    String variable = null;
+    try {
+      Object variableObj = job.getVariable(variableName);
+      if (variableObj instanceof String variableAsString) {
+        variable = variableAsString;
+      }
+    } catch (Exception e) {
+      LOGGER.warn(
+          "Caught exception while trying to retrieve {} " + "for task {} in ProcessDefinition {}",
+          variableName,
+          job.getElementId(),
+          job.getBpmnProcessId(),
+          e);
+    }
+    return variable;
   }
 }
