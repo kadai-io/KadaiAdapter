@@ -1,4 +1,4 @@
-package io.kadai.adapter.systemconnector.camunda.task.listener;
+package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.worker.JobClient;
@@ -26,7 +26,7 @@ public class UserTaskCompletion {
   // todo: info, trace and warning logging
 
   // todo: do we really need to use ActivatedJob here? By doing so, we load all variables
-  @JobWorker(type = "user-task-listener-completion")
+  @JobWorker(type = "kadai-receive-task-completed-event")
   public void receiveTaskCompletedEvent(final JobClient jobClient, final ActivatedJob job) {
     // ! mit ActivateJob: alle Variablen werden mitgeladen
 

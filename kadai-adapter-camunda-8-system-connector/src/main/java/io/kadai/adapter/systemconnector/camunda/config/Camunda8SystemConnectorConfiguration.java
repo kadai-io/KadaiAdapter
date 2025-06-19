@@ -2,8 +2,8 @@ package io.kadai.adapter.systemconnector.camunda.config;
 
 import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.manager.AdapterManager;
-import io.kadai.adapter.systemconnector.camunda.task.listener.ReferencedTaskCreator;
-import io.kadai.adapter.systemconnector.camunda.task.listener.UserTaskCompletion;
+import io.kadai.adapter.systemconnector.camunda.tasklistener.ReferencedTaskCreator;
+import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -38,8 +38,7 @@ public class Camunda8SystemConnectorConfiguration {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-  UserTaskCompletion userTaskListener(
-      final AdapterManager adapterManager) {
+  UserTaskCompletion userTaskListener(final AdapterManager adapterManager) {
     return new UserTaskCompletion(
         new KadaiTaskTerminator(adapterManager), new ReferencedTaskCreator());
   }

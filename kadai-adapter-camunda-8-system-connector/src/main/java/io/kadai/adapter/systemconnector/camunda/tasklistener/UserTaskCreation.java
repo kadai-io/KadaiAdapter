@@ -1,4 +1,4 @@
-package io.kadai.adapter.systemconnector.camunda.task.listener;
+package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
 import io.camunda.spring.client.annotation.JobWorker;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
