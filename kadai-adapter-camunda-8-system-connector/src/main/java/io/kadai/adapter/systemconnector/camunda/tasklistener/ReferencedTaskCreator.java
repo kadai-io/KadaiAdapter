@@ -1,4 +1,4 @@
-package io.kadai.adapter.systemconnector.camunda.task.listener;
+package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
 import io.camunda.client.api.response.ActivatedJob;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
