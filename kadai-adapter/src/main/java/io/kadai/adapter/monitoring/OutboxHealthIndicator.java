@@ -11,6 +11,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 public class OutboxHealthIndicator implements HealthIndicator {
 
+  private static final String BASE_URL = "baseUrl";
+
   private final RestTemplate restTemplate;
   private URI url;
   private String urlString;
@@ -35,19 +37,19 @@ public class OutboxHealthIndicator implements HealthIndicator {
       if (response.getStatusCode() == HttpStatus.OK) {
         return Health.up()
             .withDetail("outboxService", response.getBody())
-            .withDetail("baseUrl", urlString)
+            .withDetail(BASE_URL, urlString)
             .build();
       } else {
         return Health.down()
             .withDetail("outboxServiceError", "Unexpected status: " + response.getStatusCode())
-            .withDetail("baseUrl", urlString)
+            .withDetail(BASE_URL, urlString)
             .build();
       }
 
     } catch (Exception e) {
       return Health.down()
           .withDetail("outboxServiceError", e.getMessage())
-          .withDetail("baseUrl", urlString)
+          .withDetail(BASE_URL, urlString)
           .build();
     }
   }
