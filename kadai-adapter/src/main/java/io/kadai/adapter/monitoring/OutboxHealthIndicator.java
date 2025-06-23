@@ -34,19 +34,19 @@ public class OutboxHealthIndicator implements HealthIndicator {
 
       if (response.getStatusCode() == HttpStatus.OK) {
         return Health.up()
-            .withDetail("Outbox Service", response.getBody())
+            .withDetail("outboxService", response.getBody())
             .withDetail("baseUrl", urlString)
             .build();
       } else {
         return Health.down()
-            .withDetail("Outbox Service Error", "Unexpected status: " + response.getStatusCode())
+            .withDetail("outboxServiceError", "Unexpected status: " + response.getStatusCode())
             .withDetail("baseUrl", urlString)
             .build();
       }
 
     } catch (Exception e) {
       return Health.down()
-          .withDetail("Outbox Service Error", e.getMessage())
+          .withDetail("outboxServiceError", e.getMessage())
           .withDetail("baseUrl", urlString)
           .build();
     }

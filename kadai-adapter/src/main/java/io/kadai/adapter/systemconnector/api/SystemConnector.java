@@ -94,13 +94,6 @@ public interface SystemConnector {
   String getSystemUrl();
 
   /**
-   * Get the URL of the outbox this connector connects to.
-   *
-   * @return the URL of the connected outbox.
-   */
-  String getSystemTaskEventUrl();
-
-  /**
    * Get the system identifier of the external system this connector connects to.
    *
    * @return the system identifier of the connected external system.
