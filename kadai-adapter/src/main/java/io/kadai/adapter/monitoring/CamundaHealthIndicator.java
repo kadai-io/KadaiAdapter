@@ -34,7 +34,7 @@ public class CamundaHealthIndicator implements HealthIndicator {
             .withDetail(BASE_URL, urlString)
             .build();
       }
-      return Health.up().withDetail("camundaEngines", engines).withDetail("url", url).build();
+      return Health.up().withDetail("camundaEngines", engines).withDetail(BASE_URL, url).build();
     } catch (Exception e) {
       return Health.down()
           .withDetail("camundaEngines", e.getMessage())
