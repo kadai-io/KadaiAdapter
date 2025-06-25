@@ -29,7 +29,7 @@ class OutboxHealthIndicatorTest {
     this.outboxHealthIndicatorSpy =
         Mockito.spy(
             new OutboxHealthIndicator(
-                restTemplate, "http://localhost", 8090, "example-context-root"));
+                restTemplate, "http://localhost:10020/outbox-rest"));
   }
 
   @Test
