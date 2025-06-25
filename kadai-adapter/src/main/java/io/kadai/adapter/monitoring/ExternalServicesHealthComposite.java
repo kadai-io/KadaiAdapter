@@ -8,6 +8,7 @@ import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.ReferencedTaskCompleter;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +35,7 @@ public class ExternalServicesHealthComposite implements CompositeHealthContribut
       ReferencedTaskClaimCanceler referencedTaskClaimCanceler,
       KadaiTaskStarter kadaiTaskStarter,
       KadaiTaskTerminator kadaiTaskTerminator,
-      @Value("${kadai-system-connector-camundaSystemURLs}") String camundaSystemUrls) {
+      @Value("${kadai-system-connector-camundaSystemURLs}") List<String> camundaSystemUrls) {
     if (properties.getCamundaSystem().getEnabled()) {
       healthContributors.put(
           "camundaSystems",

@@ -7,6 +7,7 @@ import io.kadai.adapter.configuration.health.CompositeHealthContributorConfigura
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties.CamundaSystemHealthConfigurationProperties;
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -28,8 +29,9 @@ class ExternalServicesHealthCompositeTest {
             mock(),
             mock(),
             mock(),
-            "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest, "
-                + "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest");
+            List.of(
+                "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest",
+                "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest"));
 
     final long actual = externalServicesHealthComposite.stream().count();
 
@@ -49,8 +51,9 @@ class ExternalServicesHealthCompositeTest {
             mock(),
             mock(),
             mock(),
-            "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest, "
-                + "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest");
+            List.of(
+                "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest",
+                "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest"));
 
     assertThat(externalServicesHealthComposite.getContributor(contributorName)).isNotNull();
   }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
+import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -16,11 +17,11 @@ class CamundaSystemHealthCompositeTest {
     final CamundaSystemsHealthComposite camundaSystemsHealthComposite =
         new CamundaSystemsHealthComposite(
             mock(),
-            "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest, "
-                + "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest",
+            List.of(
+                "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest",
+                "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest"),
             new ExternalServicesHealthConfigurationProperties());
 
     assertThat(camundaSystemsHealthComposite.getContributor(contributorName)).isNotNull();
   }
-
 }

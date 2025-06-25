@@ -3,6 +3,7 @@ package io.kadai.adapter.monitoring;
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import org.springframework.boot.actuate.health.CompositeHealthContributor;
@@ -16,15 +17,13 @@ public class CamundaSystemsHealthComposite implements CompositeHealthContributor
 
   public CamundaSystemsHealthComposite(
       RestTemplate restTemplate,
-      String camundaSystemUrls,
+      List<String> camundaSystemUrls,
       ExternalServicesHealthConfigurationProperties properties) {
 
     int i = 0;
     if (camundaSystemUrls != null) {
-      StringTokenizer systemTokenizer = new StringTokenizer(camundaSystemUrls, ",");
-      while (systemTokenizer.hasMoreTokens()) {
-        String currentSystemConfigs = systemTokenizer.nextToken().trim();
-        StringTokenizer systemConfigParts = new StringTokenizer(currentSystemConfigs, "|");
+      for (String camundaSystemUrl : camundaSystemUrls) {
+        StringTokenizer systemConfigParts = new StringTokenizer(camundaSystemUrl, "|");
 
         String camundaUrl = systemConfigParts.nextToken().trim();
         String outboxUrl = systemConfigParts.nextToken().trim();
