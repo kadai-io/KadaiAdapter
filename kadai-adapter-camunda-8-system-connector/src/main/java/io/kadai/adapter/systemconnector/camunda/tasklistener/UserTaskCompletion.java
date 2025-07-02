@@ -1,7 +1,6 @@
 package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
 import io.camunda.client.api.response.ActivatedJob;
-import io.camunda.client.api.worker.JobClient;
 import io.camunda.spring.client.annotation.JobWorker;
 import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
@@ -16,6 +15,7 @@ public class UserTaskCompletion {
   private final ReferencedTaskCreator referencedTaskCreator;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCompletion.class);
+  private boolean gotActivated = false;
 
   public UserTaskCompletion(
       KadaiTaskTerminator taskTerminator, ReferencedTaskCreator referencedTaskCreator) {
@@ -23,23 +23,27 @@ public class UserTaskCompletion {
     this.referencedTaskCreator = referencedTaskCreator;
   }
 
-  // todo: info, trace and warning logging
-
-  // todo: do we really need to use ActivatedJob here? By doing so, we load all variables
   @JobWorker(type = "kadai-receive-task-completed-event")
-  public void receiveTaskCompletedEvent(final JobClient jobClient, final ActivatedJob job) {
-    // ! mit ActivateJob: alle Variablen werden mitgeladen
+  public void receiveTaskCompletedEvent(final ActivatedJob job) {
 
     try {
-      // Logic to handle task completion event
-      LOGGER.info("ToDo!");
+      if (!gotActivated) {
+        gotActivated = true;
+        if (LOGGER.isInfoEnabled()) {
+          LOGGER.info(
+              "UserTaskListener kadai-receive-task-completed-event activated successfully, "
+                  + "connected to process instance {}",
+              job.getProcessInstanceKey());
+        }
+      }
 
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
-
+      // todo: system url is missing here
       taskTerminator.terminateKadaiTask(referencedTask);
+
     } catch (Exception e) {
-      LOGGER.warn(
-          "caught exception while trying to retrieve "
+      LOGGER.error(
+          "Caught exception while trying to retrieve "
               + "finished referenced tasks and terminate corresponding kadai tasks",
           e);
     }
