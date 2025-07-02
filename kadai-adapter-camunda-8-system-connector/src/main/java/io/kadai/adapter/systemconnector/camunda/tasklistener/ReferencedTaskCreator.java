@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.client.api.response.ActivatedJob;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -31,9 +30,9 @@ public class ReferencedTaskCreator {
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
-    referencedTask.setWorkbasketKey(getVariable(job, "workbasket-key"));
-    referencedTask.setWorkbasketKey(getVariable(job, "classification-key"));
-    referencedTask.setWorkbasketKey(getVariable(job, "domain"));
+    referencedTask.setWorkbasketKey(getVariable(job, "workbasket_key"));
+    referencedTask.setClassificationKey(getVariable(job, "classification_key"));
+    referencedTask.setDomain(getVariable(job, "domain"));
 
     referencedTask.setCustomInt1(getVariable(job, "custom-int-1"));
     referencedTask.setCustomInt2(getVariable(job, "custom-int-2"));
@@ -46,16 +45,18 @@ public class ReferencedTaskCreator {
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
 
-    // todo: missing name
-    // todo: test!!
+    // todo: missing name, fallback domain?!
     return referencedTask;
   }
 
   private String getVariable(ActivatedJob job, String variableName) {
     try {
-      Object variableObj = job.getVariable("kadai." + variableName);
+      Object variableObj = job.getVariable("kadai_" + variableName);
       if (variableObj instanceof String variableAsString && !variableAsString.isBlank()) {
         return variableAsString;
+      }
+      if (variableObj instanceof Integer variableAsInt) {
+        return String.valueOf(variableAsInt);
       }
     } catch (Exception e) {
       LOGGER.warn(
@@ -95,19 +96,14 @@ public class ReferencedTaskCreator {
       ObjectMapper objectMapper = new ObjectMapper();
       String json = objectMapper.writeValueAsString(variables);
 
-      if (!json.isEmpty()) {
-        json = "{" + variables + "}";
-      } else {
-        return "{}";
-      }
-
       return json;
     } catch (JsonProcessingException e) {
       LOGGER.error(
           "Error while trying to retrieve variables for task {} in ProcessDefinition {}",
           job.getElementId(),
           job.getBpmnProcessId(),
-          e);}
+          e);
+    }
     return null;
   }
 
