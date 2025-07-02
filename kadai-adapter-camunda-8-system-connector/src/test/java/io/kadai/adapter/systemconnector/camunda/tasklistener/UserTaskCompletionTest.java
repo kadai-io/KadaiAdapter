@@ -23,7 +23,7 @@ class UserTaskCompletionTest {
   @Autowired private CamundaProcessTestContext processTestContext;
   @Autowired private CamundaClient client;
 
-  private static final String PROCESS_NAME = "sayHello.bpmn";
+  private static final String PROCESS_NAME = "processes/sayHello.bpmn";
 
   @BeforeEach
   void setup() {
