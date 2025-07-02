@@ -20,7 +20,7 @@ package io.kadai.adapter.camunda.dto;
 
 import java.util.Map;
 
-/** This class is represents a DTO which contains a process variable and its info. */
+/** This class represents a DTO which contains a process variable and its info. */
 public class VariableValueDto {
 
   protected String type;
