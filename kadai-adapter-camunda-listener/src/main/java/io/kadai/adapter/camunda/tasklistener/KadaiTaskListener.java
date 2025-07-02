@@ -445,66 +445,38 @@ public class KadaiTaskListener implements TaskListener {
 
   private String getVariableWithFallback(
       DelegateTask delegateTask, String attribute, String defaultValue) {
-    String kadaiKey = "kadai." + attribute;
-    String value = getVariable(delegateTask, kadaiKey, null);
-    if (value != null) {
-      return value;
+    String[] prefixes = {"kadai.", "kadai-", "taskana.", "taskana-"};
+    for (String prefix : prefixes) {
+      String value = getVariable(delegateTask, prefix + attribute, null);
+      if (value != null) {
+        return value;
+      }
     }
-    String kadaiHyphenKey = "kadai-" + attribute;
-    value = getVariable(delegateTask, kadaiHyphenKey, null);
-    if (value != null) {
-      return value;
-    }
-    String taskanaKey = "taskana." + attribute;
-    value = getVariable(delegateTask, taskanaKey, null);
-    if (value != null) {
-      return value;
-    }
-    String taskanaHyphenKey = "taskana-" + attribute;
-    value = getVariable(delegateTask, taskanaHyphenKey, null);
-    return value != null ? value : defaultValue;
+    return defaultValue;
   }
 
   private String getUserTaskExtensionPropertyWithFallback(
       DelegateTask delegateTask, String attribute) {
-    String kadaiKey = "kadai." + attribute;
-    String value = getUserTaskExtensionProperty(delegateTask, kadaiKey);
-    if (value != null) {
-      return value;
+    String[] prefixes = {"kadai.", "kadai-", "taskana.", "taskana-"};
+    for (String prefix : prefixes) {
+      String value = getUserTaskExtensionProperty(delegateTask, prefix + attribute);
+      if (value != null) {
+        return value;
+      }
     }
-    String kadaiHyphenKey = "kadai-" + attribute;
-    value = getUserTaskExtensionProperty(delegateTask, kadaiHyphenKey);
-    if (value != null) {
-      return value;
-    }
-    String taskanaKey = "taskana." + attribute;
-    value = getUserTaskExtensionProperty(delegateTask, taskanaKey);
-    if (value != null) {
-      return value;
-    }
-    String taskanaHyphenKey = "taskana-" + attribute;
-    return getUserTaskExtensionProperty(delegateTask, taskanaHyphenKey);
+    return null;
   }
 
   private String getProcessModelExtensionPropertyWithFallback(
       DelegateTask delegateTask, String attribute) {
-    String kadaiKey = "kadai." + attribute;
-    String value = getProcessModelExtensionProperty(delegateTask, kadaiKey);
-    if (value != null) {
-      return value;
+    String[] prefixes = {"kadai.", "kadai-", "taskana.", "taskana-"};
+    for (String prefix : prefixes) {
+      String value = getProcessModelExtensionProperty(delegateTask, prefix + attribute);
+      if (value != null) {
+        return value;
+      }
     }
-    String kadaiHyphenKey = "kadai-" + attribute;
-    value = getProcessModelExtensionProperty(delegateTask, kadaiHyphenKey);
-    if (value != null) {
-      return value;
-    }
-    String taskanaKey = "taskana." + attribute;
-    value = getProcessModelExtensionProperty(delegateTask, taskanaKey);
-    if (value != null) {
-      return value;
-    }
-    String taskanaHyphenKey = "taskana-" + attribute;
-    return getProcessModelExtensionProperty(delegateTask, taskanaHyphenKey);
+    return null;
   }
 
   private String formatDate(Date date) {

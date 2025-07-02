@@ -15,6 +15,10 @@
         <camunda:properties>
           <camunda:property name="taskana.classification-key" value="L1050" />
         </camunda:properties>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="amount">42</camunda:inputParameter>
+          <camunda:inputParameter name="item">TestItem</camunda:inputParameter>
+        </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
