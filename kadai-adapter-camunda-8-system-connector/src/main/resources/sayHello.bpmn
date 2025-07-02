@@ -25,6 +25,7 @@
           <zeebe:input source="=&#34;attr1,attr2&#34;" target="kadai_attributes" />
           <zeebe:input source="=&#34;attr1_val&#34;" target="attr1" />
           <zeebe:input source="=&#34;attr2_val&#34;" target="attr2" />
+          <zeebe:input source="=&#34;Say Hello Task&#34;" target="kadai_name" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1hemi81</bpmn:incoming>
