@@ -80,7 +80,7 @@
         <version.archunit>1.4.1</version.archunit>
         <version.hamcrest.json>0.3</version.hamcrest.json>
 
-        <version.maven.gpg>3.2.7</version.maven.gpg>
+        <version.maven.gpg>3.2.8</version.maven.gpg>
         <version.jacoco>0.8.13</version.jacoco>
         <version.sonatype.release>0.8.0</version.sonatype.release>
 
