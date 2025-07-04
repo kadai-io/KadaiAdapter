@@ -52,8 +52,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -835,7 +834,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @ParameterizedTest
-  @MethodSource("processDefinitionProvider")
+  @ValueSource(strings = {"simple_user_task_process_with_taskana_prefix", "simple_user_task_process_with_both_prefixes"})
   void should_HandlePrefixesCorrectly_When_StartCamundaTaskWithPrefixes(String processDefinitionKey)
       throws Exception {
     String processInstanceId =
@@ -873,12 +872,6 @@ class TestTaskAcquisition extends AbsIntegrationTest {
     Instant lastRunTime = lastSchedulerRun.getLastRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
-  }
-
-  private static Stream<Arguments> processDefinitionProvider() {
-    return Stream.of(
-        Arguments.of("simple_user_task_process_with_taskana_prefix"),
-        Arguments.of("simple_user_task_process_with_both_prefixes"));
   }
 
   private void setSystemConnector(String systemEngineIdentifier) {

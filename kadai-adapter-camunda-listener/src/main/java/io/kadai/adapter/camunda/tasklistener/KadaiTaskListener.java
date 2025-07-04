@@ -64,6 +64,7 @@ public class KadaiTaskListener implements TaskListener {
       "INSERT INTO event_store (TYPE,CREATED,PAYLOAD,REMAINING_RETRIES,"
           + "BLOCKED_UNTIL,CAMUNDA_TASK_ID, SYSTEM_ENGINE_IDENTIFIER) VALUES (?,?,?,?,?,?,?)";
   private static KadaiTaskListener instance = null;
+  private static final String[] PREFIXES = {"kadai.", "kadai-", "taskana.", "taskana-"};
 
   private final ObjectMapper objectMapper = JacksonConfigurator.createAndConfigureObjectMapper();
   private boolean gotActivated = false;
@@ -445,8 +446,7 @@ public class KadaiTaskListener implements TaskListener {
 
   private String getVariableWithFallback(
       DelegateTask delegateTask, String attribute, String defaultValue) {
-    String[] prefixes = {"kadai.", "kadai-", "taskana.", "taskana-"};
-    for (String prefix : prefixes) {
+    for (String prefix : PREFIXES) {
       String value = getVariable(delegateTask, prefix + attribute, null);
       if (value != null) {
         return value;
@@ -457,8 +457,7 @@ public class KadaiTaskListener implements TaskListener {
 
   private String getUserTaskExtensionPropertyWithFallback(
       DelegateTask delegateTask, String attribute) {
-    String[] prefixes = {"kadai.", "kadai-", "taskana.", "taskana-"};
-    for (String prefix : prefixes) {
+    for (String prefix : PREFIXES) {
       String value = getUserTaskExtensionProperty(delegateTask, prefix + attribute);
       if (value != null) {
         return value;
@@ -469,8 +468,7 @@ public class KadaiTaskListener implements TaskListener {
 
   private String getProcessModelExtensionPropertyWithFallback(
       DelegateTask delegateTask, String attribute) {
-    String[] prefixes = {"kadai.", "kadai-", "taskana.", "taskana-"};
-    for (String prefix : prefixes) {
+    for (String prefix : PREFIXES) {
       String value = getProcessModelExtensionProperty(delegateTask, prefix + attribute);
       if (value != null) {
         return value;

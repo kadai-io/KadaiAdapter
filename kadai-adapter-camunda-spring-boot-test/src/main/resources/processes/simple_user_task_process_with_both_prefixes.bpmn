@@ -16,7 +16,7 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="kadai.classification-key" value="L1050" />
-          <camunda:property name="taskana.classification-key" value="L1050" />
+          <camunda:property name="taskana.classification-key" value="L9999" />
         </camunda:properties>
         <camunda:inputOutput>
           <camunda:inputParameter name="amount">42</camunda:inputParameter>
