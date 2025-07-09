@@ -1,4 +1,4 @@
-package io.kadai.adapter.systemconnector.camunda.tasklistener;
+package io.kadai.adapter.systemconnector.camunda.tasklistener.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,25 +30,26 @@ public class ReferencedTaskCreator {
     referencedTask.setId(customHeaders.get("io.camunda.zeebe:userTaskKey"));
     // todo: io.camunda.zeebe:userTaskKey -> 2251799813782683 or
     //  job.getElementInstanceKey: 2251799813782682 ?
-    referencedTask.setManualPriority(getVariable(job, "manual_priority"));
+    referencedTask.setManualPriority(getVariableWithKadaiPrefix(job, "manual_priority"));
     referencedTask.setAssignee(customHeaders.get("io.camunda.zeebe:assignee"));
     referencedTask.setDue(customHeaders.get("io.camunda.zeebe:dueDate"));
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
-    referencedTask.setWorkbasketKey(getVariable(job, "workbasket_key"));
-    referencedTask.setClassificationKey(getVariable(job, "classification_key"));
-    referencedTask.setDomain(getVariable(job, "domain"));
-    referencedTask.setName(getVariable(job, "name")); // todo: use fallback domain here?
+    referencedTask.setWorkbasketKey(getVariableWithKadaiPrefix(job, "workbasket_key"));
+    referencedTask.setClassificationKey(getVariableWithKadaiPrefix(job, "classification_key"));
+    referencedTask.setDomain(getVariableWithKadaiPrefix(job, "domain"));
+    referencedTask.setName(
+        getVariableWithKadaiPrefix(job, "name")); // todo: use fallback domain here?
 
-    referencedTask.setCustomInt1(getVariable(job, "custom-int-1"));
-    referencedTask.setCustomInt2(getVariable(job, "custom-int-2"));
-    referencedTask.setCustomInt3(getVariable(job, "custom-int-3"));
-    referencedTask.setCustomInt4(getVariable(job, "custom-int-4"));
-    referencedTask.setCustomInt5(getVariable(job, "custom-int-5"));
-    referencedTask.setCustomInt6(getVariable(job, "custom-int-6"));
-    referencedTask.setCustomInt7(getVariable(job, "custom-int-7"));
-    referencedTask.setCustomInt8(getVariable(job, "custom-int-8"));
+    referencedTask.setCustomInt1(getVariableWithKadaiPrefix(job, "custom-int-1"));
+    referencedTask.setCustomInt2(getVariableWithKadaiPrefix(job, "custom-int-2"));
+    referencedTask.setCustomInt3(getVariableWithKadaiPrefix(job, "custom-int-3"));
+    referencedTask.setCustomInt4(getVariableWithKadaiPrefix(job, "custom-int-4"));
+    referencedTask.setCustomInt5(getVariableWithKadaiPrefix(job, "custom-int-5"));
+    referencedTask.setCustomInt6(getVariableWithKadaiPrefix(job, "custom-int-6"));
+    referencedTask.setCustomInt7(getVariableWithKadaiPrefix(job, "custom-int-7"));
+    referencedTask.setCustomInt8(getVariableWithKadaiPrefix(job, "custom-int-8"));
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
 
@@ -57,9 +58,13 @@ public class ReferencedTaskCreator {
     return referencedTask;
   }
 
+  private String getVariableWithKadaiPrefix(ActivatedJob job, String variableName) {
+    return getVariable(job, "kadai_" + variableName);
+  }
+
   /**
-   * Retrieves a variable from the ActivatedJob by its name, prefixed with "kadai_". If the variable
-   * is not found or is empty, it returns null.
+   * Retrieves a variable from the ActivatedJob by its name. If the variable is not found or is
+   * empty, it returns null.
    *
    * @param job The ActivatedJob containing the task information.
    * @param variableName The name of the variable to retrieve.
@@ -67,7 +72,7 @@ public class ReferencedTaskCreator {
    */
   private String getVariable(ActivatedJob job, String variableName) {
     try {
-      Object variableObj = job.getVariable("kadai_" + variableName);
+      Object variableObj = job.getVariablesAsMap().get(variableName);
       if (variableObj instanceof String variableAsString && !variableAsString.isBlank()) {
         return variableAsString;
       }
@@ -100,7 +105,7 @@ public class ReferencedTaskCreator {
       List<String> variableNames;
 
       // Get Task Variables
-      String taskVariablesConcatenated = getVariable(job, "attributes");
+      String taskVariablesConcatenated = getVariableWithKadaiPrefix(job, "attributes");
 
       if (taskVariablesConcatenated != null) {
         variableNames = splitVariableNamesString(taskVariablesConcatenated);
@@ -113,7 +118,7 @@ public class ReferencedTaskCreator {
 
       variableNames.forEach(
           nameOfVariableToAdd ->
-              variables.put(nameOfVariableToAdd, job.getVariable(nameOfVariableToAdd)));
+              variables.put(nameOfVariableToAdd, getVariable(job, nameOfVariableToAdd)));
 
       ObjectMapper objectMapper = new ObjectMapper();
 
