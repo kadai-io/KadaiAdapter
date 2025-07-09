@@ -2,8 +2,8 @@ package io.kadai.adapter.systemconnector.camunda.config;
 
 import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.manager.AdapterManager;
-import io.kadai.adapter.systemconnector.camunda.tasklistener.ReferencedTaskCreator;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
+import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
