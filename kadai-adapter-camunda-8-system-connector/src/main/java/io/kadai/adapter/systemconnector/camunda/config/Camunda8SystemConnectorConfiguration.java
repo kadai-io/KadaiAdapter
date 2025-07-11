@@ -3,6 +3,7 @@ package io.kadai.adapter.systemconnector.camunda.config;
 import io.kadai.adapter.impl.KadaiTaskStarter;
 import io.kadai.adapter.impl.KadaiTaskTerminator;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8SystemConnectorImpl;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
@@ -39,6 +40,11 @@ public class Camunda8SystemConnectorConfiguration {
   }
 
   @Bean
+  Camunda8SystemConnectorImpl camunda8SystemConnector() {
+    return new Camunda8SystemConnectorImpl();
+  }
+
+  @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   UserTaskCompletion userTaskListenerCompletion(final AdapterManager adapterManager) {
     return new UserTaskCompletion(
@@ -48,6 +54,9 @@ public class Camunda8SystemConnectorConfiguration {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   UserTaskCreation userTaskListenerCreation(final AdapterManager adapterManager) {
-    return new UserTaskCreation(new KadaiTaskStarter(adapterManager), new ReferencedTaskCreator());
+    return new UserTaskCreation(
+        new KadaiTaskStarter(adapterManager),
+        new ReferencedTaskCreator(),
+        new Camunda8SystemConnectorImpl());
   }
 }

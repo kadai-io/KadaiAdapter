@@ -38,7 +38,8 @@ public class Camunda8SystemConnectorImpl implements SystemConnector {
 
   @Override
   public String retrieveReferencedTaskVariables(String taskId) {
-    // todo: what does this method do? how to implement it?
+    // todo: method to retrieve the variables of a ReferencedTask from Camunda 8 if the variable of
+    //  the given ReferencedTask are null
     return "";
   }
 
