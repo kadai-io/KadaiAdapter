@@ -64,6 +64,7 @@ public class KadaiTaskListener implements TaskListener {
       "INSERT INTO event_store (TYPE,CREATED,PAYLOAD,REMAINING_RETRIES,"
           + "BLOCKED_UNTIL,CAMUNDA_TASK_ID, SYSTEM_ENGINE_IDENTIFIER) VALUES (?,?,?,?,?,?,?)";
   private static KadaiTaskListener instance = null;
+  private static final String[] PREFIXES = {"kadai.", "kadai-", "taskana.", "taskana-"};
 
   private final ObjectMapper objectMapper = JacksonConfigurator.createAndConfigureObjectMapper();
   private boolean gotActivated = false;
@@ -238,18 +239,19 @@ public class KadaiTaskListener implements TaskListener {
     referencedTask.setTaskDefinitionKey(delegateTask.getTaskDefinitionKey());
     referencedTask.setBusinessProcessId(delegateTask.getProcessInstanceId());
     referencedTask.setClassificationKey(
-        getUserTaskExtensionProperty(delegateTask, "kadai.classification-key"));
+        getUserTaskExtensionPropertyWithFallback(delegateTask, "classification-key"));
     referencedTask.setDomain(getDomainVariable(delegateTask));
-    referencedTask.setWorkbasketKey(getVariable(delegateTask, "kadai.workbasket-key", null));
-    referencedTask.setManualPriority(getVariable(delegateTask, "kadai.manual-priority", "-1"));
-    referencedTask.setCustomInt1(getVariable(delegateTask, "kadai.custom-int-1", null));
-    referencedTask.setCustomInt2(getVariable(delegateTask, "kadai.custom-int-2", null));
-    referencedTask.setCustomInt3(getVariable(delegateTask, "kadai.custom-int-3", null));
-    referencedTask.setCustomInt4(getVariable(delegateTask, "kadai.custom-int-4", null));
-    referencedTask.setCustomInt5(getVariable(delegateTask, "kadai.custom-int-5", null));
-    referencedTask.setCustomInt6(getVariable(delegateTask, "kadai.custom-int-6", null));
-    referencedTask.setCustomInt7(getVariable(delegateTask, "kadai.custom-int-7", null));
-    referencedTask.setCustomInt8(getVariable(delegateTask, "kadai.custom-int-8", null));
+    referencedTask.setWorkbasketKey(getVariableWithFallback(delegateTask, "workbasket-key", null));
+    referencedTask.setManualPriority(
+        getVariableWithFallback(delegateTask, "manual-priority", "-1"));
+    referencedTask.setCustomInt1(getVariableWithFallback(delegateTask, "custom-int-1", null));
+    referencedTask.setCustomInt2(getVariableWithFallback(delegateTask, "custom-int-2", null));
+    referencedTask.setCustomInt3(getVariableWithFallback(delegateTask, "custom-int-3", null));
+    referencedTask.setCustomInt4(getVariableWithFallback(delegateTask, "custom-int-4", null));
+    referencedTask.setCustomInt5(getVariableWithFallback(delegateTask, "custom-int-5", null));
+    referencedTask.setCustomInt6(getVariableWithFallback(delegateTask, "custom-int-6", null));
+    referencedTask.setCustomInt7(getVariableWithFallback(delegateTask, "custom-int-7", null));
+    referencedTask.setCustomInt8(getVariableWithFallback(delegateTask, "custom-int-8", null));
     referencedTask.setVariables(getProcessVariables(delegateTask));
     String referencedTaskJson = objectMapper.writeValueAsString(referencedTask);
     LOGGER.debug("Exit from getReferencedTaskJson. Returning {}.", referencedTaskJson);
@@ -257,15 +259,15 @@ public class KadaiTaskListener implements TaskListener {
   }
 
   private String getDomainVariable(DelegateTask delegateTask) {
-    String taskDomain = getVariable(delegateTask, "kadai.domain", null);
+    String taskDomain = getVariableWithFallback(delegateTask, "domain", null);
     if (taskDomain != null) {
       return taskDomain;
     }
-    taskDomain = getUserTaskExtensionProperty(delegateTask, "kadai.domain");
+    taskDomain = getUserTaskExtensionPropertyWithFallback(delegateTask, "domain");
     if (taskDomain != null) {
       return taskDomain;
     }
-    return getProcessModelExtensionProperty(delegateTask, "kadai.domain");
+    return getProcessModelExtensionPropertyWithFallback(delegateTask, "domain");
   }
 
   private String getVariable(
@@ -294,14 +296,14 @@ public class KadaiTaskListener implements TaskListener {
 
     // Get Task Variables
     String taskVariablesConcatenated =
-        getUserTaskExtensionProperty(delegateTask, "kadai-attributes");
+        getUserTaskExtensionPropertyWithFallback(delegateTask, "attributes");
 
     if (taskVariablesConcatenated != null) {
       variableNames = splitVariableNamesString(taskVariablesConcatenated);
 
     } else {
       String processVariablesConcatenated =
-          getProcessModelExtensionProperty(delegateTask, "kadai-attributes");
+          getProcessModelExtensionPropertyWithFallback(delegateTask, "attributes");
       if (processVariablesConcatenated != null) {
         variableNames = splitVariableNamesString(processVariablesConcatenated);
       } else {
@@ -440,6 +442,39 @@ public class KadaiTaskListener implements TaskListener {
     }
 
     return propertyValue;
+  }
+
+  private String getVariableWithFallback(
+      DelegateTask delegateTask, String attribute, String defaultValue) {
+    for (String prefix : PREFIXES) {
+      String value = getVariable(delegateTask, prefix + attribute, null);
+      if (value != null) {
+        return value;
+      }
+    }
+    return defaultValue;
+  }
+
+  private String getUserTaskExtensionPropertyWithFallback(
+      DelegateTask delegateTask, String attribute) {
+    for (String prefix : PREFIXES) {
+      String value = getUserTaskExtensionProperty(delegateTask, prefix + attribute);
+      if (value != null) {
+        return value;
+      }
+    }
+    return null;
+  }
+
+  private String getProcessModelExtensionPropertyWithFallback(
+      DelegateTask delegateTask, String attribute) {
+    for (String prefix : PREFIXES) {
+      String value = getProcessModelExtensionProperty(delegateTask, prefix + attribute);
+      if (value != null) {
+        return value;
+      }
+    }
+    return null;
   }
 
   private String formatDate(Date date) {

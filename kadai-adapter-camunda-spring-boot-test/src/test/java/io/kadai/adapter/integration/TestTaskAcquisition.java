@@ -51,6 +51,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.ThrowingConsumer;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -826,6 +828,50 @@ class TestTaskAcquisition extends AbsIntegrationTest {
         };
 
     return DynamicTest.stream(input, Pair::getLeft, test);
+  }
+
+  @WithAccessId(
+      user = "teamlead_1",
+      groups = {"taskadmin"})
+  @ParameterizedTest
+  @ValueSource(strings = {"simple_user_task_process_with_taskana_prefix", "simple_user_task_process_with_both_prefixes"})
+  void should_HandlePrefixesCorrectly_When_StartCamundaTaskWithPrefixes(String processDefinitionKey)
+      throws Exception {
+    String processInstanceId =
+        this.camundaProcessengineRequester.startCamundaProcessAndReturnId(processDefinitionKey, "");
+    List<String> camundaTaskIds =
+        this.camundaProcessengineRequester.getTaskIdsFromProcessInstanceId(processInstanceId);
+
+    Thread.sleep((long) (this.adapterTaskPollingInterval * 1.2));
+
+    for (String camundaTaskId : camundaTaskIds) {
+      List<TaskSummary> kadaiTasks =
+          this.taskService.createTaskQuery().externalIdIn(camundaTaskId).list();
+      assertThat(kadaiTasks).hasSize(1);
+      TaskSummary kadaiTaskSummary = kadaiTasks.get(0);
+      String kadaiTaskExternalId = kadaiTaskSummary.getExternalId();
+      assertThat(kadaiTaskExternalId).isEqualTo(camundaTaskId);
+      String businessProcessId = kadaiTaskSummary.getBusinessProcessId();
+      assertThat(processInstanceId).isEqualTo(businessProcessId);
+      assertThat(kadaiTaskSummary.getClassificationSummary().getKey()).isEqualTo("L1050");
+
+      String expectedPrimitiveVariable1 =
+          "{\"valueInfo\":null,\"type\":\"string\",\"value\":\"TestItem\"}";
+      String expectedPrimitiveVariable2 =
+          "{\"valueInfo\":null,\"type\":\"string\",\"value\":\"42\"}";
+
+      Map<String, String> customAttributes =
+          retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
+      assertThat(
+          expectedPrimitiveVariable1,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:item")));
+      assertThat(
+          expectedPrimitiveVariable2, SameJSONAs.sameJSONAs(customAttributes.get("camunda:amount")));
+    }
+
+    Instant lastRunTime = kadaiTaskStarter.getLastSchedulerRun().getRunTime();
+    assertThat(lastRunTime).isNotNull();
+    assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }
 
   private void setSystemConnector(String systemEngineIdentifier) {
