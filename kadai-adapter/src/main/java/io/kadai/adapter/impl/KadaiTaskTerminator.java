@@ -154,7 +154,7 @@ public class KadaiTaskTerminator implements ScheduledComponent {
     return runDurationLowerMedian.get().orElse(Duration.ZERO);
   }
 
-  private void terminateKadaiTask(ReferencedTask referencedTask)
+  public void terminateKadaiTask(ReferencedTask referencedTask)
       throws TaskTerminationFailedException {
     LOGGER.trace("KadaiTaskTerminator.terminateKadaiTask ENTRY ");
     KadaiConnector kadaiConnector = adapterManager.getKadaiConnector();
