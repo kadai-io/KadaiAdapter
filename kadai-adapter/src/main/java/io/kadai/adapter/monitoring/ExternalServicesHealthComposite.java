@@ -18,7 +18,7 @@ import org.springframework.boot.actuate.health.HealthContributor;
 import org.springframework.boot.actuate.health.NamedContributor;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 @Component("externalServices")
 @ConditionalOnEnabledHealthIndicator("external-services")
@@ -29,7 +29,7 @@ public class ExternalServicesHealthComposite implements CompositeHealthContribut
   @Autowired
   public ExternalServicesHealthComposite(
       ExternalServicesHealthConfigurationProperties properties,
-      RestTemplate restTemplate,
+      RestClient restClient,
       ReferencedTaskCompleter referencedTaskCompleter,
       ReferencedTaskClaimer referencedTaskClaimer,
       ReferencedTaskClaimCanceler referencedTaskClaimCanceler,
@@ -39,7 +39,7 @@ public class ExternalServicesHealthComposite implements CompositeHealthContribut
     if (properties.getCamundaSystem().getEnabled()) {
       healthContributors.put(
           "camundaSystems",
-          new CamundaSystemsHealthComposite(restTemplate, camundaSystemUrls, properties));
+          new CamundaSystemsHealthComposite(restClient, camundaSystemUrls, properties));
     }
     if (properties.getKadai().getEnabled()) {
       healthContributors.put("kadai", new KadaiHealthIndicator());

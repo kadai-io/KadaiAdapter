@@ -23,10 +23,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 @Component
 public class CamundaTaskEventErrorHandler {
@@ -36,12 +35,12 @@ public class CamundaTaskEventErrorHandler {
   private static final int COMMA_LENGTH = 1;
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskEventErrorHandler.class);
   private final HttpHeaderProvider httpHeaderProvider;
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
   public CamundaTaskEventErrorHandler(
-      HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+      HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
     this.httpHeaderProvider = httpHeaderProvider;
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
   }
 
   public void decreaseRemainingRetriesAndLogErrorForReferencedTask(
@@ -83,9 +82,13 @@ public class CamundaTaskEventErrorHandler {
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
 
-    HttpEntity<String> request = new HttpEntity<>(headers);
     try {
-      restTemplate.postForObject(requestUrl, request, String.class);
+      restClient
+          .post()
+          .uri(requestUrl)
+          .headers(httpHeaders -> httpHeaders.addAll(headers))
+          .retrieve()
+          .toEntity(Void.class);
     } catch (Exception e) {
       LOGGER.error("Caught exception while trying to unlock event", e);
     }
@@ -132,9 +135,14 @@ public class CamundaTaskEventErrorHandler {
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
 
-    HttpEntity<String> request = new HttpEntity<>(failedTaskEventIdAndErrorLog, headers);
     try {
-      restTemplate.postForObject(requestUrl, request, String.class);
+      restClient
+          .post()
+          .uri(requestUrl)
+          .headers(httpHeaders -> httpHeaders.addAll(headers))
+          .body(failedTaskEventIdAndErrorLog)
+          .retrieve()
+          .toEntity(Void.class);
     } catch (Exception e) {
       LOGGER.error("Caught exception while trying to decrease remaining retries and log error", e);
     }

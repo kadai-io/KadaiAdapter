@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.security.auth.Subject;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +44,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -68,8 +61,6 @@ class TestLockingAndClustering extends AbsIntegrationTest {
 
   private static final String BASIC_OUTBOX_PATH = "http://localhost:10020/outbox-rest/events";
 
-  @LocalServerPort
-  private Integer port;
   @Autowired
   private HttpHeaderProvider httpHeaderProvider;
   @Autowired
@@ -85,29 +76,32 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       groups = {"taskadmin"})
   @Test
   void should_LockEventsForTheCorrectTime_When_Getting() {
-    TestRestTemplate restTemplate =
-        new TestRestTemplate(
-            new RestTemplateBuilder()
-                .rootUri("http://localhost:" + port)
-                .requestFactory(HttpComponentsClientHttpRequestFactory.class));
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
 
     String url = BASIC_OUTBOX_PATH + "?lock-for=10";
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForOutboxRestApi();
-    ResponseEntity<CamundaTaskEventListResource> answer =
-        restTemplate.exchange(
-            url, HttpMethod.GET, requestEntity, CamundaTaskEventListResource.class);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    CamundaTaskEventListResource answer =
+        restClient.get()
+            .uri(url)
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
+            .retrieve()
+            .toEntity(CamundaTaskEventListResource.class)
+            .getBody();
 
-    assertThat(answer.getBody()).isNotNull();
-    Assertions.assertThat(answer.getBody().getCamundaTaskEvents()).hasSize(1);
+    assertThat(answer).isNotNull();
+    assertThat(answer.getCamundaTaskEvents()).hasSize(1);
     answer =
-        restTemplate.exchange(
-            url, HttpMethod.GET, requestEntity, CamundaTaskEventListResource.class);
+        restClient.get()
+            .uri(url)
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
+            .retrieve()
+            .toEntity(CamundaTaskEventListResource.class)
+            .getBody();
 
-    assertThat(answer.getBody()).isNotNull();
-    Assertions.assertThat(answer.getBody().getCamundaTaskEvents()).isEmpty();
+    assertThat(answer).isNotNull();
+    assertThat(answer.getCamundaTaskEvents()).isEmpty();
 
     try {
       Thread.sleep(10000);
@@ -115,11 +109,15 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       throw new RuntimeException(e);
     }
     answer =
-        restTemplate.exchange(
-            url, HttpMethod.GET, requestEntity, CamundaTaskEventListResource.class);
+        restClient.get()
+            .uri(url)
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
+            .retrieve()
+            .toEntity(CamundaTaskEventListResource.class)
+            .getBody();
 
-    assertThat(answer.getBody()).isNotNull();
-    Assertions.assertThat(answer.getBody().getCamundaTaskEvents()).hasSize(1);
+    assertThat(answer).isNotNull();
+    assertThat(answer.getCamundaTaskEvents()).hasSize(1);
 
   }
 
@@ -128,11 +126,6 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       groups = {"taskadmin"})
   @Test
   void should_UnlockTheEvent() {
-    TestRestTemplate restTemplate =
-        new TestRestTemplate(
-            new RestTemplateBuilder()
-                .rootUri("http://localhost:" + port)
-                .requestFactory(HttpComponentsClientHttpRequestFactory.class));
     String processInstanceId = this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
     List<String> camundaTaskIds =
@@ -140,20 +133,32 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     assertThat(camundaTaskIds).hasSize(1);
     String urlWithLock = BASIC_OUTBOX_PATH + "?lock-for=10";
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForOutboxRestApi();
-    ResponseEntity<CamundaTaskEventListResource> answer = restTemplate.exchange(
-            urlWithLock, HttpMethod.GET, requestEntity, CamundaTaskEventListResource.class);
-    assertThat(answer.getBody()).isNotNull();
-    Assertions.assertThat(answer.getBody().getCamundaTaskEvents()).hasSize(1);
-    int eventId = answer.getBody().getCamundaTaskEvents().get(0).getId();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    CamundaTaskEventListResource answer = restClient.get()
+            .uri(urlWithLock)
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
+            .retrieve()
+            .toEntity(CamundaTaskEventListResource.class)
+            .getBody();
+    assertThat(answer).isNotNull();
+    assertThat(answer.getCamundaTaskEvents()).hasSize(1);
+    int eventId = answer.getCamundaTaskEvents().get(0).getId();
     String urlWithUnlock = BASIC_OUTBOX_PATH + "/unlock-event/" + eventId;
 
-    restTemplate.postForObject(urlWithUnlock, requestEntity, String.class);
+    restClient.post()
+        .uri(urlWithUnlock)
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .retrieve()
+        .toEntity(Void.class);
     answer =
-        restTemplate.exchange(
-            urlWithLock, HttpMethod.GET, requestEntity, CamundaTaskEventListResource.class);
-    assertThat(answer.getBody()).isNotNull();
-    Assertions.assertThat(answer.getBody().getCamundaTaskEvents()).hasSize(1);
+        restClient.get()
+            .uri(urlWithLock)
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
+            .retrieve()
+            .toEntity(CamundaTaskEventListResource.class)
+            .getBody();
+    assertThat(answer).isNotNull();
+    assertThat(answer.getCamundaTaskEvents()).hasSize(1);
 
   }
 
