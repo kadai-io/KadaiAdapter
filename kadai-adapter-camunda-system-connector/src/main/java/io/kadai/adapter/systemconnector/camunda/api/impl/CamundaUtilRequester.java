@@ -22,10 +22,9 @@ import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 
 /** Util class for camunda requests used in multiple components of CamundaSystemConnectorImpl. */
 public class CamundaUtilRequester {
@@ -36,7 +35,7 @@ public class CamundaUtilRequester {
 
   public static boolean isTaskNotExisting(
       HttpHeaderProvider httpHeaderProvider,
-      RestTemplate restTemplate,
+      RestClient restClient,
       CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo,
       String camundaTaskId) {
 
@@ -47,9 +46,16 @@ public class CamundaUtilRequester {
 
     HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi();
     try {
-      restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, String.class);
-    } catch (HttpStatusCodeException ex) {
-      boolean isNotExisting = HttpStatus.NOT_FOUND.equals(ex.getStatusCode());
+      restClient
+          .get()
+          .uri(requestUrl)
+          .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+          .retrieve()
+          .toEntity(String.class)
+          .getBody();
+    } catch (HttpClientErrorException ex) {
+      boolean isNotExisting =
+          HttpStatus.NOT_FOUND.equals(ex.getStatusCode());
       if (isNotExisting) {
         LOGGER.debug("Camunda Task {} is not existing. Returning silently", camundaTaskId);
       }

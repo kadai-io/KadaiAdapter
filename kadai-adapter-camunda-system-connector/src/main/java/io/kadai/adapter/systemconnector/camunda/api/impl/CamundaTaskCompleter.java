@@ -25,11 +25,10 @@ import io.kadai.common.api.exceptions.SystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 
 /** Completes Camunda Tasks via the Camunda REST Api. */
 public class CamundaTaskCompleter {
@@ -38,11 +37,11 @@ public class CamundaTaskCompleter {
 
   private static final String COMPLETED_BY_KADAI_ADAPTER_LOCAL_VARIABLE = "completedByKadaiAdapter";
   private final HttpHeaderProvider httpHeaderProvider;
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
-  public CamundaTaskCompleter(HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+  public CamundaTaskCompleter(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
     this.httpHeaderProvider = httpHeaderProvider;
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
   }
 
   public SystemResponse completeCamundaTask(
@@ -56,9 +55,9 @@ public class CamundaTaskCompleter {
 
       return performCompletion(camundaSystemUrlInfo, referencedTask, requestUrlBuilder);
 
-    } catch (HttpStatusCodeException e) {
+    } catch (HttpClientErrorException e) {
       if (CamundaUtilRequester.isTaskNotExisting(
-          httpHeaderProvider, restTemplate, camundaSystemUrlInfo, referencedTask.getId())) {
+          httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
         return new SystemResponse(HttpStatus.OK, null);
       } else {
         LOGGER.warn("Caught Exception when trying to complete camunda task", e);
@@ -83,13 +82,18 @@ public class CamundaTaskCompleter {
 
     HttpEntity<String> requestEntity =
         httpHeaderProvider.prepareNewEntityForCamundaRestApi(requestBody);
-    ResponseEntity<String> responseEntity =
-        this.restTemplate.exchange(
-            requestUrlBuilder.toString(), HttpMethod.POST, requestEntity, String.class);
+    ResponseEntity<Void> response =
+        restClient
+            .post()
+            .uri(requestUrlBuilder.toString())
+            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+            .body(requestBody)
+            .retrieve()
+            .toEntity(Void.class);
     LOGGER.debug(
         "Set assignee for camunda task {}. Status code = {}",
         referencedTask.getId(),
-        responseEntity.getStatusCode());
+        response.getStatusCode());
   }
 
   private void setCompletionByKadaiAdapterAsLocalVariable(
@@ -107,17 +111,23 @@ public class CamundaTaskCompleter {
         .append("/")
         .append(COMPLETED_BY_KADAI_ADAPTER_LOCAL_VARIABLE);
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForCamundaRestApi(
-            "{\"value\" : true, \"type\": \"Boolean\"}");
+    String requestBody = "{\"value\" : true, \"type\": \"Boolean\"}";
 
-    ResponseEntity<String> responseEntity =
-        this.restTemplate.exchange(
-            requestUrlBuilder.toString(), HttpMethod.PUT, requestEntity, String.class);
+    HttpEntity<String> requestEntity =
+        httpHeaderProvider.prepareNewEntityForCamundaRestApi(requestBody);
+
+    ResponseEntity<Void> response =
+        restClient
+            .put()
+            .uri(requestUrlBuilder.toString())
+            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+            .body(requestBody)
+            .retrieve()
+            .toEntity(Void.class);
     LOGGER.debug(
         "Set local Variable \"completedByKadaiAdapter\" for camunda task {}. Status code = {}",
         referencedTask.getId(),
-        responseEntity.getStatusCode());
+        response.getStatusCode());
   }
 
   private SystemResponse performCompletion(
@@ -140,22 +150,24 @@ public class CamundaTaskCompleter {
     HttpEntity<String> entity = httpHeaderProvider.prepareNewEntityForCamundaRestApi(requestBody);
 
     try {
-      ResponseEntity<String> responseEntity =
-          restTemplate.postForEntity(requestUrlBuilder.toString(), entity, String.class);
+      ResponseEntity<Void> response =
+          restClient
+              .post()
+              .uri(requestUrlBuilder.toString())
+              .headers(httpHeaders -> httpHeaders.addAll(entity.getHeaders()))
+              .body(requestBody)
+              .retrieve()
+              .toEntity(Void.class);
       LOGGER.debug(
           "completed camunda task {}. Status code = {}",
           camundaTask.getId(),
-          responseEntity.getStatusCode());
-
-      return new SystemResponse(responseEntity.getStatusCode(), null);
-
-    } catch (HttpStatusCodeException e) {
-      LOGGER.info(
-          "tried to complete camunda task {} and caught Status code {}",
-          camundaTask.getId(),
-          e.getStatusCode());
+          response.getStatusCode());
+      return new SystemResponse(HttpStatus.OK, null);
+    } catch (HttpClientErrorException e) {
       throw new SystemException(
-          "caught HttpStatusCodeException "
+          "caught "
+              + e.getClass().getSimpleName()
+              + " "
               + e.getStatusCode()
               + " on the attempt to complete Camunda Task "
               + camundaTask.getId(),
