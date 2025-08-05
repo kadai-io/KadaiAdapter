@@ -148,7 +148,6 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     restClient.post()
         .uri(urlWithUnlock)
         .headers(headers -> headers.addAll(requestEntity.getHeaders()))
-        .body(String.class)
         .retrieve()
         .toEntity(Void.class);
     answer =

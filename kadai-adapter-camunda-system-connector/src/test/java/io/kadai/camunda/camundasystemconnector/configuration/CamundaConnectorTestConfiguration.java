@@ -49,7 +49,7 @@ public class CamundaConnectorTestConfiguration {
 
   @Bean
   RestClient restClient(HttpComponentsClientProperties httpComponentsClientProperties) {
-    return RestClient.builder().baseUrl("").build();
+    return RestClient.builder().build();
   }
 
   @Bean

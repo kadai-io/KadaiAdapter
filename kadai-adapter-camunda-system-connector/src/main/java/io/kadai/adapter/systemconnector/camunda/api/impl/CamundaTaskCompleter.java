@@ -162,7 +162,7 @@ public class CamundaTaskCompleter {
           "completed camunda task {}. Status code = {}",
           camundaTask.getId(),
           response.getStatusCode());
-      return new SystemResponse(HttpStatus.OK, null);
+      return new SystemResponse(response.getStatusCode(), null);
     } catch (HttpClientErrorException e) {
       throw new SystemException(
           "caught "

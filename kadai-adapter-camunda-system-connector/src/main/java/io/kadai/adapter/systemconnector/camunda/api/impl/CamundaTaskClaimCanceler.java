@@ -86,7 +86,7 @@ public class CamundaTaskClaimCanceler {
             "cancel claimed camunda task {}. Status code = {}",
             referencedTask.getId(),
             response.getStatusCode());
-        return new SystemResponse(HttpStatus.OK, null);
+        return new SystemResponse(response.getStatusCode(), null);
       } catch (HttpClientErrorException e) {
         if (CamundaUtilRequester.isTaskNotExisting(
             httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
