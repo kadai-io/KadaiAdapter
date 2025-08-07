@@ -23,9 +23,11 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskCompleter;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.HttpComponentsClientProperties;
+import java.time.Duration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -49,7 +51,14 @@ public class CamundaConnectorTestConfiguration {
 
   @Bean
   RestClient restClient(HttpComponentsClientProperties httpComponentsClientProperties) {
-    return RestClient.builder().build();
+    HttpComponentsClientHttpRequestFactory requestFactory =
+        new HttpComponentsClientHttpRequestFactory();
+    requestFactory.setConnectTimeout(
+        (int) Duration.ofMillis(httpComponentsClientProperties.getConnectionTimeout()).toMillis());
+    requestFactory.setReadTimeout(
+        (int) Duration.ofMillis(httpComponentsClientProperties.getReadTimeout()).toMillis());
+
+    return RestClient.builder().requestFactory(requestFactory).build();
   }
 
   @Bean

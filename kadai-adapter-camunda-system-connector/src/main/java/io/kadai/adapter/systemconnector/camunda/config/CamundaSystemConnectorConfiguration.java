@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 /** Configures the camunda system connector. */
@@ -40,15 +40,14 @@ public class CamundaSystemConnectorConfiguration {
 
   @Bean
   RestClient restClient(HttpComponentsClientProperties httpComponentsClientProperties) {
-    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+    HttpComponentsClientHttpRequestFactory requestFactory =
+        new HttpComponentsClientHttpRequestFactory();
     requestFactory.setConnectTimeout(
         (int) Duration.ofMillis(httpComponentsClientProperties.getConnectionTimeout()).toMillis());
     requestFactory.setReadTimeout(
         (int) Duration.ofMillis(httpComponentsClientProperties.getReadTimeout()).toMillis());
-    
-    return RestClient.builder()
-        .requestFactory(requestFactory)
-        .build();
+
+    return RestClient.builder().requestFactory(requestFactory).build();
   }
 
   @Bean

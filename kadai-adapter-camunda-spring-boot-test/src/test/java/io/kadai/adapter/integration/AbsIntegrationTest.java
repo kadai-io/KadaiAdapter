@@ -44,6 +44,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 /** Parent class for integrationtests for the KADAI-Adapter. */
@@ -123,7 +124,10 @@ abstract class AbsIntegrationTest {
 
       isInitialised = true;
     }
-    this.restClient = RestClient.builder().baseUrl("http://localhost:" + port).build();
+    this.restClient = RestClient.builder()
+        .baseUrl("http://localhost:" + port)
+        .requestFactory(new HttpComponentsClientHttpRequestFactory())
+        .build();
     // set up camunda requester and kadaiEngine-Taskservice
     this.camundaProcessengineRequester =
         new CamundaProcessengineRequester(
