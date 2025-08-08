@@ -30,12 +30,9 @@ import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 /** Retrieves new tasks from camunda that have been started or finished by camunda. */
 @Component
@@ -45,13 +42,13 @@ public class CamundaTaskRetriever {
 
   private final HttpHeaderProvider httpHeaderProvider;
   private final ObjectMapper objectMapper;
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
   public CamundaTaskRetriever(
-      HttpHeaderProvider httpHeaderProvider, ObjectMapper objectMapper, RestTemplate restTemplate) {
+      HttpHeaderProvider httpHeaderProvider, ObjectMapper objectMapper, RestClient restClient) {
     this.httpHeaderProvider = httpHeaderProvider;
     this.objectMapper = objectMapper;
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
   }
 
   public List<ReferencedTask> retrieveNewStartedCamundaTasks(
@@ -110,14 +107,12 @@ public class CamundaTaskRetriever {
 
     try {
 
-      ResponseEntity<CamundaTaskEventListResource> responseEntity =
-          restTemplate.exchange(
-              requestUrl,
-              HttpMethod.GET,
-              new HttpEntity<>(headers),
-              CamundaTaskEventListResource.class);
-
-      camundaTaskEventListResource = responseEntity.getBody();
+      camundaTaskEventListResource = restClient.get()
+          .uri(requestUrl)
+          .headers(httpHeaders -> httpHeaders.addAll(headers))
+          .retrieve()
+          .toEntity(CamundaTaskEventListResource.class)
+          .getBody();
 
       List<CamundaTaskEvent> retrievedEvents = camundaTaskEventListResource.getCamundaTaskEvents();
 

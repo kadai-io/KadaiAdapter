@@ -1,8 +1,6 @@
 package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
 import java.util.Arrays;
@@ -16,26 +14,26 @@ import org.mockito.Mockito;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 class OutboxHealthIndicatorTest {
 
   private OutboxHealthIndicator outboxHealthIndicatorSpy;
-  private RestTemplate restTemplate;
+  private RestClient restClient;
 
   @BeforeEach
   void setUp() {
-    this.restTemplate = Mockito.mock(RestTemplate.class);
+    this.restClient = Mockito.mock(RestClient.class);
     this.outboxHealthIndicatorSpy =
-        Mockito.spy(
-            new OutboxHealthIndicator(
-                restTemplate, "http://localhost:10020/outbox-rest"));
+        Mockito.spy(new OutboxHealthIndicator(restClient, "http://localhost:10020/outbox-rest"));
   }
 
   @Test
   void should_ReturnUp_When_OutboxRespondsSuccessfully() {
-    when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
-        .thenReturn(ResponseEntity.ok().body(new OutboxEventCountRepresentationModel()));
+    ResponseEntity<OutboxEventCountRepresentationModel> response =
+        ResponseEntity.ok(new OutboxEventCountRepresentationModel());
+
+    Mockito.doReturn(response).when(outboxHealthIndicatorSpy).pingOutBoxRest();
 
     assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.UP);
   }
@@ -43,16 +41,17 @@ class OutboxHealthIndicatorTest {
   @ParameterizedTest
   @MethodSource("errorResponseProvider")
   void should_ReturnDown_When_OutboxRespondsWithError(HttpStatus httpStatus) {
-    when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
-        .thenReturn(ResponseEntity.status(httpStatus).build());
+    ResponseEntity<OutboxEventCountRepresentationModel> response =
+        ResponseEntity.status(httpStatus).build();
+
+    Mockito.doReturn(response).when(outboxHealthIndicatorSpy).pingOutBoxRest();
 
     assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @Test
   void should_ReturnDown_When_OutboxPingFails() {
-    when(restTemplate.<OutboxEventCountRepresentationModel>getForEntity(any(), any()))
-        .thenThrow(new RuntimeException("foo"));
+    Mockito.doThrow(new RuntimeException("foo")).when(outboxHealthIndicatorSpy).pingOutBoxRest();
 
     assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }

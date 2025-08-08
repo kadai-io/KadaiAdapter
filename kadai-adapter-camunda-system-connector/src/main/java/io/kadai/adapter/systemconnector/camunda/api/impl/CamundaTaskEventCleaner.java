@@ -22,10 +22,10 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 
 /**
  * Clears events in the Camunda outbox after the corresponding action has been carried out by KADAI.
@@ -35,11 +35,11 @@ public class CamundaTaskEventCleaner {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskEventCleaner.class);
   private final HttpHeaderProvider httpHeaderProvider;
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
-  public CamundaTaskEventCleaner(HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+  public CamundaTaskEventCleaner(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
     this.httpHeaderProvider = httpHeaderProvider;
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
   }
 
   public void cleanEventsForReferencedTasks(
@@ -68,12 +68,17 @@ public class CamundaTaskEventCleaner {
 
   private void deleteCamundaTaskEventsFromOutbox(
       String requestUrl, String idsOfCamundaTaskEventsToDeleteFromOutbox) {
-
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-
-    HttpEntity<String> request =
-        new HttpEntity<>(idsOfCamundaTaskEventsToDeleteFromOutbox, headers);
-    restTemplate.postForObject(requestUrl, request, String.class);
+    try {
+      restClient.post()
+          .uri(requestUrl)
+          .headers(httpHeaders -> httpHeaders.addAll(headers))
+          .body(idsOfCamundaTaskEventsToDeleteFromOutbox)
+          .retrieve()
+          .toEntity(Void.class);
+    } catch (HttpClientErrorException e) {
+      LOGGER.error("HTTP error while deleting Camunda task events: {}", e.getStatusCode(), e);
+    }
   }
 
   private String getIdsOfCamundaTaskEventsToDeleteFromOutbox(List<ReferencedTask> referencedTasks) {
