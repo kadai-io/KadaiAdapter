@@ -23,7 +23,7 @@ import io.kadai.adapter.camunda.outbox.rest.resource.CamundaTaskEventListResourc
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import java.util.List;
 import org.json.JSONException;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
@@ -47,11 +47,10 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "/" + id;
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForOutboxRestApi("{}");
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     ResponseEntity<String> answer = restClient.delete()
         .uri(url)
-        .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
         .retrieve()
         .toEntity(String.class);
 
@@ -65,12 +64,11 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "/delete-failed-events";
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForOutboxRestApi("{}");
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     ResponseEntity<String> answer = restClient.post()
         .uri(url)
-        .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
-        .body(requestEntity.getBody())
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .body("{}")
         .retrieve()
         .toEntity(String.class);
 
@@ -84,10 +82,10 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "?retries=0";
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForOutboxRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     ResponseEntity<CamundaTaskEventListResource> answer = restClient.get()
         .uri(url)
-        .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
         .retrieve()
         .toEntity(CamundaTaskEventListResource.class);
 
@@ -98,10 +96,10 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH;
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForOutboxRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     ResponseEntity<CamundaTaskEventListResource> answer = restClient.get()
         .uri(url)
-        .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
         .retrieve()
         .toEntity(CamundaTaskEventListResource.class);
 
@@ -112,13 +110,12 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "/" + id;
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForOutboxRestApi(
-            "{\"remainingRetries\":" + newRetries + "}");
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    String body = "{\"remainingRetries\":" + newRetries + "}";
     ResponseEntity<String> answer = restClient.patch()
         .uri(url)
-        .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
-        .body(requestEntity.getBody())
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .body(body)
         .retrieve()
         .toEntity(String.class);
 
@@ -132,13 +129,12 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "?retries=0";
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForOutboxRestApi(
-            "{\"remainingRetries\":" + newRetries + "}");
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    String body = "{\"remainingRetries\":" + newRetries + "}";
     ResponseEntity<String> answer = restClient.patch()
         .uri(url)
-        .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
-        .body(requestEntity.getBody())
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .body(body)
         .retrieve()
         .toEntity(String.class);
 

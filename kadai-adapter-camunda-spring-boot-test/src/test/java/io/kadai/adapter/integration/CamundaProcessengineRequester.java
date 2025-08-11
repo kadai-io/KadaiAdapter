@@ -24,7 +24,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -89,15 +89,15 @@ public class CamundaProcessengineRequester {
             + PROCESS_DEFINITION_KEY_PATH
             + processKey
             + PROCESS_DEFINITION_START_PATH;
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForCamundaRestApi("{" + variables + "}");
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    String body = "{" + variables + "}";
 
     ResponseEntity<String> answer =
         restClient
             .post()
             .uri(url)
-            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
-            .body(requestEntity.getBody())
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
+            .body(body)
             .retrieve()
             .toEntity(String.class);
     JSONObject processJson = new JSONObject(answer.getBody());
@@ -118,13 +118,13 @@ public class CamundaProcessengineRequester {
     List<String> returnList = new ArrayList<String>();
 
     String url = BASIC_ENGINE_PATH + this.processEngineKey + TASK_PATH;
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
 
     ResponseEntity<String> answer =
         restClient
             .get()
             .uri(url)
-            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(String.class);
     JSONArray tasklistJson = new JSONArray(answer.getBody());
@@ -154,13 +154,13 @@ public class CamundaProcessengineRequester {
             + "/"
             + camundaTaskId
             + COMPLETE_TASK_PATH;
-    HttpEntity<String> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi("{}");
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
     ResponseEntity<String> answer =
         restClient
             .post()
             .uri(url)
-            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
-            .body(requestEntity.getBody())
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
+            .body("{}")
             .retrieve()
             .toEntity(String.class);
     if (answer.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
@@ -185,14 +185,14 @@ public class CamundaProcessengineRequester {
    */
   public boolean getTaskFromTaskId(String camundaTaskId) throws JSONException {
     String url = BASIC_ENGINE_PATH + this.processEngineKey + TASK_PATH + "/" + camundaTaskId;
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
     ResponseEntity<String> response;
     try {
       response =
           restClient
               .get()
               .uri(url)
-              .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+              .headers(httpHeaders -> httpHeaders.addAll(headers))
               .retrieve()
               .toEntity(String.class);
     } catch (HttpClientErrorException.NotFound e) {
@@ -221,12 +221,12 @@ public class CamundaProcessengineRequester {
             + TASK_PATH
             + "/?taskId="
             + camundaTaskId;
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
     ResponseEntity<String> response =
         restClient
             .get()
             .uri(url)
-            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(String.class);
     // no task found will only show in empty body
@@ -249,12 +249,12 @@ public class CamundaProcessengineRequester {
             + TASK_PATH
             + "/?taskId="
             + camundaTaskId;
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
     ResponseEntity<String> response =
         restClient
             .get()
             .uri(url)
-            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(String.class);
     // no task found will only show in empty body
@@ -283,14 +283,14 @@ public class CamundaProcessengineRequester {
     if (skipCustomListeners) {
       url += "?skipCustomListeners=true";
     }
-    HttpEntity<String> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi("{}");
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
     ResponseEntity<String> answer;
     try {
       answer =
           restClient
               .delete()
               .uri(url)
-              .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+              .headers(httpHeaders -> httpHeaders.addAll(headers))
               .retrieve()
               .toEntity(String.class);
     } catch (HttpClientErrorException.NotFound e) {
@@ -319,12 +319,12 @@ public class CamundaProcessengineRequester {
   public boolean isCorrectAssignee(String camundaTaskId, String assigneeValueToVerify) {
 
     String requestUrl = BASIC_ENGINE_PATH + this.processEngineKey + TASK_PATH + "/" + camundaTaskId;
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
     ResponseEntity<String> responseEntity =
         restClient
             .get()
             .uri(requestUrl)
-            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(String.class);
     JSONObject taskRetrievalAnswerJson = new JSONObject(responseEntity.getBody());

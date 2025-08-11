@@ -21,7 +21,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
@@ -44,12 +44,12 @@ public class CamundaUtilRequester {
             + CamundaSystemConnectorImpl.URL_GET_CAMUNDA_TASKS
             + camundaTaskId;
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
     try {
       restClient
           .get()
           .uri(requestUrl)
-          .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+          .headers(httpHeaders -> httpHeaders.addAll(headers))
           .retrieve()
           .toEntity(String.class)
           .getBody();

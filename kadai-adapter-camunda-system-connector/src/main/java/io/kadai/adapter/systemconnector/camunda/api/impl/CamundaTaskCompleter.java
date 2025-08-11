@@ -24,7 +24,7 @@ import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import io.kadai.common.api.exceptions.SystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -80,13 +80,12 @@ public class CamundaTaskCompleter {
     String requestBody =
         CamundaSystemConnectorImpl.BODY_SET_ASSIGNEE + "\"" + referencedTask.getAssignee() + "\"}";
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForCamundaRestApi(requestBody);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
     ResponseEntity<Void> response =
         restClient
             .post()
             .uri(requestUrlBuilder.toString())
-            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .body(requestBody)
             .retrieve()
             .toEntity(Void.class);
@@ -113,14 +112,13 @@ public class CamundaTaskCompleter {
 
     String requestBody = "{\"value\" : true, \"type\": \"Boolean\"}";
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForCamundaRestApi(requestBody);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
 
     ResponseEntity<Void> response =
         restClient
             .put()
             .uri(requestUrlBuilder.toString())
-            .headers(httpHeaders -> httpHeaders.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .body(requestBody)
             .retrieve()
             .toEntity(Void.class);
@@ -147,14 +145,14 @@ public class CamundaTaskCompleter {
     LOGGER.debug(
         "completing camunda task {}  with request body {}", camundaTask.getId(), requestBody);
 
-    HttpEntity<String> entity = httpHeaderProvider.prepareNewEntityForCamundaRestApi(requestBody);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
 
     try {
       ResponseEntity<Void> response =
           restClient
               .post()
               .uri(requestUrlBuilder.toString())
-              .headers(httpHeaders -> httpHeaders.addAll(entity.getHeaders()))
+              .headers(httpHeaders -> httpHeaders.addAll(headers))
               .body(requestBody)
               .retrieve()
               .toEntity(Void.class);

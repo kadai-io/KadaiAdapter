@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -81,11 +81,11 @@ class TestLockingAndClustering extends AbsIntegrationTest {
 
     String url = BASIC_OUTBOX_PATH + "?lock-for=10";
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForOutboxRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     CamundaTaskEventListResource answer =
         restClient.get()
             .uri(url)
-            .headers(headers -> headers.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(CamundaTaskEventListResource.class)
             .getBody();
@@ -95,7 +95,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     answer =
         restClient.get()
             .uri(url)
-            .headers(headers -> headers.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(CamundaTaskEventListResource.class)
             .getBody();
@@ -111,7 +111,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     answer =
         restClient.get()
             .uri(url)
-            .headers(headers -> headers.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(CamundaTaskEventListResource.class)
             .getBody();
@@ -133,10 +133,10 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     assertThat(camundaTaskIds).hasSize(1);
     String urlWithLock = BASIC_OUTBOX_PATH + "?lock-for=10";
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForOutboxRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     CamundaTaskEventListResource answer = restClient.get()
             .uri(urlWithLock)
-            .headers(headers -> headers.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(CamundaTaskEventListResource.class)
             .getBody();
@@ -147,13 +147,13 @@ class TestLockingAndClustering extends AbsIntegrationTest {
 
     restClient.post()
         .uri(urlWithUnlock)
-        .headers(headers -> headers.addAll(requestEntity.getHeaders()))
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
         .retrieve()
         .toEntity(Void.class);
     answer =
         restClient.get()
             .uri(urlWithLock)
-            .headers(headers -> headers.addAll(requestEntity.getHeaders()))
+            .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
             .toEntity(CamundaTaskEventListResource.class)
             .getBody();
