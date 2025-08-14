@@ -19,25 +19,20 @@
 package io.kadai.camunda.camundasystemconnector.acceptance;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskRetriever;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import java.util.List;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Unit test class for Camunda System Connector.
@@ -48,17 +43,27 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest
 class RetrieveCamundaTaskAccTest {
 
-  @Autowired RestTemplate restTemplate;
-
   @Autowired CamundaTaskRetriever taskRetriever;
 
-  @Autowired ObjectMapper objectMapper;
-
-  private MockRestServiceServer mockServer;
+  private MockWebServer mockWebServer;
 
   @BeforeEach
   void setUp() {
-    mockServer = MockRestServiceServer.createServer(restTemplate);
+    mockWebServer = new MockWebServer();
+    try {
+      mockWebServer.start();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @AfterEach
+  void tearDown() {
+    try {
+      mockWebServer.shutdown();
+    } catch (Exception e) {
+      // ignore
+    }
   }
 
   @Test
@@ -122,15 +127,13 @@ class RetrieveCamundaTaskAccTest {
             + "]"
             + "}";
 
-    String camundaSystemUrl = "http://localhost:8080/";
-    String requestUrl = camundaSystemUrl + "events?type=create";
+    String camundaSystemUrl = mockWebServer.url("/").toString();
     String systemEngineIdentifier = "default";
 
-    mockServer
-        .expect(requestTo(requestUrl))
-        .andExpect(method(HttpMethod.GET))
-        .andExpect(content().contentType(org.springframework.http.MediaType.APPLICATION_JSON))
-        .andRespond(withSuccess(expectedReplyBody, MediaType.APPLICATION_JSON));
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(expectedReplyBody));
 
     List<ReferencedTask> actualResult = null;
     try {
@@ -168,13 +171,12 @@ class RetrieveCamundaTaskAccTest {
             + "]"
             + "}";
 
-    String camundaSystemUrl = "http://localhost:8080";
+    String camundaSystemUrl = mockWebServer.url("").toString();
     String camundaSystemEngineIdentifier = "default";
-    mockServer
-        .expect(requestTo(camundaSystemUrl + "/events?type=complete&type=delete"))
-        .andExpect(method(HttpMethod.GET))
-        .andExpect(content().contentType(org.springframework.http.MediaType.APPLICATION_JSON))
-        .andRespond(withSuccess(expectedReplyBody, MediaType.APPLICATION_JSON));
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(expectedReplyBody));
 
     List<ReferencedTask> actualResult =
         taskRetriever.retrieveFinishedCamundaTasks(

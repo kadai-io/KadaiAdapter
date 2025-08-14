@@ -23,24 +23,23 @@ import io.kadai.adapter.camunda.outbox.rest.resource.CamundaTaskEventListResourc
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import java.util.List;
 import org.json.JSONException;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClient;
 
 /** Class to assist with building requests against the KADAI Outbox REST API. */
 public class KadaiOutboxRequester {
 
   private static final String BASIC_OUTBOX_PATH = "http://localhost:10020/outbox-rest/events";
 
-  private final TestRestTemplate restTemplate;
+  private final RestClient restClient;
 
   private final HttpHeaderProvider httpHeaderProvider;
 
   public KadaiOutboxRequester(
-      TestRestTemplate restTemplate, HttpHeaderProvider httpHeaderProvider) {
-    this.restTemplate = restTemplate;
+      RestClient restClient, HttpHeaderProvider httpHeaderProvider) {
+    this.restClient = restClient;
     this.httpHeaderProvider = httpHeaderProvider;
   }
 
@@ -48,10 +47,12 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "/" + id;
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForOutboxRestApi("{}");
-    ResponseEntity<String> answer =
-        this.restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, String.class);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    ResponseEntity<String> answer = restClient.delete()
+        .uri(url)
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .retrieve()
+        .toEntity(String.class);
 
     if (HttpStatus.NO_CONTENT.equals(answer.getStatusCode())) {
       return true;
@@ -63,10 +64,13 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "/delete-failed-events";
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForOutboxRestApi("{}");
-    ResponseEntity<String> answer =
-        this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    ResponseEntity<String> answer = restClient.post()
+        .uri(url)
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .body("{}")
+        .retrieve()
+        .toEntity(String.class);
 
     if (HttpStatus.NO_CONTENT.equals(answer.getStatusCode())) {
       return true;
@@ -78,10 +82,12 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "?retries=0";
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForOutboxRestApi();
-    ResponseEntity<CamundaTaskEventListResource> answer =
-        this.restTemplate.exchange(
-            url, HttpMethod.GET, requestEntity, CamundaTaskEventListResource.class);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    ResponseEntity<CamundaTaskEventListResource> answer = restClient.get()
+        .uri(url)
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .retrieve()
+        .toEntity(CamundaTaskEventListResource.class);
 
     return answer.getBody().getCamundaTaskEvents();
   }
@@ -90,10 +96,12 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH;
 
-    HttpEntity<Void> requestEntity = httpHeaderProvider.prepareNewEntityForOutboxRestApi();
-    ResponseEntity<CamundaTaskEventListResource> answer =
-        this.restTemplate.exchange(
-            url, HttpMethod.GET, requestEntity, CamundaTaskEventListResource.class);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    ResponseEntity<CamundaTaskEventListResource> answer = restClient.get()
+        .uri(url)
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .retrieve()
+        .toEntity(CamundaTaskEventListResource.class);
 
     return answer.getBody().getCamundaTaskEvents();
   }
@@ -102,11 +110,14 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "/" + id;
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForOutboxRestApi(
-            "{\"remainingRetries\":" + newRetries + "}");
-    ResponseEntity<String> answer =
-        this.restTemplate.exchange(url, HttpMethod.PATCH, requestEntity, String.class);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    String body = "{\"remainingRetries\":" + newRetries + "}";
+    ResponseEntity<String> answer = restClient.patch()
+        .uri(url)
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .body(body)
+        .retrieve()
+        .toEntity(String.class);
 
     if (HttpStatus.OK.equals(answer.getStatusCode())) {
       return true;
@@ -118,11 +129,14 @@ public class KadaiOutboxRequester {
 
     String url = BASIC_OUTBOX_PATH + "?retries=0";
 
-    HttpEntity<String> requestEntity =
-        httpHeaderProvider.prepareNewEntityForOutboxRestApi(
-            "{\"remainingRetries\":" + newRetries + "}");
-    ResponseEntity<String> answer =
-        this.restTemplate.exchange(url, HttpMethod.PATCH, requestEntity, String.class);
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
+    String body = "{\"remainingRetries\":" + newRetries + "}";
+    ResponseEntity<String> answer = restClient.patch()
+        .uri(url)
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .body(body)
+        .retrieve()
+        .toEntity(String.class);
 
     if (HttpStatus.OK.equals(answer.getStatusCode())) {
       return true;
