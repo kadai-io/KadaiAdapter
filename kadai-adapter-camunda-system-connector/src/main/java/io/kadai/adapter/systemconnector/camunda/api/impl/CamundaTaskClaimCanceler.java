@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -92,9 +93,13 @@ public class CamundaTaskClaimCanceler {
             httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
         } else {
-          LOGGER.warn("Caught Exception when trying to cancel claim camunda task", e);
+          LOGGER.warn("Caught client error when trying to cancel claim camunda task", e);
           throw e;
         }
+      } catch (HttpServerErrorException e) {
+        // Handle 5xx errors (server errors - should be retried)
+        LOGGER.warn("Caught server error when trying to cancel claim camunda task, will retry", e);
+        throw e;
       }
     }
 

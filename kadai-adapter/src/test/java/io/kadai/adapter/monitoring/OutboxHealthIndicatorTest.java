@@ -2,58 +2,75 @@ package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mockito;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
 class OutboxHealthIndicatorTest {
 
-  private OutboxHealthIndicator outboxHealthIndicatorSpy;
+  private OutboxHealthIndicator outboxHealthIndicator;
   private RestClient restClient;
+  private MockWebServer mockWebServer;
 
   @BeforeEach
-  void setUp() {
-    this.restClient = Mockito.mock(RestClient.class);
-    this.outboxHealthIndicatorSpy =
-        Mockito.spy(new OutboxHealthIndicator(restClient, "http://localhost:10020/outbox-rest"));
+  void setUp() throws IOException {
+    this.mockWebServer = new MockWebServer();
+    this.mockWebServer.start();
+    this.restClient = RestClient.builder().build();
+    String baseUrl = mockWebServer.url("/outbox-rest").toString();
+    this.outboxHealthIndicator = new OutboxHealthIndicator(restClient, baseUrl);
+  }
+
+  @AfterEach
+  void tearDown() throws IOException {
+    mockWebServer.shutdown();
   }
 
   @Test
-  void should_ReturnUp_When_OutboxRespondsSuccessfully() {
-    ResponseEntity<OutboxEventCountRepresentationModel> response =
-        ResponseEntity.ok(new OutboxEventCountRepresentationModel());
+  void should_ReturnUp_When_OutboxRespondsSuccessfully() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    String body = mapper.writeValueAsString(new OutboxEventCountRepresentationModel());
 
-    Mockito.doReturn(response).when(outboxHealthIndicatorSpy).pingOutBoxRest();
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setResponseCode(200)
+            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(body));
 
-    assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.UP);
+    assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
   }
 
   @ParameterizedTest
   @MethodSource("errorResponseProvider")
   void should_ReturnDown_When_OutboxRespondsWithError(HttpStatus httpStatus) {
-    ResponseEntity<OutboxEventCountRepresentationModel> response =
-        ResponseEntity.status(httpStatus).build();
+    mockWebServer.enqueue(new MockResponse().setResponseCode(httpStatus.value()));
 
-    Mockito.doReturn(response).when(outboxHealthIndicatorSpy).pingOutBoxRest();
-
-    assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @Test
   void should_ReturnDown_When_OutboxPingFails() {
-    Mockito.doThrow(new RuntimeException("foo")).when(outboxHealthIndicatorSpy).pingOutBoxRest();
+    try {
+      mockWebServer.shutdown();
+    } catch (IOException e) {
+      // ignore
+    }
 
-    assertThat(outboxHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   private static Stream<Arguments> errorResponseProvider() {

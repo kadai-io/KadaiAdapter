@@ -28,6 +28,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
 /** Completes Camunda Tasks via the Camunda REST Api. */
@@ -60,9 +61,12 @@ public class CamundaTaskCompleter {
           httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
         return new SystemResponse(HttpStatus.OK, null);
       } else {
-        LOGGER.warn("Caught Exception when trying to complete camunda task", e);
+        LOGGER.warn("Caught client error when trying to complete camunda task", e);
         throw e;
       }
+    } catch (HttpServerErrorException e) {
+      LOGGER.warn("Caught server error when trying to complete camunda task, will retry", e);
+      throw e;
     }
   }
 
@@ -169,6 +173,16 @@ public class CamundaTaskCompleter {
               + e.getStatusCode()
               + " on the attempt to complete Camunda Task "
               + camundaTask.getId(),
+          e.getMostSpecificCause());
+    } catch (HttpServerErrorException e) {
+      throw new SystemException(
+          "caught "
+              + e.getClass().getSimpleName()
+              + " "
+              + e.getStatusCode()
+              + " on the attempt to complete Camunda Task "
+              + camundaTask.getId()
+              + " (server error - will retry)",
           e.getMostSpecificCause());
     }
   }

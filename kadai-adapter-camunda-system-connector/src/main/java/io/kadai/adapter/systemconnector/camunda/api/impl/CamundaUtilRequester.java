@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
 /** Util class for camunda requests used in multiple components of CamundaSystemConnectorImpl. */
@@ -60,6 +61,8 @@ public class CamundaUtilRequester {
         LOGGER.debug("Camunda Task {} is not existing. Returning silently", camundaTaskId);
       }
       return isNotExisting;
+    } catch (HttpServerErrorException ex) {
+      return false;
     }
     return false;
   }

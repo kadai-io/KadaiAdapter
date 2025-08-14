@@ -20,7 +20,6 @@ package io.kadai.camunda.camundasystemconnector.acceptance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskRetriever;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
@@ -34,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.web.client.RestClient;
 
 /**
  * Unit test class for Camunda System Connector.
@@ -46,10 +44,6 @@ import org.springframework.web.client.RestClient;
 class RetrieveCamundaTaskAccTest {
 
   @Autowired CamundaTaskRetriever taskRetriever;
-
-  @Autowired ObjectMapper objectMapper;
-
-  @Autowired RestClient restClient;
 
   private MockWebServer mockWebServer;
 
