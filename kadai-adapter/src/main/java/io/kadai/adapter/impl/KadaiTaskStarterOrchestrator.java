@@ -140,24 +140,32 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
         if (e.getCause() instanceof TaskAlreadyExistException) {
           newCreatedTasksInKadai.add(referencedTask);
         } else {
-          LOGGER.warn(
-              "caught Exception when attempting to start KadaiTask for referencedTask {}",
+          handleError(
+              systemConnector,
               referencedTask,
-              e);
-          systemConnector.kadaiTaskFailedToBeCreatedForNewReferencedTask(referencedTask, e);
-          systemConnector.unlockEvent(referencedTask.getOutboxEventId());
+              e,
+              "caught Exception when attempting to start KadaiTask for referencedTask {}");
         }
       } catch (Exception e) {
-        LOGGER.warn(
-            "caught unexpected Exception when attempting to start KadaiTask "
-                + "for referencedTask {}",
+        handleError(
+            systemConnector,
             referencedTask,
-            e);
-        systemConnector.kadaiTaskFailedToBeCreatedForNewReferencedTask(referencedTask, e);
-        systemConnector.unlockEvent(referencedTask.getOutboxEventId());
+            e,
+            "caught unexpected Exception when attempting to start KadaiTask "
+                + "for referencedTask {}");
       }
     }
     return newCreatedTasksInKadai;
+  }
+
+  private void handleError(
+      SystemConnector systemConnector,
+      ReferencedTask referencedTask,
+      Exception exception,
+      String message) {
+    LOGGER.warn(message, referencedTask, exception);
+    systemConnector.kadaiTaskFailedToBeCreatedForNewReferencedTask(referencedTask, exception);
+    systemConnector.unlockEvent(referencedTask.getOutboxEventId());
   }
 
   private void addVariablesToReferencedTask(
