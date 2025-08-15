@@ -1,6 +1,6 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.impl.ScheduledComponent;
+import io.kadai.adapter.impl.scheduled.ScheduledComponent;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;

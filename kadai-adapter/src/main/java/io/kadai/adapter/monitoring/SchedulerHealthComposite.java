@@ -1,11 +1,11 @@
 package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
-import io.kadai.adapter.impl.KadaiTaskStarter;
-import io.kadai.adapter.impl.KadaiTaskTerminator;
-import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
-import io.kadai.adapter.impl.ReferencedTaskClaimer;
-import io.kadai.adapter.impl.ReferencedTaskCompleter;
+import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
+import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimCanceler;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimer;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,8 +23,8 @@ public class SchedulerHealthComposite implements CompositeHealthContributor {
       ReferencedTaskCompleter referencedTaskCompleter,
       ReferencedTaskClaimer referencedTaskClaimer,
       ReferencedTaskClaimCanceler referencedTaskClaimCanceler,
-      KadaiTaskStarter kadaiTaskStarter,
-      KadaiTaskTerminator kadaiTaskTerminator) {
+      KadaiTaskStarterOrchestrator kadaiTaskStarter,
+      KadaiTaskCompletionOrchestrator kadaiTaskTerminator) {
     if (properties.getReferencedTaskCompleter().getEnabled()) {
       healthContributors.put(
           "referencedTaskCompleter",
