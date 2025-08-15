@@ -42,7 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <version.kadai>9.3.1-SNAPSHOT</version.kadai>
+        <version.kadai>10.1.1-SNAPSHOT</version.kadai>
 
         <!-- build dependencies -->
         <version.checkstyle>10.25.0</version.checkstyle>
