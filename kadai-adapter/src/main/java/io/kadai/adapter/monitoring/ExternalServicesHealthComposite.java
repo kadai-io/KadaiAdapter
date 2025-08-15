@@ -1,8 +1,8 @@
 package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
-import io.kadai.adapter.impl.KadaiTaskStarter;
-import io.kadai.adapter.impl.KadaiTaskTerminator;
+import io.kadai.adapter.impl.KadaiTaskCompletionOrchestrator;
+import io.kadai.adapter.impl.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
 import io.kadai.adapter.impl.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.ReferencedTaskCompleter;
@@ -33,8 +33,8 @@ public class ExternalServicesHealthComposite implements CompositeHealthContribut
       ReferencedTaskCompleter referencedTaskCompleter,
       ReferencedTaskClaimer referencedTaskClaimer,
       ReferencedTaskClaimCanceler referencedTaskClaimCanceler,
-      KadaiTaskStarter kadaiTaskStarter,
-      KadaiTaskTerminator kadaiTaskTerminator,
+      KadaiTaskStarterOrchestrator kadaiTaskStarter,
+      KadaiTaskCompletionOrchestrator kadaiTaskTerminator,
       @Value("${kadai-system-connector-camundaSystemURLs}") List<String> camundaSystemUrls) {
     if (properties.getCamundaSystem().getEnabled()) {
       healthContributors.put(

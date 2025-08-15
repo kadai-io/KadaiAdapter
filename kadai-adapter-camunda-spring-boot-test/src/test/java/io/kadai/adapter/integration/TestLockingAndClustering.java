@@ -21,8 +21,8 @@ package io.kadai.adapter.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.camunda.outbox.rest.resource.CamundaTaskEventListResource;
-import io.kadai.adapter.impl.KadaiTaskStarter;
-import io.kadai.adapter.impl.KadaiTaskTerminator;
+import io.kadai.adapter.impl.KadaiTaskCompletionOrchestrator;
+import io.kadai.adapter.impl.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.api.security.UserPrincipal;
@@ -34,14 +34,12 @@ import io.kadai.task.api.models.TaskSummary;
 import java.security.PrivilegedAction;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.security.auth.Subject;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -73,12 +71,9 @@ class TestLockingAndClustering extends AbsIntegrationTest {
   @Autowired
   private HttpHeaderProvider httpHeaderProvider;
   @Autowired
-  KadaiTaskStarter kadaiTaskStarter;
+  KadaiTaskStarterOrchestrator kadaiTaskStarter;
   @Autowired
-  KadaiTaskTerminator kadaiTaskTerminator;
-
-  @Value("${kadai-system-connector-camundaSystemURLs}")
-  private String configuredSystemConnectorUrls;
+  KadaiTaskCompletionOrchestrator kadaiTaskTerminator;
 
   @WithAccessId(
       user = "teamlead_1",
@@ -164,8 +159,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
         "simple_multiple_execution_process", "");
     List<String> accessIds =
         Collections.synchronizedList(
-            Stream.of("admin", "taskadmin")
-                .collect(Collectors.toList()));
+            Stream.of("admin", "taskadmin").toList());
     PrivilegedAction<Void> action =
         () -> {
           kadaiTaskStarter.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
@@ -197,8 +191,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     }
     List<String> accessIds =
         Collections.synchronizedList(
-            Stream.of("taskadmin", "taskadmin", "taskadmin")
-                .collect(Collectors.toList()));
+            Stream.of("taskadmin", "taskadmin", "taskadmin").toList());
     PrivilegedAction<Void> action =
         () -> {
           kadaiTaskTerminator.retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks();
