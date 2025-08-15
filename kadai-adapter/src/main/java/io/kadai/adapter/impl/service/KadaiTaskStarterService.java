@@ -16,23 +16,22 @@
  *
  */
 
-package io.kadai.adapter.impl;
+package io.kadai.adapter.impl.service;
 
-import io.kadai.adapter.exceptions.TaskTerminationFailedException;
+import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 
 /**
- * Service interface for completing KADAI tasks.
- * This service handles the core business logic of task completion without orchestration concerns.
+ * Service interface for creating KADAI tasks from referenced tasks.
  */
-public interface KadaiTaskCompletionService {
+public interface KadaiTaskStarterService {
 
   /**
-   * Terminates a KADAI task based on a referenced task.
+   * Creates a KADAI task from a referenced task.
    *
-   * @param referencedTask the referenced task for which to terminate the KADAI task
-   * @throws TaskTerminationFailedException if the task termination fails
+   * @param referencedTask the referenced task to create a KADAI task for (must have systemUrl set)
+   * @throws TaskCreationFailedException if the task creation fails
    */
-  void terminateKadaiTask(ReferencedTask referencedTask)
-      throws TaskTerminationFailedException;
+  void createKadaiTask(ReferencedTask referencedTask)
+      throws TaskCreationFailedException;
 }

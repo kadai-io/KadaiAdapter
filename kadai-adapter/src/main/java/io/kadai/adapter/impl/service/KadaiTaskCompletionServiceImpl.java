@@ -16,7 +16,7 @@
  *
  */
 
-package io.kadai.adapter.impl;
+package io.kadai.adapter.impl.service;
 
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.manager.AdapterManager;

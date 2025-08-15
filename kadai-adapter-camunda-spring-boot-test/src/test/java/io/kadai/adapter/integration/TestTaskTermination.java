@@ -20,7 +20,7 @@ package io.kadai.adapter.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kadai.adapter.impl.KadaiTaskCompletionOrchestrator;
+import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;

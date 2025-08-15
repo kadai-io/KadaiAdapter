@@ -1,11 +1,11 @@
 package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
-import io.kadai.adapter.impl.KadaiTaskCompletionOrchestrator;
-import io.kadai.adapter.impl.KadaiTaskStarterOrchestrator;
-import io.kadai.adapter.impl.ReferencedTaskClaimCanceler;
-import io.kadai.adapter.impl.ReferencedTaskClaimer;
-import io.kadai.adapter.impl.ReferencedTaskCompleter;
+import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
+import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimCanceler;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimer;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;

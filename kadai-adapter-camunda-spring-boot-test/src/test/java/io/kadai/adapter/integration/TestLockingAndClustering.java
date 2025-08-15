@@ -21,8 +21,8 @@ package io.kadai.adapter.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.camunda.outbox.rest.resource.CamundaTaskEventListResource;
-import io.kadai.adapter.impl.KadaiTaskCompletionOrchestrator;
-import io.kadai.adapter.impl.KadaiTaskStarterOrchestrator;
+import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
+import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.api.security.UserPrincipal;
