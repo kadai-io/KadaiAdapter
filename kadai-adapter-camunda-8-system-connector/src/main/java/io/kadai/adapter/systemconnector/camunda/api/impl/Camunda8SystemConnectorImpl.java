@@ -81,6 +81,6 @@ public class Camunda8SystemConnectorImpl implements SystemConnector {
 
   @Override
   public void unlockEvent(String eventId) {
-    // todo: implement but don't know how yet
+    // todo: implement but don't know how yet, gets called e.g. when a task creation fails
   }
 }

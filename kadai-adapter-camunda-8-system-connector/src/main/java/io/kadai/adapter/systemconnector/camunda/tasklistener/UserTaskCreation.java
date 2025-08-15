@@ -4,10 +4,8 @@ import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.spring.client.annotation.JobWorker;
 import io.kadai.adapter.impl.KadaiTaskStarter;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8SystemConnectorImpl;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -46,11 +44,11 @@ public class UserTaskCreation {
                   + "connected to process instance {}",
               job.getProcessInstanceKey());
         }
-
-        ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
-        taskStarter.createAndStartKadaiTasks(
-            systemConnector, new ArrayList<>(List.of(referencedTask)));
       }
+
+      ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
+      taskStarter.createAndStartKadaiTasks(
+          systemConnector, new ArrayList<>(List.of(referencedTask)));
 
     } catch (Exception e) {
       LOGGER.error(
