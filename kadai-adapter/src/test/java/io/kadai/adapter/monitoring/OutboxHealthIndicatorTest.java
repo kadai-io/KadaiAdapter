@@ -1,55 +1,55 @@
 package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
-import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Stream;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
+@ExtendWith(MockitoExtension.class)
 class OutboxHealthIndicatorTest {
 
-  private OutboxHealthIndicator outboxHealthIndicator;
-  private RestClient restClient;
-  private MockWebServer mockWebServer;
+  private static final String BASE_URL = "http://localhost:8080/outbox-rest";
+  private static final URI EXPECTED_URI =
+      UriComponentsBuilder.fromUriString(BASE_URL)
+          .pathSegment("events")
+          .pathSegment("count")
+          .queryParam("retries", 0)
+          .build()
+          .toUri();
 
-  @BeforeEach
-  void setUp() throws IOException {
-    this.mockWebServer = new MockWebServer();
-    this.mockWebServer.start();
-    this.restClient = RestClient.builder().build();
-    String baseUrl = mockWebServer.url("/outbox-rest").toString();
-    this.outboxHealthIndicator = new OutboxHealthIndicator(restClient, baseUrl);
-  }
-
-  @AfterEach
-  void tearDown() throws IOException {
-    mockWebServer.shutdown();
-  }
+  @Mock RestClient restClient;
 
   @Test
-  void should_ReturnUp_When_OutboxRespondsSuccessfully() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-    String body = mapper.writeValueAsString(new OutboxEventCountRepresentationModel());
+  void should_ReturnUp_When_OutboxRespondsSuccessfully() {
+    OutboxHealthIndicator outboxHealthIndicator = new OutboxHealthIndicator(restClient, BASE_URL);
+    OutboxEventCountRepresentationModel outboxEventCount =
+        new OutboxEventCountRepresentationModel();
 
-    mockWebServer.enqueue(
-        new MockResponse()
-            .setResponseCode(200)
-            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-            .setBody(body));
+    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
+    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+
+    when(restClient.get()).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
+    when(mockResponseSpec.toEntity(OutboxEventCountRepresentationModel.class))
+        .thenReturn(ResponseEntity.ok(outboxEventCount));
 
     assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
   }
@@ -57,18 +57,29 @@ class OutboxHealthIndicatorTest {
   @ParameterizedTest
   @MethodSource("errorResponseProvider")
   void should_ReturnDown_When_OutboxRespondsWithError(HttpStatus httpStatus) {
-    mockWebServer.enqueue(new MockResponse().setResponseCode(httpStatus.value()));
+    OutboxHealthIndicator outboxHealthIndicator = new OutboxHealthIndicator(restClient, BASE_URL);
+
+    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
+    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+
+    when(restClient.get()).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
+    when(mockResponseSpec.toEntity(OutboxEventCountRepresentationModel.class))
+        .thenThrow(new RuntimeException("HTTP " + httpStatus.value()));
 
     assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @Test
   void should_ReturnDown_When_OutboxPingFails() {
-    try {
-      mockWebServer.shutdown();
-    } catch (IOException e) {
-      // ignore
-    }
+    OutboxHealthIndicator outboxHealthIndicator = new OutboxHealthIndicator(restClient, BASE_URL);
+
+    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
+
+    when(restClient.get()).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(eq(EXPECTED_URI)))
+        .thenThrow(new RuntimeException("Connection failed"));
 
     assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }

@@ -56,16 +56,11 @@ public class CamundaTaskCompleter {
 
       return performCompletion(camundaSystemUrlInfo, referencedTask, requestUrlBuilder);
 
-    } catch (HttpClientErrorException e) {
+    } catch (HttpClientErrorException | HttpServerErrorException e) {
       if (CamundaUtilRequester.isTaskNotExisting(
           httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
         return new SystemResponse(HttpStatus.OK, null);
-      } else {
-        LOGGER.warn("Caught client error when trying to complete camunda task", e);
-        throw e;
       }
-    } catch (HttpServerErrorException e) {
-      LOGGER.warn("Caught server error when trying to complete camunda task, will retry", e);
       throw e;
     }
   }
@@ -165,7 +160,7 @@ public class CamundaTaskCompleter {
           camundaTask.getId(),
           response.getStatusCode());
       return new SystemResponse(response.getStatusCode(), null);
-    } catch (HttpClientErrorException e) {
+    } catch (HttpClientErrorException | HttpServerErrorException e) {
       throw new SystemException(
           "caught "
               + e.getClass().getSimpleName()
@@ -173,16 +168,6 @@ public class CamundaTaskCompleter {
               + e.getStatusCode()
               + " on the attempt to complete Camunda Task "
               + camundaTask.getId(),
-          e.getMostSpecificCause());
-    } catch (HttpServerErrorException e) {
-      throw new SystemException(
-          "caught "
-              + e.getClass().getSimpleName()
-              + " "
-              + e.getStatusCode()
-              + " on the attempt to complete Camunda Task "
-              + camundaTask.getId()
-              + " (server error - will retry)",
           e.getMostSpecificCause());
     }
   }

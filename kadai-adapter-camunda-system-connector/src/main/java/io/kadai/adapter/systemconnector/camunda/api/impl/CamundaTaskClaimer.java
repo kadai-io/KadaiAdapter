@@ -88,17 +88,11 @@ public class CamundaTaskClaimer {
             referencedTask.getId(),
             response.getStatusCode());
         return new SystemResponse(response.getStatusCode(), null);
-      } catch (HttpClientErrorException e) {
+      } catch (HttpClientErrorException | HttpServerErrorException e) {
         if (CamundaUtilRequester.isTaskNotExisting(
             httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
-        } else {
-          LOGGER.warn("Caught client error when trying to claim camunda task", e);
-          throw e;
         }
-      } catch (HttpServerErrorException e) {
-        // Handle 5xx errors (server errors - should be retried)
-        LOGGER.warn("Caught server error when trying to claim camunda task, will retry", e);
         throw e;
       }
     }
