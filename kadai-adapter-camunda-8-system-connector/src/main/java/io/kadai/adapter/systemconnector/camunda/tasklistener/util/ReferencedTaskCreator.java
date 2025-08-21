@@ -3,11 +3,13 @@ package io.kadai.adapter.systemconnector.camunda.tasklistener.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.client.api.response.ActivatedJob;
+import io.camunda.client.api.response.UserTaskProperties;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,31 +27,33 @@ public class ReferencedTaskCreator {
    */
   public ReferencedTask createReferencedTaskFromJob(ActivatedJob job) {
     ReferencedTask referencedTask = new ReferencedTask();
-    Map<String, String> customHeaders = job.getCustomHeaders();
+    UserTaskProperties userTaskProperties = job.getUserTask();
+    Map<String, Object> variablesObj = job.getVariablesAsMap();
+    Map<String,String> variables = variablesObj.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> (String)e.getValue()));
 
-    referencedTask.setId(customHeaders.get("io.camunda.zeebe:userTaskKey"));
+    referencedTask.setId(String.valueOf(job.getKey()));
     // todo: io.camunda.zeebe:userTaskKey -> 2251799813782683 or
     //  job.getElementInstanceKey: 2251799813782682 ?
-    referencedTask.setManualPriority(getVariableWithKadaiPrefix(job, "manual_priority"));
-    referencedTask.setAssignee(customHeaders.get("io.camunda.zeebe:assignee"));
-    referencedTask.setDue(customHeaders.get("io.camunda.zeebe:dueDate"));
+    referencedTask.setManualPriority(variables.get("kadai_manual_priority"));
+    referencedTask.setAssignee(userTaskProperties.getAssignee());
+    referencedTask.setDue(userTaskProperties.getDueDate());
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
-    referencedTask.setWorkbasketKey(getVariableWithKadaiPrefix(job, "workbasket_key"));
-    referencedTask.setClassificationKey(getVariableWithKadaiPrefix(job, "classification_key"));
-    referencedTask.setDomain(getVariableWithKadaiPrefix(job, "domain"));
-    referencedTask.setName(
-        getVariableWithKadaiPrefix(job, "name")); // todo: use fallback domain here?
+    referencedTask.setWorkbasketKey(variables.get("kadai_workbasket_key"));
+    referencedTask.setClassificationKey(variables.get("kadai_classification_key"));
+    referencedTask.setDomain(variables.get("kadai_domain"));
+    referencedTask.setName(variables.get("kadai_name")); // todo: use fallback domain here?
 
-    referencedTask.setCustomInt1(getVariableWithKadaiPrefix(job, "custom-int-1"));
-    referencedTask.setCustomInt2(getVariableWithKadaiPrefix(job, "custom-int-2"));
-    referencedTask.setCustomInt3(getVariableWithKadaiPrefix(job, "custom-int-3"));
-    referencedTask.setCustomInt4(getVariableWithKadaiPrefix(job, "custom-int-4"));
-    referencedTask.setCustomInt5(getVariableWithKadaiPrefix(job, "custom-int-5"));
-    referencedTask.setCustomInt6(getVariableWithKadaiPrefix(job, "custom-int-6"));
-    referencedTask.setCustomInt7(getVariableWithKadaiPrefix(job, "custom-int-7"));
-    referencedTask.setCustomInt8(getVariableWithKadaiPrefix(job, "custom-int-8"));
+    referencedTask.setCustomInt1(variables.get("kadai_custom_int_1"));
+    referencedTask.setCustomInt2(variables.get("kadai_custom_int_2"));
+    referencedTask.setCustomInt3(variables.get("kadai_custom_int_3"));
+    referencedTask.setCustomInt4(variables.get("kadai_custom_int_4"));
+    referencedTask.setCustomInt5(variables.get("kadai_custom_int_5"));
+    referencedTask.setCustomInt6(variables.get("kadai_custom_int_6"));
+    referencedTask.setCustomInt7(variables.get("kadai_custom_int_7"));
+    referencedTask.setCustomInt8(variables.get("kadai_custom_int_8"));
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
 
