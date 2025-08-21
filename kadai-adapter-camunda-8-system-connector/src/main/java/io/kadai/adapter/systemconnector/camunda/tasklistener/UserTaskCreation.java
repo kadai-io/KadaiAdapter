@@ -3,6 +3,7 @@ package io.kadai.adapter.systemconnector.camunda.tasklistener;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.spring.client.annotation.JobWorker;
 import io.kadai.adapter.impl.KadaiTaskStarter;
+import io.kadai.adapter.impl.UserContext;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8SystemConnectorImpl;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,6 +24,9 @@ public class UserTaskCreation {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCreation.class);
   private boolean gotActivated = false;
+
+  @Value("${kadai.adapter.run-as.user}")
+  protected String runAsUser;
 
   public UserTaskCreation(
       KadaiTaskStarter taskStarter,
@@ -47,8 +52,14 @@ public class UserTaskCreation {
       }
 
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
-      taskStarter.createAndStartKadaiTasks(
-          systemConnector, new ArrayList<>(List.of(referencedTask)));
+
+      UserContext.runAsUser(
+          runAsUser,
+          () -> {
+            taskStarter.createAndStartKadaiTasks(
+                systemConnector, new ArrayList<>(List.of(referencedTask)));
+            return null;
+          });
 
     } catch (Exception e) {
       LOGGER.error(

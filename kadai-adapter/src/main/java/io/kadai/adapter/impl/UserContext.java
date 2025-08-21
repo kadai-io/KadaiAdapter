@@ -29,7 +29,7 @@ public class UserContext {
     throw new IllegalStateException("Utility class");
   }
 
-  static <T> T runAsUser(String runAsUserId, Supplier<T> supplier) {
+  public static <T> T runAsUser(String runAsUserId, Supplier<T> supplier) {
     Subject subject = new Subject();
     subject.getPrincipals().add(new UserPrincipal(runAsUserId));
     return Subject.doAs(subject, (PrivilegedAction<T>) supplier::get);
