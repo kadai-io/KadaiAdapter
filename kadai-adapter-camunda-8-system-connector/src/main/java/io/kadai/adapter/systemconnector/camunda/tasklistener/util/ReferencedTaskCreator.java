@@ -29,8 +29,8 @@ public class ReferencedTaskCreator {
     ReferencedTask referencedTask = new ReferencedTask();
     UserTaskProperties userTaskProperties = job.getUserTask();
     Map<String, Object> variablesObj = job.getVariablesAsMap();
-    Map<String,String> variables = variablesObj.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> (String)e.getValue()));
+    Map<String, String> variables = variablesObj.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> (String) e.getValue()));
 
     referencedTask.setId(String.valueOf(job.getKey()));
     // todo: io.camunda.zeebe:userTaskKey -> 2251799813782683 or
