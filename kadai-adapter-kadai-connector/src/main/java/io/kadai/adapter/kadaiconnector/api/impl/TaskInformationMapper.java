@@ -239,9 +239,9 @@ public class TaskInformationMapper {
 
     TemporalAccessor temporalAccessor;
     try {
-        temporalAccessor = formatter7.parse(date);
+      temporalAccessor = formatter7.parse(date);
     } catch (DateTimeParseException e) {
-        temporalAccessor = formatter8.parse(date);
+      temporalAccessor = formatter8.parse(date);
     }
     LocalDateTime localDateTime = LocalDateTime.from(temporalAccessor);
     ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
