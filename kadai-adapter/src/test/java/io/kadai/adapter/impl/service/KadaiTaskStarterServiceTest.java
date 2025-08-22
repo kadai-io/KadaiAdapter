@@ -18,7 +18,7 @@
 
 package io.kadai.adapter.impl.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -89,8 +89,8 @@ class KadaiTaskStarterServiceTest {
         .createKadaiTask(kadaiTask);
 
     // When & Then
-    assertThrows(
-        TaskCreationFailedException.class, () -> testSubject.createKadaiTask(referencedTask));
+    assertThatThrownBy(() -> testSubject.createKadaiTask(referencedTask))
+        .isInstanceOf(TaskCreationFailedException.class);
 
     verify(adapterManager).getKadaiConnector();
     verify(kadaiConnector).convertToKadaiTask(referencedTask);
