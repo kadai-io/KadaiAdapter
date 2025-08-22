@@ -29,7 +29,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
 import java.util.Map;
@@ -234,15 +233,8 @@ public class TaskInformationMapper {
     if (date == null || date.isEmpty()) {
       return null;
     }
-    DateTimeFormatter formatter7 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    DateTimeFormatter formatter8 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mmXXX'['VV']'");
-
-    TemporalAccessor temporalAccessor;
-    try {
-      temporalAccessor = formatter7.parse(date);
-    } catch (DateTimeParseException e) {
-      temporalAccessor = formatter8.parse(date);
-    }
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    TemporalAccessor temporalAccessor = formatter.parse(date);
     LocalDateTime localDateTime = LocalDateTime.from(temporalAccessor);
     ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
     return Instant.from(zonedDateTime);

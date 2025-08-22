@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +39,10 @@ public class ReferencedTaskCreator {
     //  job.getElementInstanceKey: 2251799813782682 ?
     referencedTask.setManualPriority(variables.get("kadai_manual_priority"));
     referencedTask.setAssignee(userTaskProperties.getAssignee());
-    referencedTask.setDue(userTaskProperties.getDueDate());
+    referencedTask.setDue(ZonedDateTime.parse(userTaskProperties.getDueDate())
+              .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
+    referencedTask.setPlanned(ZonedDateTime.parse(userTaskProperties.getFollowUpDate())
+              .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
