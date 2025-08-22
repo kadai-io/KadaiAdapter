@@ -25,7 +25,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.kadai.adapter.impl.ReferencedTaskCompleter;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaUtilRequester;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
