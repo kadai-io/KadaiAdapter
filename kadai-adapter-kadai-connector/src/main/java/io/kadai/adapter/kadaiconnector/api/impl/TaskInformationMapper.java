@@ -233,7 +233,7 @@ public class TaskInformationMapper {
     if (date == null || date.isEmpty()) {
       return null;
     }
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     TemporalAccessor temporalAccessor = formatter.parse(date);
     LocalDateTime localDateTime = LocalDateTime.from(temporalAccessor);
     ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
