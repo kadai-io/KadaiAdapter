@@ -18,16 +18,20 @@
 
 package io.kadai.adapter.systemconnector.api;
 
-/**
- * Composite interface that combines both inbound and outbound system connector operations.
- *
- * This interface is provided for convenience and backward compatibility when a system connector
- * needs to implement both inbound and outbound operations. For new implementations, consider
- * implementing only the specific interfaces you need:
- * - {@link InboundSystemConnector} for data retrieval operations
- * - {@link OutboundSystemConnector} for command operations
- * - Or both if your system truly needs both capabilities
- */
-public interface SystemConnector extends InboundSystemConnector, OutboundSystemConnector {
-  // All methods are inherited from the parent interfaces
+/** Base interface for system connectors containing common identification methods. */
+public interface BaseSystemConnector {
+
+  /**
+   * Get the URL of the external system this connector connects to.
+   *
+   * @return the URL of the connected external system.
+   */
+  String getSystemUrl();
+
+  /**
+   * Get the system identifier of the external system this connector connects to.
+   *
+   * @return the system identifier of the connected external system.
+   */
+  String getSystemIdentifier();
 }

@@ -77,7 +77,7 @@ public class AdapterManager {
         systemConnectors.put(conn.getSystemUrl(), conn);
         if (LOGGER.isInfoEnabled()) {
           LOGGER.info(
-              "initialized system connectors {} for system_url {}", conn, conn.getSystemUrl());
+              "initialized system connector {} for system_url {}", conn, conn.getSystemUrl());
         }
       }
     }
