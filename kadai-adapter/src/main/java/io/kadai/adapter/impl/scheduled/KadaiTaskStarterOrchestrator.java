@@ -21,8 +21,8 @@ package io.kadai.adapter.impl.scheduled;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.impl.service.KadaiTaskStarterService;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.util.LowerMedian;
 import io.kadai.task.api.exceptions.TaskAlreadyExistException;
 import java.time.Duration;
@@ -93,10 +93,10 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
   }
 
   public void retrieveReferencedTasksAndCreateCorrespondingKadaiTasks() {
-    LOGGER.trace(
-        "KadaiTaskStarterOrchestrator."
-            + "retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY");
-    for (SystemConnector systemConnector : (adapterManager.getSystemConnectors().values())) {
+    LOGGER.trace("KadaiTaskStarterOrchestrator."
+        + "retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY");
+    for (InboundSystemConnector systemConnector :
+        (adapterManager.getInboundSystemConnectors().values())) {
       try {
         List<ReferencedTask> tasksToStart = systemConnector.retrieveNewStartedReferencedTasks();
 
@@ -129,7 +129,7 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
   }
 
   private List<ReferencedTask> createAndStartKadaiTasks(
-      SystemConnector systemConnector, List<ReferencedTask> tasksToStart) {
+      InboundSystemConnector systemConnector, List<ReferencedTask> tasksToStart) {
     List<ReferencedTask> newCreatedTasksInKadai = new ArrayList<>();
     for (ReferencedTask referencedTask : tasksToStart) {
       try {
@@ -170,7 +170,7 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
   }
 
   private void addVariablesToReferencedTask(
-      ReferencedTask referencedTask, SystemConnector connector) {
+      ReferencedTask referencedTask, InboundSystemConnector connector) {
     if (referencedTask.getVariables() == null) {
       String variables = connector.retrieveReferencedTaskVariables(referencedTask.getId());
       referencedTask.setVariables(variables);

@@ -20,8 +20,8 @@ package io.kadai.adapter.impl.scheduled;
 
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.util.LowerMedian;
 import io.kadai.common.api.exceptions.SystemException;
 import io.kadai.task.api.CallbackState;
@@ -145,8 +145,8 @@ public class ReferencedTaskClaimCanceler implements ScheduledComponent {
         referencedTask.getId());
     boolean success = false;
     try {
-      SystemConnector connector =
-          adapterManager.getSystemConnectors().get(referencedTask.getSystemUrl());
+      OutboundSystemConnector connector =
+          adapterManager.getOutboundSystemConnectors().get(referencedTask.getSystemUrl());
       if (connector != null) {
         connector.cancelClaimReferencedTask(referencedTask);
         success = true;

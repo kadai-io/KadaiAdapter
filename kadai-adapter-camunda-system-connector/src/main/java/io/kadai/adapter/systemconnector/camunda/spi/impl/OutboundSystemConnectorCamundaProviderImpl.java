@@ -19,41 +19,30 @@
 package io.kadai.adapter.systemconnector.camunda.spi.impl;
 
 import io.kadai.adapter.configuration.AdapterSpringContextProvider;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
+import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaSystemConnectorImpl;
 import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
-import io.kadai.adapter.systemconnector.spi.SystemConnectorProvider;
+import io.kadai.adapter.systemconnector.spi.OutboundSystemConnectorProvider;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implements SystemConnectorProvider for camunda.
- *
- * @author bbr
+ * Implements OutboundSystemConnectorProvider for Camunda.
+ * Creates CamundaSystemConnectorImpl instances for outbound operations.
  */
-public class SystemConnectorCamundaProviderImpl implements SystemConnectorProvider {
+public class OutboundSystemConnectorCamundaProviderImpl implements OutboundSystemConnectorProvider {
 
   @Override
-  public List<SystemConnector> create() {
-    // note: this class is created by ServiceLoader, not by Spring. Therefore it is no bean and we
-    // must
-    // retrieve the Spring-generated Bean for camundaSystemUrls programatically. Only this bean has
-    // the properties
-    // resolved.
-    // In order for this bean to be retrievable, the SpringContextProvider must already be
-    // initialized.
-    // This is assured via the
-    // @DependsOn(value= {"adapterSpringContextProvider"}) annotation of
-    // CamundaSystemConnectorConfiguration
-
+  public List<OutboundSystemConnector> create() {
     CamundaSystemUrls camundaSystemUrls =
         AdapterSpringContextProvider.getBean(CamundaSystemUrls.class);
 
-    List<SystemConnector> result = new ArrayList<>();
-    for (CamundaSystemUrls.SystemUrlInfo camundaSystemUrl : camundaSystemUrls.getUrls()) {
-      result.add(new CamundaSystemConnectorImpl(camundaSystemUrl));
+    List<OutboundSystemConnector> result = new ArrayList<>();
+    for (CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo : camundaSystemUrls.getUrls()) {
+      CamundaSystemConnectorImpl camundaSystemConnector =
+          new CamundaSystemConnectorImpl(camundaSystemUrlInfo);
+      result.add(camundaSystemConnector);
     }
-
     return result;
   }
 }

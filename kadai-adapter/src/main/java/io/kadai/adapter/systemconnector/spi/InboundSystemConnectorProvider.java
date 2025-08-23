@@ -18,16 +18,17 @@
 
 package io.kadai.adapter.systemconnector.spi;
 
-import io.kadai.adapter.systemconnector.api.SystemConnector;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import java.util.List;
 
-/** The interface for the SystemConnector provider. */
-public interface SystemConnectorProvider {
+/** The interface for the InboundSystemConnector provider. */
+public interface InboundSystemConnectorProvider {
 
   /**
-   * create a list of SystemConnector objects to access multiple external systems.
+   * Create a list of InboundSystemConnector objects to access multiple external systems
+   * for data retrieval operations.
    *
-   * @return a list of SystemConnector objects
+   * @return a list of InboundSystemConnector objects
    */
-  List<SystemConnector> create();
+  List<InboundSystemConnector> create();
 }
