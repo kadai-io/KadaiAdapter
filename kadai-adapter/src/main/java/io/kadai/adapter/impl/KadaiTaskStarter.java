@@ -21,8 +21,8 @@ package io.kadai.adapter.impl;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.util.LowerMedian;
 import io.kadai.task.api.exceptions.TaskAlreadyExistException;
 import io.kadai.task.api.models.Task;
@@ -92,7 +92,8 @@ public class KadaiTaskStarter implements ScheduledComponent {
 
   public void retrieveReferencedTasksAndCreateCorrespondingKadaiTasks() {
     LOGGER.trace("KadaiTaskStarter.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY ");
-    for (SystemConnector systemConnector : (adapterManager.getSystemConnectors().values())) {
+    for (InboundSystemConnector systemConnector :
+        (adapterManager.getInboundSystemConnectors().values())) {
       try {
         List<ReferencedTask> tasksToStart = systemConnector.retrieveNewStartedReferencedTasks();
 
@@ -110,7 +111,9 @@ public class KadaiTaskStarter implements ScheduledComponent {
   }
 
   public void createKadaiTask(
-      ReferencedTask referencedTask, KadaiConnector connector, SystemConnector systemConnector)
+      ReferencedTask referencedTask,
+      KadaiConnector connector,
+      InboundSystemConnector systemConnector)
       throws TaskCreationFailedException {
     LOGGER.trace("KadaiTaskStarter.createKadaiTask ENTRY ");
     referencedTask.setSystemUrl(systemConnector.getSystemUrl());
@@ -137,7 +140,7 @@ public class KadaiTaskStarter implements ScheduledComponent {
   }
 
   private List<ReferencedTask> createAndStartKadaiTasks(
-      SystemConnector systemConnector, List<ReferencedTask> tasksToStart) {
+      InboundSystemConnector systemConnector, List<ReferencedTask> tasksToStart) {
     List<ReferencedTask> newCreatedTasksInKadai = new ArrayList<>();
     for (ReferencedTask referencedTask : tasksToStart) {
       try {
@@ -168,7 +171,7 @@ public class KadaiTaskStarter implements ScheduledComponent {
   }
 
   private void addVariablesToReferencedTask(
-      ReferencedTask referencedTask, SystemConnector connector) {
+      ReferencedTask referencedTask, InboundSystemConnector connector) {
     if (referencedTask.getVariables() == null) {
       String variables = connector.retrieveReferencedTaskVariables(referencedTask.getId());
       referencedTask.setVariables(variables);
