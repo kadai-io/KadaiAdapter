@@ -22,10 +22,8 @@ import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.kadaiconnector.spi.KadaiConnectorProvider;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.systemconnector.spi.InboundSystemConnectorProvider;
 import io.kadai.adapter.systemconnector.spi.OutboundSystemConnectorProvider;
-import io.kadai.adapter.systemconnector.spi.SystemConnectorProvider;
 import io.kadai.adapter.util.Assert;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,14 +41,9 @@ public class AdapterManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(AdapterManager.class);
   private boolean isInitialized = false;
 
-  private Map<String, SystemConnector> systemConnectors;
   private Map<String, InboundSystemConnector> inboundSystemConnectors;
   private Map<String, OutboundSystemConnector> outboundSystemConnectors;
   private List<KadaiConnector> kadaiConnectors;
-
-  public Map<String, SystemConnector> getSystemConnectors() {
-    return systemConnectors;
-  }
 
   public Map<String, InboundSystemConnector> getInboundSystemConnectors() {
     return inboundSystemConnectors;
@@ -80,23 +73,9 @@ public class AdapterManager {
   }
 
   private void initSystemConnectors() {
-    systemConnectors = new HashMap<>();
     inboundSystemConnectors = new HashMap<>();
     outboundSystemConnectors = new HashMap<>();
     LOGGER.info("initializing system connectors ");
-
-    ServiceLoader<SystemConnectorProvider> loader =
-        ServiceLoader.load(SystemConnectorProvider.class);
-    for (SystemConnectorProvider provider : loader) {
-      List<SystemConnector> connectors = provider.create();
-      for (SystemConnector conn : connectors) {
-        systemConnectors.put(conn.getSystemUrl(), conn);
-        if (LOGGER.isInfoEnabled()) {
-          LOGGER.info(
-              "initialized system connector {} for system_url {}", conn, conn.getSystemUrl());
-        }
-      }
-    }
 
     ServiceLoader<InboundSystemConnectorProvider> inboundLoader =
         ServiceLoader.load(InboundSystemConnectorProvider.class);
