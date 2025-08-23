@@ -19,9 +19,9 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.configuration.AdapterSpringContextProvider;
-import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
+import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import java.time.Duration;
