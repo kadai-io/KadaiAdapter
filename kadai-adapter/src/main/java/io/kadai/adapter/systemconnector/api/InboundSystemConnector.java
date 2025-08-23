@@ -21,8 +21,8 @@ package io.kadai.adapter.systemconnector.api;
 import java.util.List;
 
 /**
- * Interface for inbound operations - retrieving data from external systems
- * and handling notifications about KADAI task lifecycle events.
+ * Interface for inbound operations - retrieving data from external systems and handling
+ * notifications about KADAI task lifecycle events.
  */
 public interface InboundSystemConnector extends BaseSystemConnector {
 
@@ -73,4 +73,11 @@ public interface InboundSystemConnector extends BaseSystemConnector {
    * @param e exception
    */
   void kadaiTaskFailedToBeCreatedForNewReferencedTask(ReferencedTask referencedTask, Exception e);
+
+  /**
+   * Instruct the external system to unlock the event.
+   *
+   * @param eventId the id of the event that needs to be unlocked
+   */
+  void unlockEvent(String eventId);
 }

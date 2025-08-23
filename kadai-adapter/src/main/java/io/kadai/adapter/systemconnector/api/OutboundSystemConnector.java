@@ -46,11 +46,4 @@ public interface OutboundSystemConnector extends BaseSystemConnector {
    * @return the response from the external system.
    */
   SystemResponse cancelClaimReferencedTask(ReferencedTask task);
-
-  /**
-   * Instruct the external system to unlock the event.
-   *
-   * @param eventId the id of the event that needs to be unlocked
-   */
-  void unlockEvent(String eventId);
 }

@@ -21,8 +21,8 @@ package io.kadai.adapter.impl;
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.util.LowerMedian;
 import java.time.Duration;
 import java.time.Instant;
@@ -81,7 +81,8 @@ public class KadaiTaskTerminator implements ScheduledComponent {
 
       try {
 
-        for (SystemConnector systemConnector : (adapterManager.getSystemConnectors().values())) {
+        for (InboundSystemConnector systemConnector :
+            (adapterManager.getInboundSystemConnectors().values())) {
           UserContext.runAsUser(
               runAsUser,
               () -> {
@@ -103,7 +104,7 @@ public class KadaiTaskTerminator implements ScheduledComponent {
   }
 
   public void retrieveFinishededReferencedTasksAndTerminateCorrespondingKadaiTasks(
-      SystemConnector systemConnector) {
+      InboundSystemConnector systemConnector) {
     LOGGER.trace(
         "KadaiTaskTerminator."
             + "retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks ENTRY ");
