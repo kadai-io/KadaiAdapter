@@ -1,73 +1,102 @@
 package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.models.CamundaEngineInfoRepresentationModel;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mockito;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
+@ExtendWith(MockitoExtension.class)
 class CamundaHealthIndicatorTest {
 
-  private CamundaHealthIndicator camundaHealthIndicatorSpy;
-  private RestTemplate restTemplate;
+  private static final String BASE_URL = "http://localhost:8080/engine-rest";
+  private static final URI EXPECTED_URI =
+      UriComponentsBuilder.fromUriString(BASE_URL).pathSegment("engine").build().toUri();
 
-  @BeforeEach
-  void setUp() {
-    this.restTemplate = Mockito.mock(RestTemplate.class);
-    this.camundaHealthIndicatorSpy =
-        Mockito.spy(
-            new CamundaHealthIndicator(
-                restTemplate, "http://localhost:10020/engine-rest"));
-  }
+  @Mock RestClient restClient;
 
   @Test
   void should_ReturnUp_When_CamundaRespondsSuccessfully() {
-    when(restTemplate.<CamundaEngineInfoRepresentationModel[]>getForEntity(any(), any()))
-        .thenReturn(
-            ResponseEntity.ok()
-                .body(
-                    new CamundaEngineInfoRepresentationModel[] {
-                      new CamundaEngineInfoRepresentationModel()
-                    }));
+    CamundaHealthIndicator camundaHealthIndicator =
+        new CamundaHealthIndicator(restClient, BASE_URL);
+    CamundaEngineInfoRepresentationModel engine = new CamundaEngineInfoRepresentationModel();
+    CamundaEngineInfoRepresentationModel[] engines = {engine};
 
-    assertThat(camundaHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.UP);
+    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
+    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+
+    when(restClient.get()).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
+    when(mockResponseSpec.toEntity(CamundaEngineInfoRepresentationModel[].class))
+        .thenReturn(ResponseEntity.ok(engines));
+
+    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
   }
 
   @Test
   void should_ReturnDown_When_CamundaRespondsSuccessfullyButListsNoEngines() {
-    when(restTemplate.<CamundaEngineInfoRepresentationModel[]>getForEntity(any(), any()))
-        .thenReturn(ResponseEntity.ok().body(new CamundaEngineInfoRepresentationModel[] {}));
+    CamundaHealthIndicator camundaHealthIndicator =
+        new CamundaHealthIndicator(restClient, BASE_URL);
 
-    assertThat(camundaHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
+    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+
+    when(restClient.get()).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
+    when(mockResponseSpec.toEntity(CamundaEngineInfoRepresentationModel[].class))
+        .thenReturn(ResponseEntity.ok(new CamundaEngineInfoRepresentationModel[0]));
+
+    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @ParameterizedTest
   @MethodSource("errorResponseProvider")
   void should_ReturnDown_When_CamundaRespondsWithError(HttpStatus httpStatus) {
-    when(restTemplate.<CamundaEngineInfoRepresentationModel[]>getForEntity(any(), any()))
-        .thenReturn(ResponseEntity.status(httpStatus).build());
+    CamundaHealthIndicator camundaHealthIndicator =
+        new CamundaHealthIndicator(restClient, BASE_URL);
 
-    assertThat(camundaHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
+    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+
+    when(restClient.get()).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
+    when(mockResponseSpec.toEntity(CamundaEngineInfoRepresentationModel[].class))
+        .thenThrow(new RuntimeException("HTTP " + httpStatus.value()));
+
+    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   @Test
   void should_ReturnDown_When_CamundaPingFails() {
-    when(restTemplate.<CamundaEngineInfoRepresentationModel[]>getForEntity(any(), any()))
-        .thenThrow(new RuntimeException("foo"));
+    CamundaHealthIndicator camundaHealthIndicator =
+        new CamundaHealthIndicator(restClient, BASE_URL);
 
-    assertThat(camundaHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
+    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
+
+    when(restClient.get()).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(eq(EXPECTED_URI)))
+        .thenThrow(new RuntimeException("Connection failed"));
+
+    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }
 
   private static Stream<Arguments> errorResponseProvider() {
