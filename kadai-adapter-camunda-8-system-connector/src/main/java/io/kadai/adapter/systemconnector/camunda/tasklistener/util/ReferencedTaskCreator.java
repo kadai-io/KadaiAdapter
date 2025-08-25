@@ -30,14 +30,10 @@ public class ReferencedTaskCreator {
   public ReferencedTask createReferencedTaskFromJob(ActivatedJob job) {
     ReferencedTask referencedTask = new ReferencedTask();
     UserTaskProperties userTaskProperties = job.getUserTask();
-    Map<String, Object> variablesObj = job.getVariablesAsMap();
-    Map<String, String> variables = variablesObj.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> (String) e.getValue()));
-
     referencedTask.setId(String.valueOf(job.getKey()));
     // todo: io.camunda.zeebe:userTaskKey -> 2251799813782683 or
     //  job.getElementInstanceKey: 2251799813782682 ?
-    referencedTask.setManualPriority(variables.get("kadai_manual_priority"));
+    referencedTask.setManualPriority(getVariable(job, "kadai_manual_priority"));
     referencedTask.setAssignee(userTaskProperties.getAssignee());
     referencedTask.setDue(ZonedDateTime.parse(userTaskProperties.getDueDate())
               .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")));
@@ -46,19 +42,19 @@ public class ReferencedTaskCreator {
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
-    referencedTask.setWorkbasketKey(variables.get("kadai_workbasket_key"));
-    referencedTask.setClassificationKey(variables.get("kadai_classification_key"));
-    referencedTask.setDomain(variables.get("kadai_domain"));
-    referencedTask.setName(variables.get("kadai_name")); // todo: use fallback domain here?
+    referencedTask.setWorkbasketKey(getVariable(job, "kadai_workbasket_key"));
+    referencedTask.setClassificationKey(getVariable(job,"kadai_classification_key"));
+    referencedTask.setDomain(getVariable(job,"kadai_domain"));
+    referencedTask.setName(getVariable(job,"kadai_name")); // todo: use fallback domain here?
 
-    referencedTask.setCustomInt1(variables.get("kadai_custom_int_1"));
-    referencedTask.setCustomInt2(variables.get("kadai_custom_int_2"));
-    referencedTask.setCustomInt3(variables.get("kadai_custom_int_3"));
-    referencedTask.setCustomInt4(variables.get("kadai_custom_int_4"));
-    referencedTask.setCustomInt5(variables.get("kadai_custom_int_5"));
-    referencedTask.setCustomInt6(variables.get("kadai_custom_int_6"));
-    referencedTask.setCustomInt7(variables.get("kadai_custom_int_7"));
-    referencedTask.setCustomInt8(variables.get("kadai_custom_int_8"));
+    referencedTask.setCustomInt1(getVariable(job,"kadai_custom_int_1"));
+    referencedTask.setCustomInt2(getVariable(job,"kadai_custom_int_2"));
+    referencedTask.setCustomInt3(getVariable(job,"kadai_custom_int_3"));
+    referencedTask.setCustomInt4(getVariable(job,"kadai_custom_int_4"));
+    referencedTask.setCustomInt5(getVariable(job,"kadai_custom_int_5"));
+    referencedTask.setCustomInt6(getVariable(job,"kadai_custom_int_6"));
+    referencedTask.setCustomInt7(getVariable(job,"kadai_custom_int_7"));
+    referencedTask.setCustomInt8(getVariable(job,"kadai_custom_int_8"));
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
 
