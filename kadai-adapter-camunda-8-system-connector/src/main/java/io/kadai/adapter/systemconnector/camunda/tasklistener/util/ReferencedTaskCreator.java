@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -43,18 +42,18 @@ public class ReferencedTaskCreator {
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
     referencedTask.setWorkbasketKey(getVariable(job, "kadai_workbasket_key"));
-    referencedTask.setClassificationKey(getVariable(job,"kadai_classification_key"));
-    referencedTask.setDomain(getVariable(job,"kadai_domain"));
-    referencedTask.setName(getVariable(job,"kadai_name")); // todo: use fallback domain here?
+    referencedTask.setClassificationKey(getVariable(job, "kadai_classification_key"));
+    referencedTask.setDomain(getVariable(job, "kadai_domain"));
+    referencedTask.setName(getVariable(job, "kadai_name")); // todo: use fallback domain here?
 
-    referencedTask.setCustomInt1(getVariable(job,"kadai_custom_int_1"));
-    referencedTask.setCustomInt2(getVariable(job,"kadai_custom_int_2"));
-    referencedTask.setCustomInt3(getVariable(job,"kadai_custom_int_3"));
-    referencedTask.setCustomInt4(getVariable(job,"kadai_custom_int_4"));
-    referencedTask.setCustomInt5(getVariable(job,"kadai_custom_int_5"));
-    referencedTask.setCustomInt6(getVariable(job,"kadai_custom_int_6"));
-    referencedTask.setCustomInt7(getVariable(job,"kadai_custom_int_7"));
-    referencedTask.setCustomInt8(getVariable(job,"kadai_custom_int_8"));
+    referencedTask.setCustomInt1(getVariable(job, "kadai_custom_int_1"));
+    referencedTask.setCustomInt2(getVariable(job, "kadai_custom_int_2"));
+    referencedTask.setCustomInt3(getVariable(job, "kadai_custom_int_3"));
+    referencedTask.setCustomInt4(getVariable(job, "kadai_custom_int_4"));
+    referencedTask.setCustomInt5(getVariable(job, "kadai_custom_int_5"));
+    referencedTask.setCustomInt6(getVariable(job, "kadai_custom_int_6"));
+    referencedTask.setCustomInt7(getVariable(job, "kadai_custom_int_7"));
+    referencedTask.setCustomInt8(getVariable(job, "kadai_custom_int_8"));
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
 
