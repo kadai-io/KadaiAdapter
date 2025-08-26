@@ -34,6 +34,17 @@ public class OutboundSystemConnectorCamundaProviderImpl implements OutboundSyste
 
   @Override
   public List<OutboundSystemConnector> create() {
+    // note: this class is created by ServiceLoader, not by Spring. Therefore it is no bean and we
+    // must
+    // retrieve the Spring-generated Bean for camundaSystemUrls programatically. Only this bean has
+    // the properties
+    // resolved.
+    // In order for this bean to be retrievable, the SpringContextProvider must already be
+    // initialized.
+    // This is assured via the
+    // @DependsOn(value= {"adapterSpringContextProvider"}) annotation of
+    // CamundaSystemConnectorConfiguration
+
     CamundaSystemUrls camundaSystemUrls =
         AdapterSpringContextProvider.getBean(CamundaSystemUrls.class);
 
