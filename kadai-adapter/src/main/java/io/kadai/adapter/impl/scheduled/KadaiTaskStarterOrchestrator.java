@@ -160,7 +160,7 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
   }
 
   private void handleError(
-      SystemConnector systemConnector,
+      InboundSystemConnector systemConnector,
       ReferencedTask referencedTask,
       Exception exception,
       String message) {
