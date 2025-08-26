@@ -16,7 +16,7 @@
  *
  */
 
-package io.kadai.adapter.impl;
+package io.kadai.adapter.impl.scheduled;
 
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;

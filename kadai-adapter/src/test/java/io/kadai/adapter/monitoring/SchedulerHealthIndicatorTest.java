@@ -3,8 +3,8 @@ package io.kadai.adapter.monitoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.kadai.adapter.impl.ScheduledComponent;
-import io.kadai.adapter.impl.SchedulerRun;
+import io.kadai.adapter.impl.scheduled.ScheduledComponent;
+import io.kadai.adapter.impl.scheduled.SchedulerRun;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
