@@ -62,10 +62,6 @@ public class ReferencedTaskCreator {
     return referencedTask;
   }
 
-  private String getVariableWithKadaiPrefix(ActivatedJob job, String variableName) {
-    return getVariable(job, "kadai_" + variableName);
-  }
-
   /**
    * Retrieves a variable from the ActivatedJob by its name. If the variable is not found or is
    * empty, it returns null.
@@ -109,7 +105,7 @@ public class ReferencedTaskCreator {
       List<String> variableNames;
 
       // Get Task Variables
-      String taskVariablesConcatenated = getVariableWithKadaiPrefix(job, "attributes");
+      String taskVariablesConcatenated = getVariable(job, "kadai_attributes");
 
       if (taskVariablesConcatenated != null) {
         variableNames = splitVariableNamesString(taskVariablesConcatenated);
