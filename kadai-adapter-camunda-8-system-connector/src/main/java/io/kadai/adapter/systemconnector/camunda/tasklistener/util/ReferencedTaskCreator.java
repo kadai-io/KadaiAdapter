@@ -29,7 +29,7 @@ public class ReferencedTaskCreator {
   public ReferencedTask createReferencedTaskFromJob(ActivatedJob job) {
     ReferencedTask referencedTask = new ReferencedTask();
     UserTaskProperties userTaskProperties = job.getUserTask();
-    referencedTask.setId(String.valueOf(job.getKey()));
+    referencedTask.setId(String.valueOf(userTaskProperties.getUserTaskKey()));
     // todo: io.camunda.zeebe:userTaskKey -> 2251799813782683 or
     //  job.getElementInstanceKey: 2251799813782682 ?
     referencedTask.setManualPriority(getVariable(job, "kadai_manual_priority"));
