@@ -1,14 +1,14 @@
 package io.kadai.adapter.systemconnector.camunda.spi.impl;
 
-import io.kadai.adapter.systemconnector.api.SystemConnector;
+import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8SystemConnectorImpl;
-import io.kadai.adapter.systemconnector.spi.SystemConnectorProvider;
+import io.kadai.adapter.systemconnector.spi.OutboundSystemConnectorProvider;
 import java.util.List;
 
-public class SystemConnectorCamunda8ProviderImpl implements SystemConnectorProvider {
+public class SystemConnectorCamunda8ProviderImpl implements OutboundSystemConnectorProvider {
 
   @Override
-  public List<SystemConnector> create() {
+  public List<OutboundSystemConnector> create() {
     // note: this class is created by ServiceLoader, not by Spring. Therefore it is no bean and we
     // must
     // retrieve the Spring-generated Bean for camundaSystemUrls programatically. Only this bean has

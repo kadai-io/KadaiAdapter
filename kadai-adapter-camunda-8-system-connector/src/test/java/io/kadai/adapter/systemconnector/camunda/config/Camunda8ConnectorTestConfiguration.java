@@ -1,6 +1,6 @@
 package io.kadai.adapter.systemconnector.camunda.config;
 
-import io.kadai.adapter.impl.KadaiTaskTerminator;
+import io.kadai.adapter.impl.service.KadaiTaskCompletionServiceImpl;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
@@ -18,6 +18,6 @@ public class Camunda8ConnectorTestConfiguration {
   @Bean
   UserTaskCompletion camundaTaskCompletion(final AdapterManager adapterManager) {
     return new UserTaskCompletion(
-        new KadaiTaskTerminator(adapterManager), new ReferencedTaskCreator());
+        new KadaiTaskCompletionServiceImpl(adapterManager), new ReferencedTaskCreator());
   }
 }
