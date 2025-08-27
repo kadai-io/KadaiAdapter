@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.camunda.outbox.rest.model.CamundaTaskEvent;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
@@ -87,10 +87,10 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
     List<ReferencedTask> referencedTasks =
-        this.adapterManager.getSystemConnectors().entrySet().stream()
+        this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
-                  SystemConnector connector = entry.getValue();
+                  InboundSystemConnector connector = entry.getValue();
                   return connector.retrieveNewStartedReferencedTasks().stream()
                       .peek(
                           task ->
@@ -138,10 +138,10 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
         "simple_user_task_process", "");
 
     List<ReferencedTask> referencedTasks =
-        this.adapterManager.getSystemConnectors().entrySet().stream()
+        this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
-                  SystemConnector connector = entry.getValue();
+                  InboundSystemConnector connector = entry.getValue();
                   return connector.retrieveNewStartedReferencedTasks().stream()
                       .peek(
                           task ->
@@ -189,10 +189,10 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
     List<ReferencedTask> referencedTasks =
-        this.adapterManager.getSystemConnectors().entrySet().stream()
+        this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
-                  SystemConnector connector = entry.getValue();
+                  InboundSystemConnector connector = entry.getValue();
                   return connector.retrieveNewStartedReferencedTasks().stream()
                       .peek(
                           task ->
@@ -221,10 +221,10 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
     List<ReferencedTask> referencedTasks =
-        this.adapterManager.getSystemConnectors().entrySet().stream()
+        this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
-                  SystemConnector connector = entry.getValue();
+                  InboundSystemConnector connector = entry.getValue();
                   return connector.retrieveNewStartedReferencedTasks().stream()
                       .peek(
                           task ->
