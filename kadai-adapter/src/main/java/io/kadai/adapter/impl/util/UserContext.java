@@ -16,7 +16,7 @@
  *
  */
 
-package io.kadai.adapter.impl.scheduled;
+package io.kadai.adapter.impl.util;
 
 import io.kadai.common.api.security.UserPrincipal;
 import java.security.PrivilegedAction;
