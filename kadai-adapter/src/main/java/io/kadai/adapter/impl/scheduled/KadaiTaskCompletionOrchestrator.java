@@ -48,9 +48,6 @@ public class KadaiTaskCompletionOrchestrator implements ScheduledComponent {
   private final SchedulerRun schedulerRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
-  @Value("${kadai.adapter.run-as.user}")
-  protected String runAsUser;
-
   @Value(
       "${kadai.adapter.scheduler.run.interval.for.check.finished.referenced.tasks.in.milliseconds"
           + ":5000}")
@@ -89,12 +86,7 @@ public class KadaiTaskCompletionOrchestrator implements ScheduledComponent {
       try {
         for (InboundSystemConnector systemConnector :
             (adapterManager.getInboundSystemConnectors().values())) {
-          UserContext.runAsUser(
-              runAsUser,
-              () -> {
-                retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(systemConnector);
-                return null;
-              });
+          retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(systemConnector);
         }
         schedulerRun.touch();
       } catch (Exception e) {
