@@ -27,9 +27,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableScheduling
 @EnableTransactionManagement
-public class KadaiAdapterApplication {
+public class KadaiAdapterApplicationC8 {
 
   public static void main(String[] args) {
-    SpringApplication.run(KadaiAdapterApplication.class, args);
+    SpringApplication.run(KadaiAdapterApplicationC8.class, args);
   }
 }

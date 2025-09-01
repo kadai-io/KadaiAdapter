@@ -30,8 +30,6 @@ public class ReferencedTaskCreator {
     ReferencedTask referencedTask = new ReferencedTask();
     UserTaskProperties userTaskProperties = job.getUserTask();
     referencedTask.setId(String.valueOf(userTaskProperties.getUserTaskKey()));
-    // todo: io.camunda.zeebe:userTaskKey -> 2251799813782683 or
-    //  job.getElementInstanceKey: 2251799813782682 ?
     referencedTask.setManualPriority(getVariable(job, "kadai_manual_priority"));
     referencedTask.setAssignee(userTaskProperties.getAssignee());
     referencedTask.setDue(ZonedDateTime.parse(userTaskProperties.getDueDate())
@@ -56,6 +54,8 @@ public class ReferencedTaskCreator {
     referencedTask.setCustomInt8(getVariable(job, "kadai_custom_int_8"));
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
+
+    //todo: add systemURL (https://github.com/kadai-io/KadaiAdapter/issues/149)
 
     LOGGER.debug("Creating ReferencedTask from job: {}", referencedTask);
 

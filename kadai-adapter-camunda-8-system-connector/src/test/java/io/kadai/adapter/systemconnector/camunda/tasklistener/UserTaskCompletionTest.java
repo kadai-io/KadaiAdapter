@@ -48,6 +48,6 @@ class UserTaskCompletionTest {
 
     // Assert that the process instance has completed
 
-    // todo: mock adapter to verify that the task was sent to the system connector
+    // todo (https://github.com/kadai-io/KadaiAdapter/issues/178): mock adapter to verify that the task was sent to the system connector
   }
 }

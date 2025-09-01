@@ -39,7 +39,6 @@ public class UserTaskCompletion {
       }
 
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
-      // todo: system url is missing here
       taskTerminator.terminateKadaiTask(referencedTask);
 
     } catch (Exception e) {

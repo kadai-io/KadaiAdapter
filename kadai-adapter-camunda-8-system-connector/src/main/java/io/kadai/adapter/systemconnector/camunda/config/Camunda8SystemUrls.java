@@ -5,9 +5,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class Camunda8SystemUrls {
 
-  // todo: how to handle multiple camunda systems?
+  // todo (https://github.com/kadai-io/KadaiAdapter/issues/149): handle multiple Camunda 8 instances
 
-  //private final String camundaAuthTokenUrl; // todo: think about authentication
+  //private final String camundaAuthTokenUrl; // todo (https://github.com/kadai-io/KadaiAdapter/issues/182): think about authentication
 
   public Camunda8SystemUrls() {
     // No-arg constructor for Spring
