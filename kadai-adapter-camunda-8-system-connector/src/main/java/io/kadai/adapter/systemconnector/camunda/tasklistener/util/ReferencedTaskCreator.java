@@ -18,6 +18,7 @@ public class ReferencedTaskCreator {
 
   private static final org.slf4j.Logger LOGGER =
       org.slf4j.LoggerFactory.getLogger(ReferencedTaskCreator.class);
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   /**
    * Creates a ReferencedTask from the given ActivatedJob. This method extracts various task-related
@@ -32,17 +33,26 @@ public class ReferencedTaskCreator {
     referencedTask.setId(String.valueOf(userTaskProperties.getUserTaskKey()));
     referencedTask.setManualPriority(getVariable(job, "kadai_manual_priority"));
     referencedTask.setAssignee(userTaskProperties.getAssignee());
-    referencedTask.setDue(ZonedDateTime.parse(userTaskProperties.getDueDate())
-              .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")));
-    referencedTask.setPlanned(ZonedDateTime.parse(userTaskProperties.getFollowUpDate())
-              .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")));
+    referencedTask.setDue(
+        ZonedDateTime.parse(userTaskProperties.getDueDate())
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")));
+    referencedTask.setPlanned(
+        ZonedDateTime.parse(userTaskProperties.getFollowUpDate())
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")));
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
     referencedTask.setWorkbasketKey(getVariable(job, "kadai_workbasket_key"));
     referencedTask.setClassificationKey(getVariable(job, "kadai_classification_key"));
-    referencedTask.setDomain(getVariable(job, "kadai_domain"));
-    referencedTask.setName(getVariable(job, "kadai_name")); // todo: use fallback domain here?
+
+    String domain = getVariable(job, "kadai_domain");
+    referencedTask.setDomain(domain);
+
+    String name = getVariable(job, "kadai_name");
+    if (name == null || name.isBlank()) {
+      name = domain;
+    }
+    referencedTask.setName(name);
 
     referencedTask.setCustomInt1(getVariable(job, "kadai_custom_int_1"));
     referencedTask.setCustomInt2(getVariable(job, "kadai_custom_int_2"));
@@ -55,7 +65,7 @@ public class ReferencedTaskCreator {
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
 
-    //todo: add systemURL (https://github.com/kadai-io/KadaiAdapter/issues/149)
+    // todo: add systemURL (https://github.com/kadai-io/KadaiAdapter/issues/149)
 
     LOGGER.debug("Creating ReferencedTask from job: {}", referencedTask);
 
@@ -81,7 +91,7 @@ public class ReferencedTaskCreator {
       }
     } catch (Exception e) {
       LOGGER.warn(
-          "Caught exception while trying to retrieve {} for task {} in ProcessDefinition {}",
+          "Caught exception while trying to retrieve '{}' for task '{}' in ProcessDefinition '{}'",
           variableName,
           job.getElementId(),
           job.getBpmnProcessId(),
@@ -120,13 +130,11 @@ public class ReferencedTaskCreator {
           nameOfVariableToAdd ->
               variables.put(nameOfVariableToAdd, getVariable(job, nameOfVariableToAdd)));
 
-      ObjectMapper objectMapper = new ObjectMapper();
-
-      return objectMapper.writeValueAsString(variables);
+      return OBJECT_MAPPER.writeValueAsString(variables);
 
     } catch (JsonProcessingException e) {
       LOGGER.error(
-          "Error while trying to retrieve variables for task {} in ProcessDefinition {}",
+          "Error while trying to retrieve variables for task '{}' in ProcessDefinition '{}'",
           job.getElementId(),
           job.getBpmnProcessId(),
           e);

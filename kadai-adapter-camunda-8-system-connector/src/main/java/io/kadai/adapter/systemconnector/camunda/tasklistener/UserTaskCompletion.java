@@ -2,6 +2,7 @@ package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.spring.client.annotation.JobWorker;
+import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.impl.service.KadaiTaskCompletionService;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
@@ -33,7 +34,7 @@ public class UserTaskCompletion {
         if (LOGGER.isInfoEnabled()) {
           LOGGER.info(
               "UserTaskListener kadai-receive-task-completed-event activated successfully, "
-                  + "connected to process instance {}",
+                  + "connected to process instance '{}'",
               job.getProcessInstanceKey());
         }
       }
@@ -41,7 +42,7 @@ public class UserTaskCompletion {
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
       taskTerminator.terminateKadaiTask(referencedTask);
 
-    } catch (Exception e) {
+    } catch (TaskTerminationFailedException e) {
       LOGGER.error(
           "Caught exception while trying to retrieve "
               + "finished referenced tasks and terminate corresponding kadai tasks",
