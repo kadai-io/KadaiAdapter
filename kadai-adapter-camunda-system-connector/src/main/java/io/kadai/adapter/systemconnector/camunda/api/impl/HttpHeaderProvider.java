@@ -21,7 +21,6 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -64,33 +63,13 @@ public class HttpHeaderProvider {
     }
   }
 
-  public HttpEntity<Void> prepareNewEntityForCamundaRestApi() {
-    HttpHeaders headers = getHttpHeadersForCamundaRestApi();
-    return new HttpEntity<>(headers);
-  }
-
-  public HttpEntity<String> prepareNewEntityForCamundaRestApi(String requestBody) {
-    HttpHeaders headers = getHttpHeadersForCamundaRestApi();
-    return new HttpEntity<>(requestBody, headers);
-  }
-
-  public HttpEntity<Void> prepareNewEntityForOutboxRestApi() {
-    HttpHeaders headers = getHttpHeadersForOutboxRestApi();
-    return new HttpEntity<>(headers);
-  }
-
-  public HttpEntity<String> prepareNewEntityForOutboxRestApi(String requestBody) {
-    HttpHeaders headers = getHttpHeadersForOutboxRestApi();
-    return new HttpEntity<>(requestBody, headers);
-  }
-
-  HttpHeaders getHttpHeadersForCamundaRestApi() {
+  public HttpHeaders getHttpHeadersForCamundaRestApi() {
     HttpHeaders headers = camundaRestApiHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     return headers;
   }
 
-  HttpHeaders getHttpHeadersForOutboxRestApi() {
+  public HttpHeaders getHttpHeadersForOutboxRestApi() {
     HttpHeaders headers = outboxRestApiHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     return headers;
