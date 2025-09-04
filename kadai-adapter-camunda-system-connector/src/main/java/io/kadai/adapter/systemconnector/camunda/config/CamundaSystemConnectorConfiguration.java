@@ -25,6 +25,7 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskCompleter;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskEventCleaner;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
+import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;

@@ -71,6 +71,8 @@
         <version.camunda.template-engines-freemarker>7.23.0</version.camunda.template-engines-freemarker>
         <version.camunda.template-engines-velocity>2.1.0</version.camunda.template-engines-velocity>
 
+        <version.camunda8>8.8.0-alpha7</version.camunda8>
+
         <version.jakarta.annotation>3.0.0</version.jakarta.annotation>
         <version.jakarta-ws-rs-api>3.0.0</version.jakarta-ws-rs-api>
 
@@ -109,6 +111,8 @@
         <module>kadai-adapter-camunda-spring-boot-test</module>
         <module>camunda-outbox-example-boot</module>
         <module>ci/kadai-adapter-sonar-test-coverage</module>
+        <module>kadai-adapter-camunda-8-system-connector</module>
+        <module>kadai-adapter-camunda-8-spring-boot-example</module>
     </modules>
 
     <dependencyManagement>
