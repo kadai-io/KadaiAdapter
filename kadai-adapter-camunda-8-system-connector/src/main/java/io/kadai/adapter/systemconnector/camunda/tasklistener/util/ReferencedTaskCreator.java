@@ -89,7 +89,7 @@ public class ReferencedTaskCreator {
       if (variableObj instanceof Integer variableAsInt) {
         return String.valueOf(variableAsInt);
       }
-    } catch (Exception e) {
+    } catch (NullPointerException e) {
       LOGGER.warn(
           "Caught exception while trying to retrieve '{}' for task '{}' in ProcessDefinition '{}'",
           variableName,
