@@ -16,22 +16,22 @@
  *
  */
 
-package io.kadai.adapter.impl.scheduled;
+package io.kadai.taskrouting;
 
-import io.kadai.common.api.security.UserPrincipal;
-import java.security.PrivilegedAction;
-import java.util.function.Supplier;
-import javax.security.auth.Subject;
+import io.kadai.common.api.KadaiEngine;
+import io.kadai.spi.routing.api.TaskRoutingProvider;
+import io.kadai.task.api.models.Task;
 
-public class UserContext {
+/** This is a sample implementation of TaskRouter. */
+public class ExampleTaskRouter implements TaskRoutingProvider {
 
-  private UserContext() {
-    throw new IllegalStateException("Utility class");
+  @Override
+  public void initialize(KadaiEngine kadaiEngine) {
+    // no-op
   }
 
-  static <T> T runAsUser(String runAsUserId, Supplier<T> supplier) {
-    Subject subject = new Subject();
-    subject.getPrincipals().add(new UserPrincipal(runAsUserId));
-    return Subject.doAs(subject, (PrivilegedAction<T>) supplier::get);
+  @Override
+  public String determineWorkbasketId(Task task) {
+    return "WBI:100000000000000000000000000000000001";
   }
 }

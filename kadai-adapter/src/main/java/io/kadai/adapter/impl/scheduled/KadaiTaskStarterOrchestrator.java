@@ -46,9 +46,6 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
   private final SchedulerRun schedulerRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
-  @Value("${kadai.adapter.run-as.user}")
-  protected String runAsUser;
-
   @Value("${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
   private int runIntervalMillis;
 
@@ -76,12 +73,7 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
       LOGGER.debug(
           "-retrieveNewReferencedTasksAndCreateCorrespondingKadaiTasks started---------------");
       try {
-        UserContext.runAsUser(
-            runAsUser,
-            () -> {
-              retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
-              return null;
-            });
+        retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
         schedulerRun.touch();
       } catch (Exception ex) {
         LOGGER.error(
