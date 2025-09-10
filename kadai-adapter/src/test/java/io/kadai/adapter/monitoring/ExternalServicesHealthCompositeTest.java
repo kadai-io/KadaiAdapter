@@ -5,15 +5,15 @@ import static org.mockito.Mockito.mock;
 
 import io.kadai.adapter.configuration.health.CompositeHealthContributorConfigurationProperties;
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties.CamundaSystemHealthConfigurationProperties;
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
-import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+// TODO: Temporarily removed C7-Checks from composite for KadaiAdapter#149
+//       Fix this with KadaiAdapter#192
 class ExternalServicesHealthCompositeTest {
 
   @ParameterizedTest
@@ -22,16 +22,7 @@ class ExternalServicesHealthCompositeTest {
       ExternalServicesHealthConfigurationProperties properties, long expectedEnabledCount) {
     final ExternalServicesHealthComposite externalServicesHealthComposite =
         new ExternalServicesHealthComposite(
-            properties,
-            mock(),
-            mock(),
-            mock(),
-            mock(),
-            mock(),
-            mock(),
-            List.of(
-                "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest",
-                "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest"));
+            properties, mock(), mock(), mock(), mock(), mock(), mock());
 
     final long actual = externalServicesHealthComposite.stream().count();
 
@@ -39,7 +30,7 @@ class ExternalServicesHealthCompositeTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"camundaSystems", "kadai", "scheduler"})
+  @ValueSource(strings = {"kadai", "scheduler"})
   void should_CreateAllContributingHealthIndicatorsByDefaultAndNameThemAccordingToJson(
       String contributorName) {
     final ExternalServicesHealthComposite externalServicesHealthComposite =
@@ -50,47 +41,32 @@ class ExternalServicesHealthCompositeTest {
             mock(),
             mock(),
             mock(),
-            mock(),
-            List.of(
-                "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest",
-                "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest"));
+            mock());
 
     assertThat(externalServicesHealthComposite.getContributor(contributorName)).isNotNull();
   }
 
   private static Stream<Arguments> externalServicesHealthConfigurationPropertiesProvider() {
     return Stream.of(
-        Arguments.of(new ExternalServicesHealthConfigurationProperties(), 3),
+        Arguments.of(new ExternalServicesHealthConfigurationProperties(), 2),
         Arguments.of(
             new ExternalServicesHealthConfigurationProperties()
-                .withCamundaSystem(
-                    (CamundaSystemHealthConfigurationProperties)
-                        new CamundaSystemHealthConfigurationProperties().withEnabled(false)),
-            2),
-        Arguments.of(
-            new ExternalServicesHealthConfigurationProperties()
-                .withKadai(
-                    new CompositeHealthContributorConfigurationProperties().withEnabled(false)),
-            2),
-        Arguments.of(
-            new ExternalServicesHealthConfigurationProperties()
-                .withScheduler(
-                    (SchedulerHealthConfigurationProperties)
-                        new SchedulerHealthConfigurationProperties().withEnabled(false)),
-            2),
-        Arguments.of(
-            new ExternalServicesHealthConfigurationProperties()
-                .withCamundaSystem(
-                    (CamundaSystemHealthConfigurationProperties)
-                        new CamundaSystemHealthConfigurationProperties().withEnabled(false))
                 .withKadai(
                     new CompositeHealthContributorConfigurationProperties().withEnabled(false)),
             1),
         Arguments.of(
             new ExternalServicesHealthConfigurationProperties()
-                .withCamundaSystem(
-                    (CamundaSystemHealthConfigurationProperties)
-                        new CamundaSystemHealthConfigurationProperties().withEnabled(false))
+                .withScheduler(
+                    (SchedulerHealthConfigurationProperties)
+                        new SchedulerHealthConfigurationProperties().withEnabled(false)),
+            1),
+        Arguments.of(
+            new ExternalServicesHealthConfigurationProperties()
+                .withKadai(
+                    new CompositeHealthContributorConfigurationProperties().withEnabled(false)),
+            1),
+        Arguments.of(
+            new ExternalServicesHealthConfigurationProperties()
                 .withKadai(
                     new CompositeHealthContributorConfigurationProperties().withEnabled(false))
                 .withScheduler(
