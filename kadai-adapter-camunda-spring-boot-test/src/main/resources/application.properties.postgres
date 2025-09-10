@@ -34,7 +34,7 @@ kadai.adapter.scheduler.run.interval.for.check.finished.referenced.tasks.in.mill
 ####################################################################################
 #
 kadai.adapter.camunda7.systems[0].id=default
-kadai.adapter.camunda7.systems[0].systemUrl=http://localhost:${server.port}/engine-rest/default
+kadai.adapter.camunda7.systems[0].systemUrl=http://localhost:${server.port}/engine-rest/engine/default
 kadai.adapter.camunda7.systems[0].outboxUrl=http://localhost:${server.port}/
 
 ####################################################################################
