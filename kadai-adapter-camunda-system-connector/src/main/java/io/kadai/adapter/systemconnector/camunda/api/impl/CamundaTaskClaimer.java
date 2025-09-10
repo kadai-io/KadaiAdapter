@@ -20,7 +20,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
-import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7Systems.Camunda7System;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,18 +40,18 @@ public class CamundaTaskClaimer {
   private final HttpHeaderProvider httpHeaderProvider;
   private final RestTemplate restTemplate;
 
-  public CamundaTaskClaimer(HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
-    this.httpHeaderProvider = httpHeaderProvider;
-    this.restTemplate = restTemplate;
-  }
-
   @Value("${kadai.adapter.camunda.claiming.enabled:false}")
   private boolean claimingEnabled;
 
   private boolean claimConfigLogged = false;
 
+  public CamundaTaskClaimer(HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.restTemplate = restTemplate;
+  }
+
   public SystemResponse claimCamundaTask(
-      CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {
+      Camunda7System camunda7System, ReferencedTask referencedTask) {
 
     if (!claimConfigLogged) {
       LOGGER.info("Synchronizing claim of tasks in KADAI to Camunda is set to {}", claimingEnabled);
@@ -63,7 +63,7 @@ public class CamundaTaskClaimer {
       StringBuilder requestUrlBuilder = new StringBuilder();
 
       requestUrlBuilder
-          .append(camundaSystemUrlInfo.getSystemRestUrl())
+          .append(camunda7System.getSystemUrl())
           .append(CamundaSystemConnectorImpl.URL_GET_CAMUNDA_TASKS)
           .append(referencedTask.getId())
           .append(CamundaSystemConnectorImpl.SET_ASSIGNEE);
@@ -90,7 +90,7 @@ public class CamundaTaskClaimer {
 
       } catch (HttpStatusCodeException e) {
         if (CamundaUtilRequester.isTaskNotExisting(
-            httpHeaderProvider, restTemplate, camundaSystemUrlInfo, referencedTask.getId())) {
+            httpHeaderProvider, restTemplate, camunda7System, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
         } else {
           LOGGER.warn("Caught Exception when trying to claim camunda task", e);

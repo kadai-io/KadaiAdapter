@@ -21,14 +21,15 @@ package io.kadai.adapter.systemconnector.camunda.spi.impl;
 import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaSystemConnectorImpl;
-import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7Systems;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7Systems.Camunda7System;
 import io.kadai.adapter.systemconnector.spi.InboundSystemConnectorProvider;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implements InboundSystemConnectorProvider for Camunda.
- * Creates CamundaSystemConnectorImpl instances for inbound operations.
+ * Implements InboundSystemConnectorProvider for Camunda. Creates CamundaSystemConnectorImpl
+ * instances for inbound operations.
  */
 public class InboundSystemConnectorCamundaProviderImpl implements InboundSystemConnectorProvider {
 
@@ -36,7 +37,7 @@ public class InboundSystemConnectorCamundaProviderImpl implements InboundSystemC
   public List<InboundSystemConnector> create() {
     // note: this class is created by ServiceLoader, not by Spring. Therefore it is no bean and we
     // must
-    // retrieve the Spring-generated Bean for camundaSystemUrls programatically. Only this bean has
+    // retrieve the Spring-generated Bean for camundaSystems programatically. Only this bean has
     // the properties
     // resolved.
     // In order for this bean to be retrievable, the SpringContextProvider must already be
@@ -45,13 +46,12 @@ public class InboundSystemConnectorCamundaProviderImpl implements InboundSystemC
     // @DependsOn(value= {"adapterSpringContextProvider"}) annotation of
     // CamundaSystemConnectorConfiguration
 
-    CamundaSystemUrls camundaSystemUrls =
-        AdapterSpringContextProvider.getBean(CamundaSystemUrls.class);
+    Camunda7Systems camundaSystems = AdapterSpringContextProvider.getBean(Camunda7Systems.class);
 
     List<InboundSystemConnector> result = new ArrayList<>();
-    for (CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo : camundaSystemUrls.getUrls()) {
+    for (Camunda7System camunda7System : camundaSystems) {
       CamundaSystemConnectorImpl camundaSystemConnector =
-          new CamundaSystemConnectorImpl(camundaSystemUrlInfo);
+          new CamundaSystemConnectorImpl(camunda7System);
       result.add(camundaSystemConnector);
     }
     return result;

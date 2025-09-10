@@ -23,7 +23,7 @@ import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
-import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7Systems.Camunda7System;
 import java.time.Duration;
 import java.util.List;
 
@@ -47,7 +47,7 @@ public class CamundaSystemConnectorImpl implements InboundSystemConnector, Outbo
   static final String BODY_SET_ASSIGNEE = "{\"userId\":";
   static final String UNCLAIM_TASK = "/unclaim";
 
-  private final CamundaSystemUrls.SystemUrlInfo camundaSystemUrl;
+  private final Camunda7System camundaSystem;
 
   private final CamundaTaskRetriever taskRetriever;
 
@@ -63,8 +63,8 @@ public class CamundaSystemConnectorImpl implements InboundSystemConnector, Outbo
 
   private final Duration lockDuration;
 
-  public CamundaSystemConnectorImpl(CamundaSystemUrls.SystemUrlInfo camundaSystemUrl) {
-    this.camundaSystemUrl = camundaSystemUrl;
+  public CamundaSystemConnectorImpl(Camunda7System camunda7System) {
+    this.camundaSystem = camunda7System;
     taskRetriever = AdapterSpringContextProvider.getBean(CamundaTaskRetriever.class);
     taskCompleter = AdapterSpringContextProvider.getBean(CamundaTaskCompleter.class);
     taskClaimer = AdapterSpringContextProvider.getBean(CamundaTaskClaimer.class);
@@ -78,30 +78,26 @@ public class CamundaSystemConnectorImpl implements InboundSystemConnector, Outbo
   @Override
   public List<ReferencedTask> retrieveNewStartedReferencedTasks() {
     return taskRetriever.retrieveNewStartedCamundaTasks(
-        camundaSystemUrl.getSystemTaskEventUrl(),
-        camundaSystemUrl.getCamundaEngineIdentifier(),
-        lockDuration);
+        camundaSystem.getOutboxUrl(), camundaSystem.getId(), lockDuration);
   }
 
   @Override
   public void kadaiTasksHaveBeenCreatedForNewReferencedTasks(List<ReferencedTask> referencedTasks) {
     taskEventCleaner.cleanEventsForReferencedTasks(
-        referencedTasks, camundaSystemUrl.getSystemTaskEventUrl());
+        referencedTasks, camundaSystem.getOutboxUrl());
   }
 
   @Override
   public List<ReferencedTask> retrieveFinishedReferencedTasks() {
     return taskRetriever.retrieveFinishedCamundaTasks(
-        camundaSystemUrl.getSystemTaskEventUrl(),
-        camundaSystemUrl.getCamundaEngineIdentifier(),
-        lockDuration);
+        camundaSystem.getOutboxUrl(), camundaSystem.getId(), lockDuration);
   }
 
   @Override
   public void kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(
       List<ReferencedTask> referencedTasks) {
     taskEventCleaner.cleanEventsForReferencedTasks(
-        referencedTasks, camundaSystemUrl.getSystemTaskEventUrl());
+        referencedTasks, camundaSystem.getOutboxUrl());
   }
 
   @Override
@@ -111,43 +107,43 @@ public class CamundaSystemConnectorImpl implements InboundSystemConnector, Outbo
 
   @Override
   public SystemResponse completeReferencedTask(ReferencedTask camundaTask) {
-    return taskCompleter.completeCamundaTask(camundaSystemUrl, camundaTask);
+    return taskCompleter.completeCamundaTask(camundaSystem, camundaTask);
   }
 
   @Override
   public SystemResponse claimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimer.claimCamundaTask(camundaSystemUrl, camundaTask);
+    return taskClaimer.claimCamundaTask(camundaSystem, camundaTask);
   }
 
   @Override
   public SystemResponse cancelClaimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimCanceler.cancelClaimOfCamundaTask(camundaSystemUrl, camundaTask);
+    return taskClaimCanceler.cancelClaimOfCamundaTask(camundaSystem, camundaTask);
   }
 
   @Override
   public String getSystemUrl() {
-    return camundaSystemUrl.getSystemRestUrl();
+    return camundaSystem.getSystemUrl();
   }
 
   @Override
   public String getSystemIdentifier() {
-    return camundaSystemUrl.getCamundaEngineIdentifier();
+    return camundaSystem.getId();
   }
 
   @Override
   public void kadaiTaskFailedToBeCreatedForNewReferencedTask(
       ReferencedTask referencedTask, Exception e) {
     taskEventErrorHandler.decreaseRemainingRetriesAndLogErrorForReferencedTask(
-        referencedTask, e, camundaSystemUrl.getSystemTaskEventUrl());
+        referencedTask, e, camundaSystem.getOutboxUrl());
   }
 
   @Override
   public void unlockEvent(String eventId) {
-    taskEventErrorHandler.unlockEvent(eventId, camundaSystemUrl.getSystemTaskEventUrl());
+    taskEventErrorHandler.unlockEvent(eventId, camundaSystem.getOutboxUrl());
   }
 
   @Override
   public String toString() {
-    return "CamundaSystemConnectorImpl [camundaSystemUrl=" + camundaSystemUrl + "]";
+    return "CamundaSystemConnectorImpl [camundaSystemUrl=" + camundaSystem + "]";
   }
 }

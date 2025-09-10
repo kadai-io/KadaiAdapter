@@ -56,12 +56,6 @@ public class CamundaSystemConnectorConfiguration {
   }
 
   @Bean
-  CamundaSystemUrls camundaSystemUrls(
-      @Value("${kadai-system-connector-camundaSystemURLs}") final String strUrls) {
-    return new CamundaSystemUrls(strUrls);
-  }
-
-  @Bean
   Duration getLockDuration(
       @Value("${kadai.adapter.events.lockDuration:#{0}}") final Long lockDuration) {
     return Duration.ofSeconds(lockDuration);

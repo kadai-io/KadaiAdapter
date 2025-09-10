@@ -25,7 +25,7 @@ import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaSystemConnectorImpl;
-import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7Systems;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.internal.util.Pair;
 import io.kadai.common.test.security.JaasExtension;
@@ -42,7 +42,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.camunda.bpm.engine.impl.calendar.DateTimeUtil;
@@ -56,7 +55,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -76,9 +74,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(TestTaskAcquisition.class);
   @Autowired AdapterManager adapterManager;
   @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
-
-  @Value("${kadai-system-connector-camundaSystemURLs}")
-  private String configuredSystemConnectorUrls;
+  @Autowired Camunda7Systems camunda7Systems;
 
   @WithAccessId(
       user = "teamlead_1",
@@ -877,19 +873,13 @@ class TestTaskAcquisition extends AbsIntegrationTest {
   }
 
   private void setSystemConnector(String systemEngineIdentifier) {
-
-    StringTokenizer systemConfigParts = new StringTokenizer(configuredSystemConnectorUrls, "|");
-    CamundaSystemUrls.SystemUrlInfo systemUrlInfo = new CamundaSystemUrls.SystemUrlInfo();
-    systemUrlInfo.setCamundaEngineIdentifier(systemEngineIdentifier);
-    systemUrlInfo.setSystemRestUrl(systemConfigParts.nextToken().trim());
-    systemUrlInfo.setSystemTaskEventUrl(systemConfigParts.nextToken().trim());
-
-    InboundSystemConnector systemConnector = new CamundaSystemConnectorImpl(systemUrlInfo);
-
-    Map<String, InboundSystemConnector> systemConnectors = adapterManager.getInboundSystemConnectors();
+    camunda7Systems.getSystems().get(0).setId(systemEngineIdentifier);
+    InboundSystemConnector systemConnector =
+        new CamundaSystemConnectorImpl(camunda7Systems.getSystems().get(0));
+    Map<String, InboundSystemConnector> systemConnectors =
+        adapterManager.getInboundSystemConnectors();
     systemConnectors.clear();
-
-    systemConnectors.put(systemUrlInfo.getSystemRestUrl(), systemConnector);
+    systemConnectors.put(camunda7Systems.getSystems().get(0).getSystemUrl(), systemConnector);
   }
 
   private Map<String, String> retrieveCustomAttributesFromNewKadaiTask(String camundaTaskId) {
