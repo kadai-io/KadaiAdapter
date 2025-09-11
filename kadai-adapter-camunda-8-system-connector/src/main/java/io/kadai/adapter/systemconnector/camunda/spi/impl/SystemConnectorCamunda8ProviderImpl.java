@@ -1,7 +1,9 @@
 package io.kadai.adapter.systemconnector.camunda.spi.impl;
 
+import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8SystemConnectorImpl;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 import io.kadai.adapter.systemconnector.spi.OutboundSystemConnectorProvider;
 import java.util.List;
 
@@ -18,9 +20,12 @@ public class SystemConnectorCamunda8ProviderImpl implements OutboundSystemConnec
     // initialized.
     // This is assured via the
     // @DependsOn(value= {"adapterSpringContextProvider"}) annotation of
-    // CamundaSystemConnectorConfiguration
+    // Camunda8SystemConnectorConfiguration
+
+    final Camunda8System camunda8System =
+        AdapterSpringContextProvider.getBean(Camunda8System.class);
 
     // System Urls duplication?
-    return List.of(new Camunda8SystemConnectorImpl());
+    return List.of(new Camunda8SystemConnectorImpl(camunda8System));
   }
 }

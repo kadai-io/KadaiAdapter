@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,6 +21,13 @@ public class ReferencedTaskCreator {
   private static final org.slf4j.Logger LOGGER =
       org.slf4j.LoggerFactory.getLogger(ReferencedTaskCreator.class);
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+  private final Camunda8System camunda8System;
+
+  @Autowired
+  public ReferencedTaskCreator(Camunda8System camunda8System) {
+    this.camunda8System = camunda8System;
+  }
 
   /**
    * Creates a ReferencedTask from the given ActivatedJob. This method extracts various task-related
@@ -64,8 +73,7 @@ public class ReferencedTaskCreator {
     referencedTask.setCustomInt8(getVariable(job, "kadai_custom_int_8"));
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
-
-    // todo: add systemURL (https://github.com/kadai-io/KadaiAdapter/issues/149)
+    referencedTask.setSystemUrl(camunda8System.getSystemUrl());
 
     LOGGER.debug("Creating ReferencedTask from job: {}", referencedTask);
 
