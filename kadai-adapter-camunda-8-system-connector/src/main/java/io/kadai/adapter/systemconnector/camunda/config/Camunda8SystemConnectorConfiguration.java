@@ -6,6 +6,7 @@ import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
+import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;

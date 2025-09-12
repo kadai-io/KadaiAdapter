@@ -17,11 +17,9 @@ public class UserTaskCreation {
   private final ReferencedTaskCreator referencedTaskCreator;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCreation.class);
-  private boolean gotActivated = false;
 
   public UserTaskCreation(
-      KadaiTaskStarterService taskStarter,
-      ReferencedTaskCreator referencedTaskCreator) {
+      KadaiTaskStarterService taskStarter, ReferencedTaskCreator referencedTaskCreator) {
     this.taskStarter = taskStarter;
     this.referencedTaskCreator = referencedTaskCreator;
   }
@@ -30,15 +28,10 @@ public class UserTaskCreation {
   public void receiveTaskCreatedEvent(final ActivatedJob job) {
 
     try {
-      if (!gotActivated) {
-        gotActivated = true;
-        if (LOGGER.isInfoEnabled()) {
-          LOGGER.info(
-              "UserTaskListener kadai-receive-task-created-event activated successfully, "
-                  + "connected to process instance '{}'",
-              job.getProcessInstanceKey());
-        }
-      }
+      LOGGER.info(
+          "UserTaskListener kadai-receive-task-created-event has been called, "
+              + "connected to process instance '{}'",
+          job.getProcessInstanceKey());
 
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
 

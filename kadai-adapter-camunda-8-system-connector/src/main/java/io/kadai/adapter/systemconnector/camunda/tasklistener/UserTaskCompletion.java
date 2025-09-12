@@ -17,7 +17,6 @@ public class UserTaskCompletion {
   private final ReferencedTaskCreator referencedTaskCreator;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCompletion.class);
-  private boolean gotActivated = false;
 
   public UserTaskCompletion(
       KadaiTaskCompletionService taskTerminator, ReferencedTaskCreator referencedTaskCreator) {
@@ -29,15 +28,10 @@ public class UserTaskCompletion {
   public void receiveTaskCompletedEvent(final ActivatedJob job) {
 
     try {
-      if (!gotActivated) {
-        gotActivated = true;
-        if (LOGGER.isInfoEnabled()) {
-          LOGGER.info(
-              "UserTaskListener kadai-receive-task-completed-event activated successfully, "
-                  + "connected to process instance '{}'",
-              job.getProcessInstanceKey());
-        }
-      }
+      LOGGER.info(
+          "UserTaskListener kadai-receive-task-completed-event has been called, "
+              + "connected to process instance '{}'",
+          job.getProcessInstanceKey());
 
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
       taskTerminator.terminateKadaiTask(referencedTask);
