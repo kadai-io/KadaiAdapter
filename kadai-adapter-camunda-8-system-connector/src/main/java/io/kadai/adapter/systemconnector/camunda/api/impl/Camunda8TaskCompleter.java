@@ -39,7 +39,9 @@ public class Camunda8TaskCompleter {
   private boolean completeConfigLogged = false;
 
   public SystemResponse completeCamunda8Task(
-      CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {
+      //TODO: SystemURL
+      @SuppressWarnings("unused") CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo,
+      ReferencedTask referencedTask) {
 
     if (!completeConfigLogged) {
       LOGGER.info("Synchronizing completion of tasks in KADAI to Camunda 8 is set to {}",

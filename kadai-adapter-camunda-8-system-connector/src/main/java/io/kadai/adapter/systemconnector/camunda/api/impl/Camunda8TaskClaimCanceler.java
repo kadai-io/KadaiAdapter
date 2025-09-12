@@ -37,7 +37,9 @@ public class Camunda8TaskClaimCanceler {
   private boolean cancelClaimConfigLogged = false;
 
   public SystemResponse cancelClaimOfCamunda8Task(
-        CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {
+          //TODO: SystemURL
+          @SuppressWarnings("unused") CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo,
+          ReferencedTask referencedTask) {
 
     if (!cancelClaimConfigLogged) {
       LOGGER.info("Synchronizing CancelClaim of Tasks in KADAI to Camunda 8 is set to {}",
