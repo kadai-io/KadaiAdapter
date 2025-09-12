@@ -38,7 +38,9 @@ public class Camunda8TaskClaimer {
   private boolean claimConfigLogged = false;
 
   public SystemResponse claimCamunda8Task(
-        CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {
+          //TODO: SystemURL
+          @SuppressWarnings("unused") CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo,
+          ReferencedTask referencedTask) {
 
     if (!claimConfigLogged) {
       LOGGER.info("Synchronizing claim of tasks in KADAI to Camunda 8 is set to {}",
