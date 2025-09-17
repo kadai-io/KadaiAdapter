@@ -4,7 +4,6 @@ import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
-import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 
 /** Sample Implementation of Camunda8SystemConnector. */
 public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
@@ -20,8 +19,6 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
   static final String BODY_CAMUNDA8_COMPLETE = "{\"variables\": {}, \"action\": \"complete\"}";
   static final String BODY_EMPTY_REQUEST = "{}";
 
-  private final CamundaSystemUrls.SystemUrlInfo camundaSystemUrl;
-
   private final Camunda8TaskClaimer taskClaimer;
 
   private final Camunda8TaskCompleter taskCompleter;
@@ -29,7 +26,7 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
   private final Camunda8TaskClaimCanceler  taskClaimCanceler;
 
   public Camunda8SystemConnectorImpl() {
-    this.camundaSystemUrl = null; //ToDo
+    //ToDo: SystemURL
     taskClaimer = AdapterSpringContextProvider.getBean(Camunda8TaskClaimer.class);
     taskCompleter = AdapterSpringContextProvider.getBean(Camunda8TaskCompleter.class);
     taskClaimCanceler = AdapterSpringContextProvider.getBean(Camunda8TaskClaimCanceler.class);
@@ -37,17 +34,17 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   @Override
   public SystemResponse completeReferencedTask(ReferencedTask camundaTask) {
-    return taskCompleter.completeCamunda8Task(camundaSystemUrl, camundaTask);
+    return taskCompleter.completeCamunda8Task(camundaTask);
   }
 
   @Override
   public SystemResponse claimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimer.claimCamunda8Task(camundaSystemUrl, camundaTask);
+    return taskClaimer.claimCamunda8Task(camundaTask);
   }
 
   @Override
-  public SystemResponse cancelClaimReferencedTask(ReferencedTask task) {
-    return taskClaimCanceler.cancelClaimOfCamunda8Task(camundaSystemUrl, task);
+  public SystemResponse cancelClaimReferencedTask(ReferencedTask camundaTask) {
+    return taskClaimCanceler.cancelClaimOfCamunda8Task(camundaTask); //TODO: SystemURL
   }
 
   @Override
