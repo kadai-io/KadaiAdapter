@@ -2,7 +2,6 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
-import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +37,6 @@ public class Camunda8TaskClaimCanceler {
 
   public SystemResponse cancelClaimOfCamunda8Task(
           //TODO: SystemURL
-          @SuppressWarnings("unused") CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo,
           ReferencedTask referencedTask) {
 
     if (!cancelClaimConfigLogged) {

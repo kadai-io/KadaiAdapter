@@ -9,8 +9,6 @@ import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 /** Sample Implementation of Camunda8SystemConnector. */
 public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
-  private final Camunda8System camunda8System;
-
   static final String URL_GET_CAMUNDA8_USER_TASKS = "/v1/user-tasks/";
   static final String URL_CAMUNDA8_ASSIGNMENT = "/assignment";
   static final String URL_CAMUNDA8_COMPLETION = "/completion";
@@ -22,6 +20,8 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
   static final String BODY_CAMUNDA8_COMPLETE = "{\"variables\": {}, \"action\": \"complete\"}";
   static final String BODY_EMPTY_REQUEST = "{}";
 
+  private final Camunda8System camunda8System;
+
   private final Camunda8TaskClaimer taskClaimer;
 
   private final Camunda8TaskCompleter taskCompleter;
@@ -30,6 +30,7 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   public Camunda8SystemConnectorImpl(Camunda8System camunda8System) {
     this.camunda8System = camunda8System;
+    //ToDo: SystemURL
     taskClaimer = AdapterSpringContextProvider.getBean(Camunda8TaskClaimer.class);
     taskCompleter = AdapterSpringContextProvider.getBean(Camunda8TaskCompleter.class);
     taskClaimCanceler = AdapterSpringContextProvider.getBean(Camunda8TaskClaimCanceler.class);
@@ -46,8 +47,8 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
   }
 
   @Override
-  public SystemResponse cancelClaimReferencedTask(ReferencedTask task) {
-    return taskClaimCanceler.cancelClaimOfCamunda8Task(task);
+  public SystemResponse cancelClaimReferencedTask(ReferencedTask camundaTask) {
+    return taskClaimCanceler.cancelClaimOfCamunda8Task(camundaTask); //TODO: SystemURL
   }
 
   @Override
