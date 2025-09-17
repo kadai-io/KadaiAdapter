@@ -41,16 +41,18 @@ public class Camunda8SystemConnectorConfiguration {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-  UserTaskCompletion userTaskListenerCompletion(final AdapterManager adapterManager) {
+  UserTaskCompletion userTaskListenerCompletion(
+      final AdapterManager adapterManager, final Camunda8System camunda8System) {
     return new UserTaskCompletion(
-        new KadaiTaskCompletionServiceImpl(adapterManager), new ReferencedTaskCreator());
+        new KadaiTaskCompletionServiceImpl(adapterManager),
+        new ReferencedTaskCreator(camunda8System));
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-  UserTaskCreation userTaskListenerCreation(final AdapterManager adapterManager) {
+  UserTaskCreation userTaskListenerCreation(
+      final AdapterManager adapterManager, final Camunda8System camunda8System) {
     return new UserTaskCreation(
-        new KadaiTaskStarterServiceImpl(adapterManager),
-        new ReferencedTaskCreator());
+        new KadaiTaskStarterServiceImpl(adapterManager), new ReferencedTaskCreator(camunda8System));
   }
 }
