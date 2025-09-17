@@ -85,4 +85,30 @@ public class Camunda8SystemConnectorConfiguration {
         final RestTemplate restTemplate) {
     return new Camunda8TaskClaimCanceler(httpHeaderProvider, restTemplate);
   }
+
+  @Bean
+  Camunda8HttpHeaderProvider camunda8HttpHeaderProvider() {
+    return new Camunda8HttpHeaderProvider();
+  }
+
+  @Bean
+  Camunda8TaskClaimer camunda8TaskClaimer(
+        final Camunda8HttpHeaderProvider httpHeaderProvider,
+        final RestTemplate restTemplate) {
+    return new Camunda8TaskClaimer(httpHeaderProvider, restTemplate);
+  }
+
+  @Bean
+  Camunda8TaskCompleter camunda8TaskCompleter(
+        final Camunda8HttpHeaderProvider httpHeaderProvider,
+        final RestTemplate restTemplate) {
+    return new Camunda8TaskCompleter(httpHeaderProvider, restTemplate);
+  }
+
+  @Bean
+  Camunda8TaskClaimCanceler camunda8TaskClaimCanceler(
+        final Camunda8HttpHeaderProvider httpHeaderProvider,
+        final RestTemplate restTemplate) {
+    return new Camunda8TaskClaimCanceler(httpHeaderProvider, restTemplate);
+  }
 }
