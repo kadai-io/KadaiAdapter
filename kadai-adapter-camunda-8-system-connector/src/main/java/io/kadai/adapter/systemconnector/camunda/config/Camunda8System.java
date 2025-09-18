@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class Camunda8System {
 
   private String systemUrl;
+  private String tasklistUrl;
 
   public String getSystemUrl() {
     return systemUrl;
@@ -15,5 +16,13 @@ public class Camunda8System {
 
   public void setSystemUrl(String systemUrl) {
     this.systemUrl = systemUrl;
+  }
+
+  public String getTasklistUrl() {
+    return tasklistUrl;
+  }
+
+  public void setTasklistUrl(String tasklistUrl) {
+    this.tasklistUrl = tasklistUrl;
   }
 }

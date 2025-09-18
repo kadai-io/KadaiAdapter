@@ -2,6 +2,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,13 +31,10 @@ public class Camunda8TaskClaimCanceler {
   @Value("${kadai.adapter.camunda8.claiming.enabled:true}")
   private boolean claimingEnabled;
 
-  @Value("${kadai.adapter.camunda8.tasklist.url:http://localhost:8081}")
-  private String tasklistBaseUrl;
-
   private boolean cancelClaimConfigLogged = false;
 
   public SystemResponse cancelClaimOfCamunda8Task(
-          //TODO: SystemURL
+          Camunda8System camunda8System,
           ReferencedTask referencedTask) {
 
     if (!cancelClaimConfigLogged) {
@@ -50,7 +48,7 @@ public class Camunda8TaskClaimCanceler {
       StringBuilder requestUrlBuilder = new StringBuilder();
 
       requestUrlBuilder
-                .append(tasklistBaseUrl) //ToDo: SystemURL
+                .append(camunda8System.getTasklistUrl())
                 .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
                 .append(referencedTask.getId())
                 .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_UNCLAIM);

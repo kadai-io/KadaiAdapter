@@ -30,7 +30,6 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   public Camunda8SystemConnectorImpl(Camunda8System camunda8System) {
     this.camunda8System = camunda8System;
-    //ToDo: SystemURL
     taskClaimer = AdapterSpringContextProvider.getBean(Camunda8TaskClaimer.class);
     taskCompleter = AdapterSpringContextProvider.getBean(Camunda8TaskCompleter.class);
     taskClaimCanceler = AdapterSpringContextProvider.getBean(Camunda8TaskClaimCanceler.class);
@@ -38,21 +37,26 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   @Override
   public SystemResponse completeReferencedTask(ReferencedTask camundaTask) {
-    return taskCompleter.completeCamunda8Task(camundaTask);
+    return taskCompleter.completeCamunda8Task(camunda8System, camundaTask);
   }
 
   @Override
   public SystemResponse claimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimer.claimCamunda8Task(camundaTask);
+    return taskClaimer.claimCamunda8Task(camunda8System, camundaTask);
   }
 
   @Override
   public SystemResponse cancelClaimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimCanceler.cancelClaimOfCamunda8Task(camundaTask); //TODO: SystemURL
+    return taskClaimCanceler.cancelClaimOfCamunda8Task(camunda8System, camundaTask);
   }
 
   @Override
   public String getSystemUrl() {
     return camunda8System.getSystemUrl();
+  }
+
+  @Override
+  public String toString() {
+    return "Camunda8SystemConnectorImpl [camunda8System=" + camunda8System + "]";
   }
 }

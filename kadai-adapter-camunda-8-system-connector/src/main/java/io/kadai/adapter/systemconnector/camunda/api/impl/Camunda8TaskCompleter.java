@@ -2,6 +2,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,14 +33,11 @@ public class Camunda8TaskCompleter {
   @Value("${kadai.adapter.camunda8.completing.enabled:true}")
   private boolean completingEnabled;
 
-  @Value("${kadai.adapter.camunda8.tasklist.url:http://localhost:8081}")
-  private String tasklistBaseUrl;
-
   private boolean completeConfigLogged = false;
 
   public SystemResponse completeCamunda8Task(
-      //TODO: SystemURL
-      ReferencedTask referencedTask) {
+          Camunda8System  camunda8System,
+          ReferencedTask referencedTask) {
 
     if (!completeConfigLogged) {
       LOGGER.info("Synchronizing completion of tasks in KADAI to Camunda 8 is set to {}",
@@ -54,7 +52,7 @@ public class Camunda8TaskCompleter {
       StringBuilder requestUrlBuilder = new StringBuilder();
 
       requestUrlBuilder
-            .append(tasklistBaseUrl) //ToDO: SystemURL
+            .append(camunda8System.getTasklistUrl())
             .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
             .append(referencedTask.getId())
             .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_COMPLETION);
@@ -76,20 +74,28 @@ public class Camunda8TaskCompleter {
         return new SystemResponse(responseEntity.getStatusCode(), null);
 
       } catch (HttpStatusCodeException e) {
-        LOGGER.warn("Failed to complete Camunda 8 task: {}. Error: {}",
-                userTaskKey,
-                e.getMessage());
-        throw e;
+        if (Camunda8UtilRequester.isTaskNotExisting(
+                  httpHeaderProvider, restTemplate, camunda8System, referencedTask.getId())) {
+          return new SystemResponse(HttpStatus.OK, null);
+        } else {
+          LOGGER.warn("Caught Exception when trying to complete camunda task", e);
+          throw e;
+        }
       }
     }
     return new SystemResponse(HttpStatus.OK, null);
   }
 
-  private String prepareRequestBody(ReferencedTask referencedTask) {
-    if (referencedTask.getVariables() == null) {
-      return Camunda8SystemConnectorImpl.BODY_CAMUNDA8_COMPLETE;
+  private String prepareRequestBody(ReferencedTask camundaTask) {
+
+    String requestBody;
+    if (camundaTask.getVariables() == null) {
+      requestBody = Camunda8SystemConnectorImpl.BODY_EMPTY_REQUEST;
     } else {
-      return "{\"variables\": " + referencedTask.getVariables() + ", \"action\": \"complete\"}";
+      requestBody = Camunda8SystemConnectorImpl.BODY_CAMUNDA8_COMPLETE
+                    + camundaTask.getVariables()
+                    + "}}";
     }
+    return requestBody;
   }
 }
