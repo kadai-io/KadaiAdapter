@@ -1,0 +1,310 @@
+{
+	"info": {
+		"_postman_id": "b82973e0-85b2-4175-b2a5-3672651cdd08",
+		"name": "KadaiAdapter",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "42232206"
+	},
+	"item": [
+		{
+			"name": "CAMUNDA - getAllUserTasks",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": "http://localhost:8081/v1/user-tasks/search"
+			},
+			"response": []
+		},
+		{
+			"name": "CAMUNDA - getUserTask",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8081/v1/user-tasks/:userTaskKey",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"v1",
+						"user-tasks",
+						":userTaskKey"
+					],
+					"variable": [
+						{
+							"key": "userTaskKey",
+							"value": "2251799813935353"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CAMUNDA - assignUserTask",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic ZGVtbzpkZW1v",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"assignee\": \"demo\",\r\n  \"allowOverride\": true,\r\n  \"action\": \"assign\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/v1/user-tasks/:userTaskKey/assignment",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"v1",
+						"user-tasks",
+						":userTaskKey",
+						"assignment"
+					],
+					"variable": [
+						{
+							"key": "userTaskKey",
+							"value": "2251799813935353"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CAMUNDA - unassignUserTask",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8081/v1/user-tasks/:userTaskKey/assignee",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"v1",
+						"user-tasks",
+						":userTaskKey",
+						"assignee"
+					],
+					"variable": [
+						{
+							"key": "userTaskKey",
+							"value": "2251799813686287"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CAMUNDA-completeUserTask",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"variables\": {},\r\n  \"action\": \"complete\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/v1/user-tasks/:userTaskKey/completion",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"v1",
+						"user-tasks",
+						":userTaskKey",
+						"completion"
+					],
+					"variable": [
+						{
+							"key": "userTaskKey",
+							"value": "2251799814267422"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "KADAI-getAllTasks",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"password": "admin",
+						"username": "admin"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/kadai/api/v1/tasks"
+			},
+			"response": []
+		},
+		{
+			"name": "KADAI-getTask",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"password": "admin",
+						"username": "admin"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/kadai/api/v1/tasks/:TKI",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"kadai",
+						"api",
+						"v1",
+						"tasks",
+						":TKI"
+					],
+					"variable": [
+						{
+							"key": "TKI",
+							"value": "TKI:7f8c3096-929c-4aca-bfdf-37841bf5ac73"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "KADAI-claimTask",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"password": "admin",
+						"username": "admin"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/kadai/api/v1/tasks/:TKI/claim",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"kadai",
+						"api",
+						"v1",
+						"tasks",
+						":TKI",
+						"claim"
+					],
+					"variable": [
+						{
+							"key": "TKI",
+							"value": "TKI:d1540c99-6758-455f-812f-6a376714a3b9"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "KADAI-unclaimTask",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"password": "admin",
+						"username": "admin"
+					}
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/kadai/api/v1/tasks/:TKI/claim",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"kadai",
+						"api",
+						"v1",
+						"tasks",
+						":TKI",
+						"claim"
+					],
+					"variable": [
+						{
+							"key": "TKI",
+							"value": "TKI:d1540c99-6758-455f-812f-6a376714a3b9"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "KADAI - completeTask",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/kadai/api/v1/tasks/:TKI/complete",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"kadai",
+						"api",
+						"v1",
+						"tasks",
+						":TKI",
+						"complete"
+					],
+					"variable": [
+						{
+							"key": "TKI",
+							"value": "TKI:7f8c3096-929c-4aca-bfdf-37841bf5ac73"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
