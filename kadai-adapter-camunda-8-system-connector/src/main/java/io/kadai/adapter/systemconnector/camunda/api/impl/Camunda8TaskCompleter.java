@@ -71,7 +71,7 @@ public class Camunda8TaskCompleter {
         return new SystemResponse(responseEntity.getStatusCode(), null);
 
       } catch (HttpStatusCodeException e) {
-        if (Camunda8UtilRequester.isTaskNotExisting(
+        if (Camunda8UtilRequester.isTaskExisting(
                   httpHeaderProvider, restTemplate, camunda8System, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
         } else {

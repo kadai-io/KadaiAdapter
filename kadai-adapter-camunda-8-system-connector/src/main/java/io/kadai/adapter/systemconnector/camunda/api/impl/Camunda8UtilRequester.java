@@ -16,7 +16,7 @@ public class Camunda8UtilRequester {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda8UtilRequester.class);
 
-  public static boolean isTaskNotExisting(
+  public static boolean isTaskExisting(
         Camunda8HttpHeaderProvider httpHeaderProvider,
         RestTemplate restTemplate,
         Camunda8System camunda8System,
