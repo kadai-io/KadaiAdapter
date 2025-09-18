@@ -46,11 +46,8 @@ public class Camunda8TaskCompleter {
     }
 
     if (completingEnabled) {
-
       String userTaskKey = referencedTask.getId();
-
       StringBuilder requestUrlBuilder = new StringBuilder();
-
       requestUrlBuilder
             .append(camunda8System.getTasklistUrl())
             .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)

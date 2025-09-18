@@ -45,9 +45,7 @@ public class Camunda8TaskClaimer {
     }
 
     if (claimingEnabled) {
-
       StringBuilder requestUrlBuilder = new StringBuilder();
-
       requestUrlBuilder
                 .append(camunda8System.getTasklistUrl())
                 .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)

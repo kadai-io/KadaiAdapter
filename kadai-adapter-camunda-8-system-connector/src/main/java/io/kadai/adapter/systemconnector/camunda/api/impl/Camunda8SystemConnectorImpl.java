@@ -1,6 +1,5 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
-import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
@@ -21,18 +20,19 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
   static final String BODY_EMPTY_REQUEST = "{}";
 
   private final Camunda8System camunda8System;
-
   private final Camunda8TaskClaimer taskClaimer;
-
   private final Camunda8TaskCompleter taskCompleter;
+  private final Camunda8TaskClaimCanceler taskClaimCanceler;
 
-  private final Camunda8TaskClaimCanceler  taskClaimCanceler;
-
-  public Camunda8SystemConnectorImpl(Camunda8System camunda8System) {
+  public Camunda8SystemConnectorImpl(
+            Camunda8System camunda8System,
+            Camunda8TaskClaimer taskClaimer,
+            Camunda8TaskCompleter taskCompleter,
+            Camunda8TaskClaimCanceler taskClaimCanceler) {
     this.camunda8System = camunda8System;
-    taskClaimer = AdapterSpringContextProvider.getBean(Camunda8TaskClaimer.class);
-    taskCompleter = AdapterSpringContextProvider.getBean(Camunda8TaskCompleter.class);
-    taskClaimCanceler = AdapterSpringContextProvider.getBean(Camunda8TaskClaimCanceler.class);
+    this.taskClaimer = taskClaimer;
+    this.taskCompleter = taskCompleter;
+    this.taskClaimCanceler = taskClaimCanceler;
   }
 
   @Override
