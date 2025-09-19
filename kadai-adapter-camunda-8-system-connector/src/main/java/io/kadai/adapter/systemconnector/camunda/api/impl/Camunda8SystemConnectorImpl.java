@@ -5,7 +5,7 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 
-/** Sample Implementation of Camunda8SystemConnector. */
+/** Implementation of OutboundSystemConnector for Camunda 8. */
 public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   static final String URL_GET_CAMUNDA8_USER_TASKS = "/v1/user-tasks/";
