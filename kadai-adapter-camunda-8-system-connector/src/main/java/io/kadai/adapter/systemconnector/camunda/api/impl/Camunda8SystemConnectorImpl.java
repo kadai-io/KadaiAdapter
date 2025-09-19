@@ -57,7 +57,9 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   @Override
   public String toString() {
-    return "Camunda8SystemConnectorImpl [systemUrl=" + camunda8System.getSystemUrl()
-             + ", tasklistUrl=" + camunda8System.getTasklistUrl() + "]";
+    return "Camunda8SystemConnectorImpl [camunda8System=" + camunda8System
+            + ", taskClaimer=" + taskClaimer
+            + ", taskCompleter=" + taskCompleter
+            + ", taskClaimCanceler=" + taskClaimCanceler + "]";
   }
 }
