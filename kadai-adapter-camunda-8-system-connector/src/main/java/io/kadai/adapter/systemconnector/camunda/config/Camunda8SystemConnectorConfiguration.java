@@ -3,7 +3,6 @@ package io.kadai.adapter.systemconnector.camunda.config;
 import io.kadai.adapter.impl.service.KadaiTaskCompletionServiceImpl;
 import io.kadai.adapter.impl.service.KadaiTaskStarterServiceImpl;
 import io.kadai.adapter.manager.AdapterManager;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
@@ -55,10 +54,5 @@ public class Camunda8SystemConnectorConfiguration {
       final AdapterManager adapterManager, final Camunda8System camunda8System) {
     return new UserTaskCreation(
         new KadaiTaskStarterServiceImpl(adapterManager), new ReferencedTaskCreator(camunda8System));
-  }
-
-  @Bean
-  Camunda8HttpHeaderProvider camunda8HttpHeaderProvider() {
-    return new Camunda8HttpHeaderProvider();
   }
 }
