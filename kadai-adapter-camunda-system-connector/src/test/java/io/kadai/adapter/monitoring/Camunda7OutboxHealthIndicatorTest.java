@@ -18,9 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-class OutboxHealthIndicatorTest {
+class Camunda7OutboxHealthIndicatorTest {
 
-  private OutboxHealthIndicator outboxHealthIndicatorSpy;
+  private Camunda7OutboxHealthIndicator outboxHealthIndicatorSpy;
   private RestTemplate restTemplate;
 
   @BeforeEach
@@ -28,7 +28,7 @@ class OutboxHealthIndicatorTest {
     this.restTemplate = Mockito.mock(RestTemplate.class);
     this.outboxHealthIndicatorSpy =
         Mockito.spy(
-            new OutboxHealthIndicator(
+            new Camunda7OutboxHealthIndicator(
                 restTemplate, "http://localhost:10020/outbox-rest"));
   }
 

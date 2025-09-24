@@ -18,9 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-class CamundaHealthIndicatorTest {
+class Camunda7HealthIndicatorTest {
 
-  private CamundaHealthIndicator camundaHealthIndicatorSpy;
+  private Camunda7HealthIndicator camundaHealthIndicatorSpy;
   private RestTemplate restTemplate;
 
   @BeforeEach
@@ -28,7 +28,7 @@ class CamundaHealthIndicatorTest {
     this.restTemplate = Mockito.mock(RestTemplate.class);
     this.camundaHealthIndicatorSpy =
         Mockito.spy(
-            new CamundaHealthIndicator(
+            new Camunda7HealthIndicator(
                 restTemplate, "http://localhost:10020/engine-rest"));
   }
 
