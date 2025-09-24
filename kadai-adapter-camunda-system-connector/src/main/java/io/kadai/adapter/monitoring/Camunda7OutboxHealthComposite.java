@@ -9,21 +9,21 @@ import org.springframework.boot.actuate.health.HealthContributor;
 import org.springframework.boot.actuate.health.NamedContributor;
 import org.springframework.web.client.RestTemplate;
 
-public class CamundaOutboxHealthComposite implements CompositeHealthContributor {
+public class Camunda7OutboxHealthComposite implements CompositeHealthContributor {
 
   private final Map<String, HealthContributor> healthContributors = new HashMap<>();
 
-  public CamundaOutboxHealthComposite(
+  public Camunda7OutboxHealthComposite(
       RestTemplate restTemplate,
       String camundaUrl,
       String outboxUrl,
       CamundaSystemHealthConfigurationProperties properties) {
     if (properties.getCamunda().getEnabled()) {
       healthContributors.put(
-          "camunda", new CamundaHealthIndicator(restTemplate, camundaUrl));
+          "camunda", new Camunda7HealthIndicator(restTemplate, camundaUrl));
     }
     if (properties.getOutbox().getEnabled()) {
-      healthContributors.put("outbox", new OutboxHealthIndicator(restTemplate, outboxUrl));
+      healthContributors.put("outbox", new Camunda7OutboxHealthIndicator(restTemplate, outboxUrl));
     }
   }
 

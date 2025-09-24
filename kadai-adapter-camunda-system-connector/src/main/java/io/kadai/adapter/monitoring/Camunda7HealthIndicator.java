@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class CamundaHealthIndicator implements HealthIndicator {
+public class Camunda7HealthIndicator implements HealthIndicator {
 
   private static final String BASE_URL = "baseUrl";
 
@@ -16,7 +16,7 @@ public class CamundaHealthIndicator implements HealthIndicator {
   private URI url;
   private String urlString;
 
-  public CamundaHealthIndicator(RestTemplate restTemplate, String urlString) {
+  public Camunda7HealthIndicator(RestTemplate restTemplate, String urlString) {
     this.restTemplate = restTemplate;
     this.urlString = urlString;
     this.url = UriComponentsBuilder.fromUriString(urlString).pathSegment("engine").build().toUri();

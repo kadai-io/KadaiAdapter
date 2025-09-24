@@ -11,14 +11,14 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class CamundaOutboxHealthCompositeTest {
+class Camunda7OutboxHealthCompositeTest {
 
   @ParameterizedTest
   @MethodSource("camundaOutboxHealthConfigurationPropertiesProvider")
   void should_OnlyCreateContributingHealthIndicator_When_Enabled(
       CamundaSystemHealthConfigurationProperties properties, long expectedEnabledCount) {
-    final CamundaOutboxHealthComposite camundaOutboxHealthComposite =
-        new CamundaOutboxHealthComposite(
+    final Camunda7OutboxHealthComposite camundaOutboxHealthComposite =
+        new Camunda7OutboxHealthComposite(
             mock(),
             "http://localhost:10020/engine-rest",
             "http://localhost:10020/outbox-rest",
@@ -32,8 +32,8 @@ class CamundaOutboxHealthCompositeTest {
   @ValueSource(strings = {"camunda", "outbox"})
   void should_CreateAllContributingHealthIndicatorsByDefaultAndNameThemAccordingToJson(
       String contributorName) {
-    final CamundaOutboxHealthComposite camundaOutboxHealthComposite =
-        new CamundaOutboxHealthComposite(
+    final Camunda7OutboxHealthComposite camundaOutboxHealthComposite =
+        new Camunda7OutboxHealthComposite(
             mock(),
             "http://localhost:10020/engine-rest",
             "http://localhost:10020/outbox-rest",
