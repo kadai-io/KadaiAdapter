@@ -60,7 +60,6 @@ public class KadaiTaskStarterServiceImpl implements KadaiTaskStarterService {
               return null;
             }
         )
-
     );
 
     LOGGER.trace("KadaiTaskStarterService.createKadaiTask EXIT");
