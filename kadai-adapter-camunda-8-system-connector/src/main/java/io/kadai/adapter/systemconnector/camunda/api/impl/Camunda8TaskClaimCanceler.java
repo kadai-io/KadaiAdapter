@@ -46,7 +46,7 @@ public class Camunda8TaskClaimCanceler {
     if (claimingEnabled) {
       StringBuilder requestUrlBuilder = new StringBuilder();
       requestUrlBuilder
-                .append(camunda8System.getTasklistUrl())
+                .append(camunda8System.getClusterApiUrl())
                 .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
                 .append(referencedTask.getId())
                 .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_UNCLAIM);
