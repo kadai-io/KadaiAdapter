@@ -11,11 +11,11 @@ import org.springframework.boot.actuate.health.HealthContributor;
 import org.springframework.boot.actuate.health.NamedContributor;
 import org.springframework.web.client.RestClient;
 
-public class CamundaSystemsHealthComposite implements CompositeHealthContributor {
+public class Camunda7SystemsHealthComposite implements CompositeHealthContributor {
 
   private final Map<String, HealthContributor> healthContributors = new HashMap<>();
 
-  public CamundaSystemsHealthComposite(
+  public Camunda7SystemsHealthComposite(
       RestClient restClient,
       List<String> camundaSystemUrls,
       ExternalServicesHealthConfigurationProperties properties) {
@@ -30,7 +30,7 @@ public class CamundaSystemsHealthComposite implements CompositeHealthContributor
 
         healthContributors.put(
             "camundaSystem" + ++i,
-            new CamundaOutboxHealthComposite(
+            new Camunda7OutboxHealthComposite(
                 restClient, camundaUrl, outboxUrl, properties.getCamundaSystem()));
       }
     }
