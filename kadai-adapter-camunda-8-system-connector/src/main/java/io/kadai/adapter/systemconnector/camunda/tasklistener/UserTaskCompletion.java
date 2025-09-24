@@ -17,6 +17,7 @@ public class UserTaskCompletion {
   private final ReferencedTaskCreator referencedTaskCreator;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCompletion.class);
+  private static final String TASK_STATE_COMPLETED = "COMPLETED";
 
   public UserTaskCompletion(
       KadaiTaskCompletionService taskTerminator, ReferencedTaskCreator referencedTaskCreator) {
@@ -34,6 +35,7 @@ public class UserTaskCompletion {
           job.getProcessInstanceKey());
 
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
+      referencedTask.setTaskState(TASK_STATE_COMPLETED);
       taskTerminator.terminateKadaiTask(referencedTask);
 
     } catch (TaskTerminationFailedException e) {
