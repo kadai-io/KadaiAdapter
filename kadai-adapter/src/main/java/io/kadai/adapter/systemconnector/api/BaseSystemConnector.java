@@ -27,11 +27,4 @@ public interface BaseSystemConnector {
    * @return the URL of the connected external system.
    */
   String getSystemUrl();
-
-  /**
-   * Get the system identifier of the external system this connector connects to.
-   *
-   * @return the system identifier of the connected external system.
-   */
-  String getSystemIdentifier();
 }

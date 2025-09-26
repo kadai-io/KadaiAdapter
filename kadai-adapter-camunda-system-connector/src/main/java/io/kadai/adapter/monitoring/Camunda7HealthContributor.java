@@ -1,0 +1,47 @@
+package io.kadai.adapter.monitoring;
+
+import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.HealthContributor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+@Component
+@ConditionalOnProperty(name = "kadai.adapter.camunda.system.enabled", havingValue = "true")
+public class Camunda7HealthContributor implements SystemConnectorHealthContributor {
+
+  private final RestTemplate restTemplate;
+  private final ExternalServicesHealthConfigurationProperties properties;
+  private final List<String> camundaSystemUrls;
+
+  @Autowired
+  public Camunda7HealthContributor(
+          SystemConnectorHealthRegistry registry,
+          RestTemplate restTemplate,
+          ExternalServicesHealthConfigurationProperties properties,
+          @Value("${kadai-system-connector-camundaSystemURLs}") List<String> camundaSystemUrls) {
+    this.restTemplate = restTemplate;
+    this.properties = properties;
+    this.camundaSystemUrls = camundaSystemUrls;
+
+    registry.registerContributor(this);
+  }
+
+  @Override
+  public String getConnectorName() {
+    return "camundaSystems";
+  }
+
+  @Override
+  public HealthContributor createHealthContributor() {
+    return new Camunda7SystemsHealthComposite(restTemplate, camundaSystemUrls, properties);
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return properties.getCamundaSystem().getEnabled();
+  }
+}

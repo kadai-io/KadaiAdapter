@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.impl.scheduled;
 
+import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
