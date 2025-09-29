@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 class Camunda7HealthContributorTest {
 
   @Test
-  void should_CreateCamundaSystemsHealthComposite_WhenEnabled() {
+  void should_CreateCamundaSystemsHealthComposite_When_Enabled() {
     ExternalServicesHealthConfigurationProperties properties =
             new ExternalServicesHealthConfigurationProperties();
 
@@ -32,7 +32,7 @@ class Camunda7HealthContributorTest {
   }
 
   @Test
-  void should_BeDisabled_WhenCamundaSystemDisabled() {
+  void should_BeDisabled_When_CamundaSystemDisabled() {
     ExternalServicesHealthConfigurationProperties properties =
             new ExternalServicesHealthConfigurationProperties()
                     .withCamundaSystem(
