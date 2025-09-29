@@ -10,9 +10,11 @@ import io.kadai.adapter.test.KadaiAdapterTestUtil;
 import io.kadai.common.test.security.WithAccessId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 
 @CamundaSpringProcessTest
 @KadaiAdapterSpringBootTest
+@TestPropertySource("classpath:camunda8-test-application.properties")
 class UserTaskCompletionTest {
 
   @Autowired private CamundaClient client;

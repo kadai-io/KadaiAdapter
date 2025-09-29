@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Test for the integration of kadai adapter with camunda</description>
+    <description>Test-Module providing Kernel-Setup for Integration-Tests with KadaiAdapter-Plugins</description>
 
     <parent>
         <groupId>io.kadai</groupId>
@@ -16,7 +16,6 @@
     </parent>
 
     <dependencies>
-        <!-- Adapter modules -->
         <dependency>
             <groupId>io.kadai</groupId>
             <artifactId>kadai-adapter</artifactId>
@@ -27,7 +26,6 @@
             <artifactId>kadai-adapter-kadai-connector</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- testing dependencies -->
         <dependency>
             <groupId>io.kadai</groupId>
             <artifactId>kadai-common-test</artifactId>
@@ -44,15 +42,15 @@
           </exclusions>
         </dependency>
         <dependency>
-          <groupId>io.camunda</groupId>
-          <artifactId>camunda-process-test-spring</artifactId>
-          <version>${version.camunda8}</version>
-        </dependency>
-        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+      <dependency>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${version.jakarta.annotation}</version>
+      </dependency>
 
         <!-- Database Drivers -->
         <dependency>
@@ -82,13 +80,6 @@
             <version>${version.archunit}</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-            <version>${version.jakarta.annotation}</version>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -110,28 +101,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <!--
-    <repositories>
-      <repository>
-        <id>maven.oracle.com</id>
-        <url>https://maven.oracle.com</url>
-        <releases>
-          <enabled>true</enabled>
-        </releases>
-        <snapshots>
-          <enabled>false</enabled>
-        </snapshots>
-        <layout>default</layout>
-      </repository>
-    </repositories>
-
-    <pluginRepositories>
-      <pluginRepository>
-        <id>maven.oracle.com</id>
-        <url>https://maven.oracle.com</url>
-      </pluginRepository>
-    </pluginRepositories>
-    -->
 
 </project>
