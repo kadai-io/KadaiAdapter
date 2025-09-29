@@ -48,9 +48,7 @@ class UserTaskCreationTest {
             .join();
 
     CamundaAssert.assertThat(processInstance).isActive();
-    final List<TaskSummary> actual =
-        kadaiEngine.getTaskService().createTaskQuery().list();
-    System.out.println(actual.get(0));
+    final List<TaskSummary> actual = kadaiEngine.getTaskService().createTaskQuery().list();
     assertThat(actual).hasSize(1);
     assertThat(actual.get(0).getState()).isEqualTo(TaskState.READY);
   }
