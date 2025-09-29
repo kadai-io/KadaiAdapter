@@ -12,7 +12,7 @@ import io.kadai.workbasket.api.models.Workbasket;
 import io.kadai.workbasket.api.models.WorkbasketAccessItem;
 
 /**
- * Instantiated Util-Class providing helpers for writing integration-tests with Kadai &
+ * Instantiated Util-Class providing helpers for writing integration-tests with Kadai and
  * KadaiAdapter.
  */
 public class KadaiAdapterTestUtil {
