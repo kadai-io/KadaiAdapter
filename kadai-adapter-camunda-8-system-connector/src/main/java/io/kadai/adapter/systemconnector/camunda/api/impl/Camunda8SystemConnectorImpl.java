@@ -8,7 +8,7 @@ import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 /** Implementation of OutboundSystemConnector for Camunda 8. */
 public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
-  static final String URL_GET_CAMUNDA8_USER_TASKS = "/v1/user-tasks/";
+  static final String URL_GET_CAMUNDA8_USER_TASKS = "/v2/user-tasks/";
   static final String URL_CAMUNDA8_ASSIGNMENT = "/assignment";
   static final String URL_CAMUNDA8_COMPLETION = "/completion";
   static final String URL_CAMUNDA8_UNCLAIM = "/assignee";

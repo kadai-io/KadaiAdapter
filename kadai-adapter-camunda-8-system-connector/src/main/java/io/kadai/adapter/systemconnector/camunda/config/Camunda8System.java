@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class Camunda8System {
 
   private String systemUrl;
-  private String tasklistUrl;
+  private String clusterApiUrl;
 
   public String getSystemUrl() {
     return systemUrl;
@@ -18,11 +18,11 @@ public class Camunda8System {
     this.systemUrl = systemUrl;
   }
 
-  public String getTasklistUrl() {
-    return tasklistUrl;
+  public String getClusterApiUrl() {
+    return clusterApiUrl;
   }
 
-  public void setTasklistUrl(String tasklistUrl) {
-    this.tasklistUrl = tasklistUrl;
+  public void setClusterApiUrl(String clusterApiUrl) {
+    this.clusterApiUrl = clusterApiUrl;
   }
 }

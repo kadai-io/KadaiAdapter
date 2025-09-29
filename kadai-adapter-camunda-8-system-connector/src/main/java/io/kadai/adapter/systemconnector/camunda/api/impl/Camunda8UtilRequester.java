@@ -22,7 +22,7 @@ public class Camunda8UtilRequester {
         Camunda8System camunda8System,
         String userTaskKey) {
 
-    String requestUrl = camunda8System.getTasklistUrl()
+    String requestUrl = camunda8System.getClusterApiUrl()
                         + Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS
                         + userTaskKey;
 
