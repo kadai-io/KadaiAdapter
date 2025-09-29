@@ -20,6 +20,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * <p>Cleans the Kadai-Database before each test-run.
  *
+ * <p>This annotation provides a neat way to test interplay of Kadai and KadaiAdapter (kernel) but
+ * also allows <b>testing plugins</b>.
+ *
  * @see KadaiAdapterSpringBootTestConfiguration
  * @see KadaiAdapterSpringBootTestExecutionListener
  */
