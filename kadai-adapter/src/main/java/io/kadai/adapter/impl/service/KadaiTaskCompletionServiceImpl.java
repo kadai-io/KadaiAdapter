@@ -35,12 +35,12 @@ public class KadaiTaskCompletionServiceImpl implements KadaiTaskCompletionServic
       LoggerFactory.getLogger(KadaiTaskCompletionServiceImpl.class);
 
   private final AdapterManager adapterManager;
+  private final String runAsUser;
 
-  @Value("${kadai.adapter.run-as.user}")
-  protected String runAsUser;
-
-  public KadaiTaskCompletionServiceImpl(AdapterManager adapterManager) {
+  public KadaiTaskCompletionServiceImpl(
+      AdapterManager adapterManager, @Value("${kadai.adapter.run-as.user}") String runAsUser) {
     this.adapterManager = adapterManager;
+    this.runAsUser = runAsUser;
   }
 
   @Override
@@ -54,9 +54,7 @@ public class KadaiTaskCompletionServiceImpl implements KadaiTaskCompletionServic
             () -> {
               adapterManager.getKadaiConnector().terminateKadaiTask(referencedTask);
               return null;
-            }
-        )
-    );
+            }));
 
     LOGGER.trace("KadaiTaskCompletionService.terminateKadaiTask EXIT");
   }

@@ -19,12 +19,16 @@
 package io.kadai.adapter.impl.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
+import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
@@ -33,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,7 +54,7 @@ class KadaiTaskStarterServiceTest {
 
   @BeforeEach
   void setUp() {
-    testSubject = new KadaiTaskStarterServiceImpl(adapterManager);
+    testSubject = new KadaiTaskStarterServiceImpl(adapterManager, "test-run-as-user");
 
     // Create a sample ReferencedTask for testing
     referencedTask = new ReferencedTask();
@@ -74,6 +79,20 @@ class KadaiTaskStarterServiceTest {
     verify(kadaiConnector).convertToKadaiTask(referencedTask);
     verify(kadaiConnector).createKadaiTask(kadaiTask);
     verifyNoMoreInteractions(adapterManager, kadaiConnector, kadaiTask);
+  }
+
+  @Test
+  void should_UseRunAsUser_When_CreatingTask()
+      throws TaskCreationFailedException {
+    // Given
+    MockedStatic<UserContext> userContextMock = mockStatic(UserContext.class);
+
+    // When
+    testSubject.createKadaiTask(referencedTask);
+
+    // Then
+    userContextMock.verify(() -> UserContext.runAsUser(eq("test-run-as-user"), any()));
+    userContextMock.close();
   }
 
   @Test
