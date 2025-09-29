@@ -11,6 +11,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+/**
+ * High-Level annotation setting up Kadai for integration-tests with the KadaiAdapter. Bootstraps
+ * the entire Spring-Context and adds additional beans for {@link io.kadai.common.api.KadaiEngine
+ * KadaiEngine} and Co.
+ *
+ * <p>Auto-configures via {@link KadaiAdapterTestApplication}.
+ *
+ * <p>Cleans the Kadai-Database before each test-run.
+ *
+ * @see KadaiAdapterSpringBootTestConfiguration
+ * @see KadaiAdapterSpringBootTestExecutionListener
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith({SpringExtension.class, JaasExtension.class})

@@ -11,6 +11,10 @@ import io.kadai.workbasket.api.exceptions.WorkbasketNotFoundException;
 import io.kadai.workbasket.api.models.Workbasket;
 import io.kadai.workbasket.api.models.WorkbasketAccessItem;
 
+/**
+ * Instantiated Util-Class providing helpers for writing integration-tests with Kadai &
+ * KadaiAdapter.
+ */
 public class KadaiAdapterTestUtil {
 
   private final KadaiEngine kadaiEngine;

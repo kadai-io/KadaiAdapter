@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-/** Application to test the integration of Camunda BPM with REST API with the KADAI Adapter. */
+/** Application for integration-testing Kadai, KadaiAdapter (kernel) and any external plugin. */
 @EnableScheduling
 @ComponentScan("io.kadai.adapter")
 @Import({AdapterConfiguration.class})
