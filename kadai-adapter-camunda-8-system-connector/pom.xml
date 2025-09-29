@@ -43,6 +43,11 @@
       <artifactId>kadai-adapter</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.kadai</groupId>
+      <artifactId>kadai-adapter-spring-boot-test</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- testing dependencies -->
     <dependency>
@@ -50,6 +55,11 @@
       <artifactId>camunda-process-test-spring</artifactId>
       <scope>test</scope>
       <version>${version.camunda8}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.kadai</groupId>
+      <artifactId>kadai-common-test</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -71,6 +81,11 @@
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit</artifactId>
       <version>${version.archunit}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
