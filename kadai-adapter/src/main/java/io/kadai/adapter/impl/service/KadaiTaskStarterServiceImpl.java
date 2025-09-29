@@ -37,16 +37,16 @@ public class KadaiTaskStarterServiceImpl implements KadaiTaskStarterService {
 
   private final AdapterManager adapterManager;
 
-  @Value("${kadai.adapter.run-as.user}")
-  protected String runAsUser;
+  private final String runAsUser;
 
-  public KadaiTaskStarterServiceImpl(AdapterManager adapterManager) {
+  public KadaiTaskStarterServiceImpl(
+      AdapterManager adapterManager, @Value("${kadai.adapter.run-as.user}") String runAsUser) {
     this.adapterManager = adapterManager;
+    this.runAsUser = runAsUser;
   }
 
   @Override
-  public void createKadaiTask(ReferencedTask referencedTask)
-      throws TaskCreationFailedException {
+  public void createKadaiTask(ReferencedTask referencedTask) throws TaskCreationFailedException {
     LOGGER.trace("KadaiTaskStarterService.createKadaiTask ENTRY");
 
     KadaiConnector kadaiConnector = adapterManager.getKadaiConnector();
@@ -58,9 +58,7 @@ public class KadaiTaskStarterServiceImpl implements KadaiTaskStarterService {
               Task kadaiTask = kadaiConnector.convertToKadaiTask(referencedTask);
               kadaiConnector.createKadaiTask(kadaiTask);
               return null;
-            }
-        )
-    );
+            }));
 
     LOGGER.trace("KadaiTaskStarterService.createKadaiTask EXIT");
   }
