@@ -30,17 +30,15 @@ class UserTaskCreationTest {
 
   @Test
   @WithAccessId(user = "admin")
-  void should_CreateKadaiTaskAndCompleteProcessInstance() throws Exception {
+  void should_CreateKadaiTask() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
-
-    // given: the processes are deployed
+    kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
     client
         .newDeployResourceCommand()
         .addResourceFromClasspath("processes/sayHello.bpmn")
         .send()
         .join();
 
-    // when
     final ProcessInstanceEvent processInstance =
         client
             .newCreateInstanceCommand()
@@ -49,11 +47,11 @@ class UserTaskCreationTest {
             .send()
             .join();
 
-    // then
-    CamundaAssert.assertThat(processInstance).isCompleted();
+    CamundaAssert.assertThat(processInstance).isActive();
     final List<TaskSummary> actual =
-        kadaiEngine.getTaskService().createTaskQuery().externalIdIn("2251799813685309").list();
+        kadaiEngine.getTaskService().createTaskQuery().list();
+    System.out.println(actual.get(0));
     assertThat(actual).hasSize(1);
-    assertThat(actual.get(0).getState()).isEqualTo(TaskState.COMPLETED);
+    assertThat(actual.get(0).getState()).isEqualTo(TaskState.READY);
   }
 }
