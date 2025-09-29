@@ -8,7 +8,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.HealthContributor;
 
-public class SystemConnectorHealthRegistryTest {
+class SystemConnectorHealthRegistryTest {
 
   @Test
   void should_RegisterAndReturnEnabledContributors() {
@@ -34,7 +34,7 @@ public class SystemConnectorHealthRegistryTest {
   }
 
   @Test
-  void should_ReturnEmptyMap_WhenNoContributorsRegistered() {
+  void should_ReturnEmptyMap_When_NoContributorsRegistered() {
     SystemConnectorHealthRegistry registry = new SystemConnectorHealthRegistry();
 
     assertThat(registry.getEnabledHealthContributors()).isEmpty();
