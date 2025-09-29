@@ -19,12 +19,16 @@
 package io.kadai.adapter.impl.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
+import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
@@ -32,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,12 +46,12 @@ class KadaiTaskCompletionServiceTest {
 
   @Mock private KadaiConnector kadaiConnector;
 
-  private KadaiTaskCompletionService testSubject;
   private ReferencedTask referencedTask;
+  private KadaiTaskCompletionService testSubject;
 
   @BeforeEach
   void setUp() {
-    testSubject = new KadaiTaskCompletionServiceImpl(adapterManager);
+    testSubject = new KadaiTaskCompletionServiceImpl(adapterManager, "test-run-as-user");
 
     // Create a sample ReferencedTask for testing
     referencedTask = new ReferencedTask();
@@ -70,6 +75,20 @@ class KadaiTaskCompletionServiceTest {
     verify(adapterManager).getKadaiConnector();
     verify(kadaiConnector).terminateKadaiTask(referencedTask);
     verifyNoMoreInteractions(adapterManager, kadaiConnector);
+  }
+
+  @Test
+  void should_UseRunAsUser_When_TerminatingTask()
+      throws TaskTerminationFailedException {
+    // Given
+    MockedStatic<UserContext> userContextMock = mockStatic(UserContext.class);
+
+    // When
+    testSubject.terminateKadaiTask(referencedTask);
+
+    // Then
+    userContextMock.verify(() -> UserContext.runAsUser(eq("test-run-as-user"), any()));
+    userContextMock.close();
   }
 
   @Test
