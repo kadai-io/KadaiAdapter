@@ -56,6 +56,7 @@
       <artifactId>kadai-adapter-spring-boot-test</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
+      <type>test-jar</type>
     </dependency>
     <dependency>
       <groupId>io.kadai</groupId>
@@ -112,6 +113,18 @@
             </classpathDependencyExcludes>
           </classpathDependencyExcludes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
