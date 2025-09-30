@@ -8,8 +8,8 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +80,29 @@ public class ReferencedTaskCreator {
     return referencedTask;
   }
 
+  @SuppressWarnings("SameParameterValue")
+  static List<String> splitVariableNames(String variableNamesConcatenated, char delimiter) {
+    List<String> result = new LinkedList<>();
+    variableNamesConcatenated = variableNamesConcatenated.trim();
+    int length = variableNamesConcatenated.length();
+    int start = 0;
+
+    for (int i = 0; i < length; i++) {
+      if (variableNamesConcatenated.charAt(i) == delimiter) {
+        if (i > start) {
+          result.add(variableNamesConcatenated.substring(start, i).trim());
+        }
+        start = i + 1;
+      }
+    }
+
+    if (start < length) {
+      result.add(variableNamesConcatenated.substring(start).trim());
+    }
+
+    return result;
+  }
+
   /**
    * Retrieves a variable from the ActivatedJob by its name. If the variable is not found or is
    * empty, it returns null.
@@ -126,7 +149,7 @@ public class ReferencedTaskCreator {
       String taskVariablesConcatenated = getVariable(job, "kadai_attributes");
 
       if (taskVariablesConcatenated != null) {
-        variableNames = splitVariableNamesString(taskVariablesConcatenated);
+        variableNames = splitVariableNames(taskVariablesConcatenated, ',');
 
       } else {
         return "{}";
@@ -148,9 +171,5 @@ public class ReferencedTaskCreator {
           e);
     }
     return null;
-  }
-
-  private List<String> splitVariableNamesString(String variableNamesConcatenated) {
-    return Arrays.asList(variableNamesConcatenated.trim().split("\\s*,\\s*"));
   }
 }
