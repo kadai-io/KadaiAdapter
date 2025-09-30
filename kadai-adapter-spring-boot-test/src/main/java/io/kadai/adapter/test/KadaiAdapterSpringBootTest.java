@@ -22,7 +22,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * also allows <b>testing plugins</b>.
  *
  * @see KadaiAdapterSpringBootTestConfiguration
- * @see KadaiAdapterSpringBootTestExecutionListener
  */
 @Inherited
 @Target(ElementType.TYPE)

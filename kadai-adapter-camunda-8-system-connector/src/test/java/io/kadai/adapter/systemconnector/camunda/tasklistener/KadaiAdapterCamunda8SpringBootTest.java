@@ -21,8 +21,8 @@ import org.springframework.test.context.TestPropertySource;
  * <p>Meta-Annotation built on top of {@link KadaiAdapterSpringBootTest @KadaiAdapterSpringBootTest}
  * and {@link io.camunda.process.test.api.CamundaSpringProcessTest @CamundaSpringProcessTest}.
  *
- * @see KadaiAdapterSpringBootTestConfiguration
  * @see KadaiAdapterSpringBootTestExecutionListener
+ * @see CamundaProcessTestExecutionListener
  */
 @Inherited
 @Target(ElementType.TYPE)
