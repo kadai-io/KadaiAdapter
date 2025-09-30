@@ -3,7 +3,6 @@ package io.kadai.adapter.systemconnector.camunda.tasklistener;
 import io.camunda.process.test.api.CamundaProcessTestExecutionListener;
 import io.camunda.process.test.impl.configuration.CamundaProcessTestAutoConfiguration;
 import io.kadai.adapter.test.KadaiAdapterSpringBootTest;
-import io.kadai.adapter.test.KadaiAdapterSpringBootTestConfiguration;
 import io.kadai.adapter.test.KadaiAdapterSpringBootTestExecutionListener;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
