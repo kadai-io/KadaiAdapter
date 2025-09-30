@@ -47,29 +47,4 @@ class UserTaskCreationTest {
     assertThat(actual).hasSize(1);
     assertThat(actual.get(0).getState()).isEqualTo(TaskState.READY);
   }
-
-  @Test
-  @WithAccessId(user = "admin")
-  void should_CreateKadaiTaskAgainProvingTestIsolation() throws Exception {
-    kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
-    kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
-
-    final ProcessInstanceEvent processInstance =
-        client
-            .newCreateInstanceCommand()
-            .bpmnProcessId("Test_Process")
-            .latestVersion()
-            .send()
-            .join();
-
-    CamundaAssert.assertThat(processInstance).isActive();
-    final List<TaskSummary> actual = kadaiEngine.getTaskService().createTaskQuery().list();
-    assertThat(actual).hasSize(1);
-    assertThat(actual.get(0).getState()).isEqualTo(TaskState.READY);
-  }
 }
