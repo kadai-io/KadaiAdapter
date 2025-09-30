@@ -45,7 +45,7 @@
         <version.kadai>10.2.1-SNAPSHOT</version.kadai>
 
         <!-- build dependencies -->
-        <version.checkstyle>11.0.0</version.checkstyle>
+        <version.checkstyle>11.1.0</version.checkstyle>
         <version.google-java-format>1.28.0</version.google-java-format>
         <version.maven.checkstyle>3.6.0</version.maven.checkstyle>
         <version.maven.compiler>3.13.0</version.maven.compiler>
@@ -55,7 +55,7 @@
         <version.maven.javadoc>3.11.2</version.maven.javadoc>
         <version.maven.jboss-as.plugin>7.9.Final</version.maven.jboss-as.plugin>
         <version.maven.resources>3.3.1</version.maven.resources>
-        <version.maven.sonar>5.1.0.4751</version.maven.sonar>
+        <version.maven.sonar>5.2.0.4988</version.maven.sonar>
         <version.maven.source>3.3.1</version.maven.source>
         <version.maven.surefire.plugin>3.2.5</version.maven.surefire.plugin>
         <version.maven-war-plugin>3.4.0</version.maven-war-plugin>
@@ -64,7 +64,7 @@
         <version.spring.mybatis>3.0.5</version.spring.mybatis>
 
         <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
-        <version.spring.boot>3.5.5</version.spring.boot>
+        <version.spring.boot>3.5.6</version.spring.boot>
 
         <version.camunda>7.23.0</version.camunda>
         <version.camunda.spin>1.23.0</version.camunda.spin>
@@ -75,14 +75,14 @@
         <version.jakarta-ws-rs-api>3.0.0</version.jakarta-ws-rs-api>
 
         <version.resteasy.spring.boot>6.3.0.Final</version.resteasy.spring.boot>
-        <version.org.webjars.bootstrap>5.3.7</version.org.webjars.bootstrap>
+        <version.org.webjars.bootstrap>5.3.8</version.org.webjars.bootstrap>
 
         <version.archunit>1.4.1</version.archunit>
         <version.hamcrest.json>0.3</version.hamcrest.json>
 
         <version.maven.gpg>3.2.8</version.maven.gpg>
         <version.jacoco>0.8.13</version.jacoco>
-        <version.sonatype.release>0.8.0</version.sonatype.release>
+        <version.sonatype.release>0.9.0</version.sonatype.release>
 
         <!-- sonar settings -->
         <!--suppress UnresolvedMavenProperty -->
@@ -165,7 +165,7 @@
                     <plugin>
                       <groupId>org.sonatype.central</groupId>
                       <artifactId>central-publishing-maven-plugin</artifactId>
-                      <version>0.8.0</version>
+                      <version>0.9.0</version>
                       <extensions>true</extensions>
                       <configuration>
                         <publishingServerId>central</publishingServerId>

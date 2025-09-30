@@ -9,14 +9,14 @@ import java.util.StringTokenizer;
 import org.springframework.boot.actuate.health.CompositeHealthContributor;
 import org.springframework.boot.actuate.health.HealthContributor;
 import org.springframework.boot.actuate.health.NamedContributor;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 public class CamundaSystemsHealthComposite implements CompositeHealthContributor {
 
   private final Map<String, HealthContributor> healthContributors = new HashMap<>();
 
   public CamundaSystemsHealthComposite(
-      RestTemplate restTemplate,
+      RestClient restClient,
       List<String> camundaSystemUrls,
       ExternalServicesHealthConfigurationProperties properties) {
 
@@ -31,7 +31,7 @@ public class CamundaSystemsHealthComposite implements CompositeHealthContributor
         healthContributors.put(
             "camundaSystem" + ++i,
             new CamundaOutboxHealthComposite(
-                restTemplate, camundaUrl, outboxUrl, properties.getCamundaSystem()));
+                restClient, camundaUrl, outboxUrl, properties.getCamundaSystem()));
       }
     }
   }
