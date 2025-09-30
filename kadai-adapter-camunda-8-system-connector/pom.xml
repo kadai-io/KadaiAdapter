@@ -43,17 +43,18 @@
       <artifactId>kadai-adapter</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>io.kadai</groupId>
-      <artifactId>kadai-adapter-spring-boot-test</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
     <!-- testing dependencies -->
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-process-test-spring</artifactId>
       <version>${version.camunda8}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.kadai</groupId>
+      <artifactId>kadai-adapter-spring-boot-test</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
