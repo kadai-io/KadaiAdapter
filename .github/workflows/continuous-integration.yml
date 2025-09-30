@@ -46,7 +46,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}
       - name: Test
-        run: ./mvnw -B verify
+        run: ./mvnw -B install verify
       - name: Upload JaCoCo Report
         uses: actions/upload-artifact@v4
         with:
