@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.actuate.health.NamedContributor;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 class Camunda7SystemHealthCompositeTest {
 
@@ -31,7 +31,7 @@ class Camunda7SystemHealthCompositeTest {
 
   @Test
   void should_IterateOverAllHealthContributors() {
-    RestTemplate restTemplate = mock(RestTemplate.class);
+    RestClient restTemplate = mock(RestClient.class);
     List<String> urls = List.of(
             "http://localhost:8080/engine|http://localhost:8080/outbox",
             "http://localhost:8081/engine|http://localhost:8081/outbox"

@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 class Camunda7HealthContributorTest {
 
@@ -21,7 +21,7 @@ class Camunda7HealthContributorTest {
 
     Camunda7HealthContributor contributor = new Camunda7HealthContributor(
             mock(SystemConnectorHealthRegistry.class),
-            mock(RestTemplate.class),
+            mock(RestClient.class),
             properties,
             camundaUrls);
 
@@ -49,7 +49,7 @@ class Camunda7HealthContributorTest {
 
     Camunda7HealthContributor contributor = new Camunda7HealthContributor(
             mock(SystemConnectorHealthRegistry.class),
-            mock(RestTemplate.class),
+            mock(RestClient.class),
             properties,
             camundaUrls);
 

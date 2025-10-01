@@ -38,7 +38,8 @@ class Camunda7OutboxHealthIndicatorTest {
 
   @Test
   void should_ReturnUp_When_OutboxRespondsSuccessfully() {
-    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(restClient, BASE_URL);
+    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(
+            restClient, BASE_URL);
     OutboxEventCountRepresentationModel outboxEventCount =
         new OutboxEventCountRepresentationModel();
 
@@ -57,7 +58,8 @@ class Camunda7OutboxHealthIndicatorTest {
   @ParameterizedTest
   @MethodSource("errorResponseProvider")
   void should_ReturnDown_When_OutboxRespondsWithError(HttpStatus httpStatus) {
-    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(restClient, BASE_URL);
+    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(
+            restClient, BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
@@ -73,7 +75,8 @@ class Camunda7OutboxHealthIndicatorTest {
 
   @Test
   void should_ReturnDown_When_OutboxPingFails() {
-    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(restClient, BASE_URL);
+    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(
+            restClient, BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
 
