@@ -1,5 +1,5 @@
 /*
- * Copyright [2024] [envite consulting GmbH]
+ * Copyright [2025] [envite consulting GmbH]
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
  *
  */
 
-package io.kadai.adapter.impl;
+package io.kadai.adapter.impl.scheduled;
 
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
-import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
+import io.kadai.adapter.impl.service.KadaiTaskStarterService;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.util.LowerMedian;
 import io.kadai.task.api.exceptions.TaskAlreadyExistException;
-import io.kadai.task.api.models.Task;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -37,12 +36,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/** Retrieves tasks in an external system and starts corresponding tasks in KADAI. */
+/** Orchestrates the retrieval of new referenced tasks and creation of corresponding KADAI tasks. */
 @Component
-public class KadaiTaskStarter implements ScheduledComponent {
+public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskStarter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskStarterOrchestrator.class);
   private final AdapterManager adapterManager;
+  private final KadaiTaskStarterService kadaiTaskStarterService;
   private final SchedulerRun schedulerRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
@@ -53,8 +53,10 @@ public class KadaiTaskStarter implements ScheduledComponent {
   private int runIntervalMillis;
 
   @Autowired
-  public KadaiTaskStarter(AdapterManager adapterManager) {
+  public KadaiTaskStarterOrchestrator(
+      AdapterManager adapterManager, KadaiTaskStarterService kadaiTaskStarterService) {
     this.adapterManager = adapterManager;
+    this.kadaiTaskStarterService = kadaiTaskStarterService;
     this.schedulerRun = new SchedulerRun();
   }
 
@@ -66,7 +68,7 @@ public class KadaiTaskStarter implements ScheduledComponent {
     if (!adapterIsInitialized()) {
       return;
     }
-    synchronized (KadaiTaskStarter.class) {
+    synchronized (KadaiTaskStarterOrchestrator.class) {
       if (!adapterManager.isInitialized()) {
         return;
       }
@@ -91,8 +93,10 @@ public class KadaiTaskStarter implements ScheduledComponent {
   }
 
   public void retrieveReferencedTasksAndCreateCorrespondingKadaiTasks() {
-    LOGGER.trace("KadaiTaskStarter.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY ");
-    for (SystemConnector systemConnector : (adapterManager.getSystemConnectors().values())) {
+    LOGGER.trace("KadaiTaskStarterOrchestrator."
+        + "retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY");
+    for (InboundSystemConnector systemConnector :
+        (adapterManager.getInboundSystemConnectors().values())) {
       try {
         List<ReferencedTask> tasksToStart = systemConnector.retrieveNewStartedReferencedTasks();
 
@@ -102,23 +106,11 @@ public class KadaiTaskStarter implements ScheduledComponent {
         systemConnector.kadaiTasksHaveBeenCreatedForNewReferencedTasks(newCreatedTasksInKadai);
       } finally {
         LOGGER.trace(
-            "KadaiTaskStarter.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks "
+            "KadaiTaskStarterOrchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks "
                 + "Leaving handling of new tasks for System Connector {}",
             systemConnector.getSystemUrl());
       }
     }
-  }
-
-  public void createKadaiTask(
-      ReferencedTask referencedTask, KadaiConnector connector, SystemConnector systemConnector)
-      throws TaskCreationFailedException {
-    LOGGER.trace("KadaiTaskStarter.createKadaiTask ENTRY ");
-    referencedTask.setSystemUrl(systemConnector.getSystemUrl());
-    addVariablesToReferencedTask(referencedTask, systemConnector);
-    Task kadaiTask = connector.convertToKadaiTask(referencedTask);
-    connector.createKadaiTask(kadaiTask);
-
-    LOGGER.trace("KadaiTaskStarter.createKadaiTask EXIT ");
   }
 
   @Override
@@ -137,38 +129,48 @@ public class KadaiTaskStarter implements ScheduledComponent {
   }
 
   private List<ReferencedTask> createAndStartKadaiTasks(
-      SystemConnector systemConnector, List<ReferencedTask> tasksToStart) {
+      InboundSystemConnector systemConnector, List<ReferencedTask> tasksToStart) {
     List<ReferencedTask> newCreatedTasksInKadai = new ArrayList<>();
     for (ReferencedTask referencedTask : tasksToStart) {
       try {
-        createKadaiTask(referencedTask, adapterManager.getKadaiConnector(), systemConnector);
+        addVariablesToReferencedTask(referencedTask, systemConnector);
+        referencedTask.setSystemUrl(systemConnector.getSystemUrl());
+        kadaiTaskStarterService.createKadaiTask(referencedTask);
         newCreatedTasksInKadai.add(referencedTask);
       } catch (TaskCreationFailedException e) {
         if (e.getCause() instanceof TaskAlreadyExistException) {
           newCreatedTasksInKadai.add(referencedTask);
         } else {
-          LOGGER.warn(
-              "caught Exception when attempting to start KadaiTask for referencedTask {}",
+          handleError(
+              systemConnector,
               referencedTask,
-              e);
-          systemConnector.kadaiTaskFailedToBeCreatedForNewReferencedTask(referencedTask, e);
-          systemConnector.unlockEvent(referencedTask.getOutboxEventId());
+              e,
+              "caught Exception when attempting to start KadaiTask for referencedTask {}");
         }
       } catch (Exception e) {
-        LOGGER.warn(
-            "caught unexpected Exception when attempting to start KadaiTask "
-                + "for referencedTask {}",
+        handleError(
+            systemConnector,
             referencedTask,
-            e);
-        systemConnector.kadaiTaskFailedToBeCreatedForNewReferencedTask(referencedTask, e);
-        systemConnector.unlockEvent(referencedTask.getOutboxEventId());
+            e,
+            "caught unexpected Exception when attempting to start KadaiTask "
+                + "for referencedTask {}");
       }
     }
     return newCreatedTasksInKadai;
   }
 
+  private void handleError(
+      InboundSystemConnector systemConnector,
+      ReferencedTask referencedTask,
+      Exception exception,
+      String message) {
+    LOGGER.warn(message, referencedTask, exception);
+    systemConnector.kadaiTaskFailedToBeCreatedForNewReferencedTask(referencedTask, exception);
+    systemConnector.unlockEvent(referencedTask.getOutboxEventId());
+  }
+
   private void addVariablesToReferencedTask(
-      ReferencedTask referencedTask, SystemConnector connector) {
+      ReferencedTask referencedTask, InboundSystemConnector connector) {
     if (referencedTask.getVariables() == null) {
       String variables = connector.retrieveReferencedTaskVariables(referencedTask.getId());
       referencedTask.setVariables(variables);

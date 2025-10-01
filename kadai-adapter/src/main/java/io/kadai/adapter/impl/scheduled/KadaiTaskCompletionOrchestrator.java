@@ -1,5 +1,5 @@
 /*
- * Copyright [2024] [envite consulting GmbH]
+ * Copyright [2025] [envite consulting GmbH]
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
  *
  */
 
-package io.kadai.adapter.impl;
+package io.kadai.adapter.impl.scheduled;
 
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
-import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
+import io.kadai.adapter.impl.service.KadaiTaskCompletionService;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
 import io.kadai.adapter.util.LowerMedian;
 import java.time.Duration;
 import java.time.Instant;
@@ -34,12 +34,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/** Terminates KADAI tasks if the associated task in the external system was finished. */
+/**
+ * Orchestrates the retrieval of finished referenced tasks and termination of corresponding KADAI
+ * tasks.
+ */
 @Component
-public class KadaiTaskTerminator implements ScheduledComponent {
+public class KadaiTaskCompletionOrchestrator implements ScheduledComponent {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskTerminator.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(KadaiTaskCompletionOrchestrator.class);
   private final AdapterManager adapterManager;
+  private final KadaiTaskCompletionService kadaiTaskCompletionService;
   private final SchedulerRun schedulerRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
@@ -52,8 +57,10 @@ public class KadaiTaskTerminator implements ScheduledComponent {
   private int runIntervalMillis;
 
   @Autowired
-  public KadaiTaskTerminator(AdapterManager adapterManager) {
+  public KadaiTaskCompletionOrchestrator(
+      AdapterManager adapterManager, KadaiTaskCompletionService kadaiTaskCompletionService) {
     this.adapterManager = adapterManager;
+    this.kadaiTaskCompletionService = kadaiTaskCompletionService;
     this.schedulerRun = new SchedulerRun();
   }
 
@@ -71,7 +78,7 @@ public class KadaiTaskTerminator implements ScheduledComponent {
       }
     }
 
-    synchronized (KadaiTaskTerminator.class) {
+    synchronized (KadaiTaskCompletionOrchestrator.class) {
       if (!adapterManager.isInitialized()) {
         return;
       }
@@ -80,13 +87,12 @@ public class KadaiTaskTerminator implements ScheduledComponent {
           "--retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks started-----");
 
       try {
-
-        for (SystemConnector systemConnector : (adapterManager.getSystemConnectors().values())) {
+        for (InboundSystemConnector systemConnector :
+            (adapterManager.getInboundSystemConnectors().values())) {
           UserContext.runAsUser(
               runAsUser,
               () -> {
-                retrieveFinishededReferencedTasksAndTerminateCorrespondingKadaiTasks(
-                    systemConnector);
+                retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(systemConnector);
                 return null;
               });
         }
@@ -102,10 +108,10 @@ public class KadaiTaskTerminator implements ScheduledComponent {
     }
   }
 
-  public void retrieveFinishededReferencedTasksAndTerminateCorrespondingKadaiTasks(
-      SystemConnector systemConnector) {
+  public void retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(
+      InboundSystemConnector systemConnector) {
     LOGGER.trace(
-        "KadaiTaskTerminator."
+        "KadaiTaskCompletionOrchestrator."
             + "retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks ENTRY ");
 
     try {
@@ -114,7 +120,7 @@ public class KadaiTaskTerminator implements ScheduledComponent {
 
       for (ReferencedTask referencedTask : kadaiTasksToTerminate) {
         try {
-          terminateKadaiTask(referencedTask);
+          kadaiTaskCompletionService.terminateKadaiTask(referencedTask);
         } catch (TaskTerminationFailedException ex) {
           LOGGER.error(
               "attempted to terminate task with external Id {} and caught exception",
@@ -123,7 +129,7 @@ public class KadaiTaskTerminator implements ScheduledComponent {
           systemConnector.unlockEvent(referencedTask.getOutboxEventId());
         } catch (Exception e) {
           LOGGER.warn(
-              "caught unexpected Exception when attempting to start KadaiTask "
+              "caught unexpected Exception when attempting to terminate KadaiTask "
                   + "for referencedTask {}",
               referencedTask,
               e);
@@ -134,7 +140,7 @@ public class KadaiTaskTerminator implements ScheduledComponent {
 
     } finally {
       LOGGER.trace(
-          "KadaiTaskTerminator."
+          "KadaiTaskCompletionOrchestrator."
               + "retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks EXIT ");
     }
   }
@@ -152,14 +158,5 @@ public class KadaiTaskTerminator implements ScheduledComponent {
   @Override
   public Duration getExpectedRunDuration() {
     return runDurationLowerMedian.get().orElse(Duration.ZERO);
-  }
-
-  private void terminateKadaiTask(ReferencedTask referencedTask)
-      throws TaskTerminationFailedException {
-    LOGGER.trace("KadaiTaskTerminator.terminateKadaiTask ENTRY ");
-    KadaiConnector kadaiConnector = adapterManager.getKadaiConnector();
-    kadaiConnector.terminateKadaiTask(referencedTask);
-
-    LOGGER.trace("KadaiTaskTerminator.terminateKadaiTask EXIT ");
   }
 }

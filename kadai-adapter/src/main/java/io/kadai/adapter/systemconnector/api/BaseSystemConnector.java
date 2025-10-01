@@ -16,22 +16,22 @@
  *
  */
 
-package io.kadai.adapter.impl;
+package io.kadai.adapter.systemconnector.api;
 
-import io.kadai.common.api.security.UserPrincipal;
-import java.security.PrivilegedAction;
-import java.util.function.Supplier;
-import javax.security.auth.Subject;
+/** Base interface for system connectors containing common identification methods. */
+public interface BaseSystemConnector {
 
-public class UserContext {
+  /**
+   * Get the URL of the external system this connector connects to.
+   *
+   * @return the URL of the connected external system.
+   */
+  String getSystemUrl();
 
-  private UserContext() {
-    throw new IllegalStateException("Utility class");
-  }
-
-  static <T> T runAsUser(String runAsUserId, Supplier<T> supplier) {
-    Subject subject = new Subject();
-    subject.getPrincipals().add(new UserPrincipal(runAsUserId));
-    return Subject.doAs(subject, (PrivilegedAction<T>) supplier::get);
-  }
+  /**
+   * Get the system identifier of the external system this connector connects to.
+   *
+   * @return the system identifier of the connected external system.
+   */
+  String getSystemIdentifier();
 }

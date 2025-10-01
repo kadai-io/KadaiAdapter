@@ -1,4 +1,4 @@
-package io.kadai.adapter.impl;
+package io.kadai.adapter.impl.scheduled;
 
 import java.time.Duration;
 
