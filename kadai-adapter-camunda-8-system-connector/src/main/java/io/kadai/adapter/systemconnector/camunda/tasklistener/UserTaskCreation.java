@@ -25,23 +25,14 @@ public class UserTaskCreation {
   }
 
   @JobWorker(type = "kadai-receive-task-created-event")
-  public void receiveTaskCreatedEvent(final ActivatedJob job) {
+  public void receiveTaskCreatedEvent(final ActivatedJob job) throws TaskCreationFailedException {
+    LOGGER.info(
+        "UserTaskListener kadai-receive-task-created-event has been called, "
+        + "connected to process instance '{}'",
+        job.getProcessInstanceKey());
 
-    try {
-      LOGGER.info(
-          "UserTaskListener kadai-receive-task-created-event has been called, "
-              + "connected to process instance '{}'",
-          job.getProcessInstanceKey());
+    ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
 
-      ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
-
-      taskStarter.createKadaiTask(referencedTask);
-
-    } catch (TaskCreationFailedException e) {
-      LOGGER.error(
-          "Caught exception while trying to retrieve "
-              + "finished referenced tasks and terminate corresponding kadai tasks",
-          e);
-    }
+    taskStarter.createKadaiTask(referencedTask);
   }
 }
