@@ -22,6 +22,8 @@ import org.springframework.stereotype.Component;
 public class ExternalServicesHealthComposite implements CompositeHealthContributor {
 
   private final Map<String, HealthContributor> healthContributors = new HashMap<>();
+  private final SystemConnectorHealthRegistry registry;
+  private boolean systemConnectorsInitialized = false;
 
   @Autowired
   public ExternalServicesHealthComposite(
@@ -33,7 +35,7 @@ public class ExternalServicesHealthComposite implements CompositeHealthContribut
       KadaiTaskStarterOrchestrator kadaiTaskStarter,
       KadaiTaskCompletionOrchestrator kadaiTaskTerminator) {
 
-    healthContributors.putAll(registry.getEnabledHealthContributors());
+    this.registry = registry;
 
     if (properties.getKadai().getEnabled()) {
       healthContributors.put("kadai", new KadaiHealthIndicator());
@@ -51,14 +53,24 @@ public class ExternalServicesHealthComposite implements CompositeHealthContribut
     }
   }
 
+  private synchronized void initializeSystemConnectors() {
+    if (!systemConnectorsInitialized) {
+      Map<String, HealthContributor> connectors = registry.getEnabledHealthContributors();
+      healthContributors.putAll(connectors);
+      systemConnectorsInitialized = true;
+    }
+  }
+
   @Override
   public HealthContributor getContributor(String name) {
+    initializeSystemConnectors();
     return healthContributors.get(name);
   }
 
   @NonNull
   @Override
   public Iterator<NamedContributor<HealthContributor>> iterator() {
+    initializeSystemConnectors();
     return healthContributors.entrySet().stream()
         .map(entry -> NamedContributor.of(entry.getKey(), entry.getValue()))
         .iterator();
