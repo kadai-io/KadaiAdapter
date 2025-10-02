@@ -3,7 +3,7 @@ package io.kadai.adapter.monitoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
+import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ class Camunda7SystemHealthCompositeTest {
             List.of(
                 "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest",
                 "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest"),
-            new ExternalServicesHealthConfigurationProperties());
+            new Camunda7HealthConfigurationProperties());
 
     assertThat(camundaSystemsHealthComposite.getContributor(contributorName)).isNotNull();
   }
@@ -36,8 +36,8 @@ class Camunda7SystemHealthCompositeTest {
             "http://localhost:8080/engine|http://localhost:8080/outbox",
             "http://localhost:8081/engine|http://localhost:8081/outbox"
     );
-    ExternalServicesHealthConfigurationProperties properties =
-            new ExternalServicesHealthConfigurationProperties();
+    Camunda7HealthConfigurationProperties properties =
+            new Camunda7HealthConfigurationProperties();
 
     Camunda7SystemsHealthComposite composite = new Camunda7SystemsHealthComposite(
             restTemplate, urls, properties);

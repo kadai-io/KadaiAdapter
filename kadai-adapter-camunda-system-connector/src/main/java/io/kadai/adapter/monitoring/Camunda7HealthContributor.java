@@ -1,6 +1,6 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
+import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,14 +14,14 @@ import org.springframework.web.client.RestClient;
 public class Camunda7HealthContributor implements SystemConnectorHealthContributor {
 
   private final RestClient restClient;
-  private final ExternalServicesHealthConfigurationProperties properties;
+  private final Camunda7HealthConfigurationProperties properties;
   private final List<String> camundaSystemUrls;
 
   @Autowired
   public Camunda7HealthContributor(
           SystemConnectorHealthRegistry registry,
           RestClient restClient,
-          ExternalServicesHealthConfigurationProperties properties,
+          Camunda7HealthConfigurationProperties properties,
           @Value("${kadai-system-connector-camundaSystemURLs}") List<String> camundaSystemUrls) {
     this.restClient = restClient;
     this.properties = properties;
@@ -42,6 +42,6 @@ public class Camunda7HealthContributor implements SystemConnectorHealthContribut
 
   @Override
   public boolean isEnabled() {
-    return properties.getCamundaSystem().getEnabled();
+    return properties.getEnabled();
   }
 }

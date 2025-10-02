@@ -1,6 +1,6 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
+import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,7 +18,7 @@ public class Camunda7SystemsHealthComposite implements CompositeHealthContributo
   public Camunda7SystemsHealthComposite(
       RestClient restClient,
       List<String> camundaSystemUrls,
-      ExternalServicesHealthConfigurationProperties properties) {
+      Camunda7HealthConfigurationProperties properties) {
 
     int i = 0;
     if (camundaSystemUrls != null) {
@@ -31,7 +31,7 @@ public class Camunda7SystemsHealthComposite implements CompositeHealthContributo
         healthContributors.put(
             "camundaSystem" + ++i,
             new Camunda7OutboxHealthComposite(
-                restClient, camundaUrl, outboxUrl, properties.getCamundaSystem()));
+                restClient, camundaUrl, outboxUrl, properties));
       }
     }
   }

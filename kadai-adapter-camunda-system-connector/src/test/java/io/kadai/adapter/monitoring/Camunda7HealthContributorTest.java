@@ -3,7 +3,7 @@ package io.kadai.adapter.monitoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
+import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
@@ -12,8 +12,8 @@ class Camunda7HealthContributorTest {
 
   @Test
   void should_CreateCamundaSystemsHealthComposite_When_Enabled() {
-    ExternalServicesHealthConfigurationProperties properties =
-            new ExternalServicesHealthConfigurationProperties();
+    Camunda7HealthConfigurationProperties properties =
+            new Camunda7HealthConfigurationProperties();
 
     List<String> camundaUrls = List.of(
             "http://localhost:10020/engine-rest|http://localhost:10020/outbox-rest"
@@ -33,15 +33,9 @@ class Camunda7HealthContributorTest {
 
   @Test
   void should_BeDisabled_When_CamundaSystemDisabled() {
-    ExternalServicesHealthConfigurationProperties properties =
-            new ExternalServicesHealthConfigurationProperties()
-                    .withCamundaSystem(
-                            (ExternalServicesHealthConfigurationProperties
-                                    .CamundaSystemHealthConfigurationProperties)
-                                        new ExternalServicesHealthConfigurationProperties
-                                                .CamundaSystemHealthConfigurationProperties()
-                                                .withEnabled(false)
-                    );
+    Camunda7HealthConfigurationProperties properties =
+            new Camunda7HealthConfigurationProperties();
+    properties.setEnabled(false);
 
     List<String> camundaUrls = List.of(
             "http://localhost:10020/engine-rest|http://localhost:10020/outbox-rest"
