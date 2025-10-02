@@ -25,4 +25,9 @@ public class Camunda8System {
   public void setClusterApiUrl(String clusterApiUrl) {
     this.clusterApiUrl = clusterApiUrl;
   }
+
+  // Hard-coded now until multiple C8-Systems are supported, configured OR derived then
+  public int getIdentifier() {
+    return 0;
+  }
 }
