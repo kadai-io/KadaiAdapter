@@ -157,8 +157,8 @@ public class ReferencedTaskCreator {
   /**
    * Parses given Camunda-DateTime and formats it according to ISO8601.
    *
-   * <p>Returns null if input is null or empty. Exceptions related to parsing and formatting are caught and
-   * logged - null is returned in these cases.
+   * <p>Returns null if input is null or empty. Exceptions related to parsing and formatting are
+   * caught and logged - null is returned in these cases.
    *
    * @param camundaDateTime Camunda-DateTime to format
    * @return formatted DateTime
