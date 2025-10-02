@@ -23,7 +23,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @ExtendWith(MockitoExtension.class)
-class CamundaHealthIndicatorTest {
+class Camunda7HealthIndicatorTest {
 
   private static final String BASE_URL = "http://localhost:8080/engine-rest";
   private static final URI EXPECTED_URI =
@@ -33,8 +33,8 @@ class CamundaHealthIndicatorTest {
 
   @Test
   void should_ReturnUp_When_CamundaRespondsSuccessfully() {
-    CamundaHealthIndicator camundaHealthIndicator =
-        new CamundaHealthIndicator(restClient, BASE_URL);
+    Camunda7HealthIndicator camundaHealthIndicator =
+        new Camunda7HealthIndicator(restClient, BASE_URL);
     CamundaEngineInfoRepresentationModel engine = new CamundaEngineInfoRepresentationModel();
     CamundaEngineInfoRepresentationModel[] engines = {engine};
 
@@ -52,8 +52,8 @@ class CamundaHealthIndicatorTest {
 
   @Test
   void should_ReturnDown_When_CamundaRespondsSuccessfullyButListsNoEngines() {
-    CamundaHealthIndicator camundaHealthIndicator =
-        new CamundaHealthIndicator(restClient, BASE_URL);
+    Camunda7HealthIndicator camundaHealthIndicator =
+        new Camunda7HealthIndicator(restClient, BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
@@ -70,8 +70,8 @@ class CamundaHealthIndicatorTest {
   @ParameterizedTest
   @MethodSource("errorResponseProvider")
   void should_ReturnDown_When_CamundaRespondsWithError(HttpStatus httpStatus) {
-    CamundaHealthIndicator camundaHealthIndicator =
-        new CamundaHealthIndicator(restClient, BASE_URL);
+    Camunda7HealthIndicator camundaHealthIndicator =
+        new Camunda7HealthIndicator(restClient, BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
@@ -87,8 +87,8 @@ class CamundaHealthIndicatorTest {
 
   @Test
   void should_ReturnDown_When_CamundaPingFails() {
-    CamundaHealthIndicator camundaHealthIndicator =
-        new CamundaHealthIndicator(restClient, BASE_URL);
+    Camunda7HealthIndicator camundaHealthIndicator =
+        new Camunda7HealthIndicator(restClient, BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
 

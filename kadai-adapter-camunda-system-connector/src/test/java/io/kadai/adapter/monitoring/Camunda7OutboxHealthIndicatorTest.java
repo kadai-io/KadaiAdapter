@@ -23,7 +23,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @ExtendWith(MockitoExtension.class)
-class OutboxHealthIndicatorTest {
+class Camunda7OutboxHealthIndicatorTest {
 
   private static final String BASE_URL = "http://localhost:8080/outbox-rest";
   private static final URI EXPECTED_URI =
@@ -38,7 +38,8 @@ class OutboxHealthIndicatorTest {
 
   @Test
   void should_ReturnUp_When_OutboxRespondsSuccessfully() {
-    OutboxHealthIndicator outboxHealthIndicator = new OutboxHealthIndicator(restClient, BASE_URL);
+    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(
+            restClient, BASE_URL);
     OutboxEventCountRepresentationModel outboxEventCount =
         new OutboxEventCountRepresentationModel();
 
@@ -57,7 +58,8 @@ class OutboxHealthIndicatorTest {
   @ParameterizedTest
   @MethodSource("errorResponseProvider")
   void should_ReturnDown_When_OutboxRespondsWithError(HttpStatus httpStatus) {
-    OutboxHealthIndicator outboxHealthIndicator = new OutboxHealthIndicator(restClient, BASE_URL);
+    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(
+            restClient, BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
@@ -73,7 +75,8 @@ class OutboxHealthIndicatorTest {
 
   @Test
   void should_ReturnDown_When_OutboxPingFails() {
-    OutboxHealthIndicator outboxHealthIndicator = new OutboxHealthIndicator(restClient, BASE_URL);
+    Camunda7OutboxHealthIndicator outboxHealthIndicator = new Camunda7OutboxHealthIndicator(
+            restClient, BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
 
