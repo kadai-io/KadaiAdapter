@@ -178,7 +178,8 @@ public class ReferencedTaskCreator {
         return null;
       } catch (DateTimeException e) {
         LOGGER.warn(
-            "Caught exception while trying to format Camunda8-DateTime '{}' as ISO8601-formatted String.",
+            "Caught exception while trying to format Camunda8-DateTime '{}'"
+                + " as ISO8601-formatted String.",
             camundaDateTime,
             e);
         return null;
