@@ -26,23 +26,15 @@ public class UserTaskCompletion {
   }
 
   @JobWorker(type = "kadai-receive-task-completed-event")
-  public void receiveTaskCompletedEvent(final ActivatedJob job) {
+  public void receiveTaskCompletedEvent(final ActivatedJob job)
+          throws TaskTerminationFailedException {
+    LOGGER.info(
+        "UserTaskListener kadai-receive-task-completed-event has been called, "
+        + "connected to process instance '{}'",
+        job.getProcessInstanceKey());
 
-    try {
-      LOGGER.info(
-          "UserTaskListener kadai-receive-task-completed-event has been called, "
-              + "connected to process instance '{}'",
-          job.getProcessInstanceKey());
-
-      ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
-      referencedTask.setTaskState(TASK_STATE_COMPLETED);
-      taskTerminator.terminateKadaiTask(referencedTask);
-
-    } catch (TaskTerminationFailedException e) {
-      LOGGER.error(
-          "Caught exception while trying to retrieve "
-              + "finished referenced tasks and terminate corresponding kadai tasks",
-          e);
-    }
+    ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
+    referencedTask.setTaskState(TASK_STATE_COMPLETED);
+    taskTerminator.terminateKadaiTask(referencedTask);
   }
 }
