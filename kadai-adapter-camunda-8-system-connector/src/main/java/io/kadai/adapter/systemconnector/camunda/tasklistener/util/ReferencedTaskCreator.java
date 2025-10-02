@@ -6,8 +6,10 @@ import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
+import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -39,15 +41,11 @@ public class ReferencedTaskCreator {
   public ReferencedTask createReferencedTaskFromJob(ActivatedJob job) {
     ReferencedTask referencedTask = new ReferencedTask();
     UserTaskProperties userTaskProperties = job.getUserTask();
-    referencedTask.setId(String.valueOf(userTaskProperties.getUserTaskKey()));
+    referencedTask.setId(resolveTaskId(job, camunda8System));
     referencedTask.setManualPriority(getVariable(job, "kadai_manual_priority"));
     referencedTask.setAssignee(userTaskProperties.getAssignee());
-    referencedTask.setDue(
-        ZonedDateTime.parse(userTaskProperties.getDueDate())
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")));
-    referencedTask.setPlanned(
-        ZonedDateTime.parse(userTaskProperties.getFollowUpDate())
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")));
+    referencedTask.setDue(formatIso8601OffsetDateTime(userTaskProperties.getDueDate()));
+    referencedTask.setPlanned(formatIso8601OffsetDateTime(userTaskProperties.getFollowUpDate()));
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
@@ -78,6 +76,12 @@ public class ReferencedTaskCreator {
     LOGGER.debug("Creating ReferencedTask from job: {}", referencedTask);
 
     return referencedTask;
+  }
+
+  private static String resolveTaskId(ActivatedJob activatedJob, Camunda8System camunda8System) {
+    return String.format(
+        "c8sysid-%d-utk-%d",
+        camunda8System.getIdentifier(), activatedJob.getUserTask().getUserTaskKey());
   }
 
   /**
@@ -148,6 +152,38 @@ public class ReferencedTaskCreator {
           e);
     }
     return null;
+  }
+
+  /**
+   * Parses given Camunda-DateTime and formats it according to ISO8601.
+   *
+   * <p>Returns null if input is null or empty. Exceptions related to parsing and formatting are caught and
+   * logged - null is returned in these cases.
+   *
+   * @param camundaDateTime Camunda-DateTime to format
+   * @return formatted DateTime
+   */
+  private static String formatIso8601OffsetDateTime(String camundaDateTime) {
+    if (camundaDateTime == null || camundaDateTime.isEmpty()) {
+      return null;
+    } else {
+      try {
+        return ZonedDateTime.parse(camundaDateTime)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+      } catch (DateTimeParseException e) {
+        LOGGER.warn(
+            "Caught exception while trying to parse Camunda8-DateTime '{}' as 'ZoneDateTime'.",
+            camundaDateTime,
+            e);
+        return null;
+      } catch (DateTimeException e) {
+        LOGGER.warn(
+            "Caught exception while trying to format Camunda8-DateTime '{}' as ISO8601-formatted String.",
+            camundaDateTime,
+            e);
+        return null;
+      }
+    }
   }
 
   private List<String> splitVariableNamesString(String variableNamesConcatenated) {
