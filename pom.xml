@@ -101,8 +101,9 @@
 
     <modules>
         <module>kadai-adapter</module>
-        <module>kadai-adapter-camunda-system-connector</module>
         <module>kadai-adapter-kadai-connector</module>
+        <module>kadai-adapter-spring-boot-test</module>
+        <module>kadai-adapter-camunda-system-connector</module>
         <module>kadai-adapter-camunda-spring-boot-example</module>
         <module>kadai-adapter-camunda-listener</module>
         <module>kadai-adapter-camunda-listener-example</module>
@@ -110,9 +111,9 @@
         <module>kadai-adapter-camunda-outbox-rest-spring-boot-starter</module>
         <module>kadai-adapter-camunda-spring-boot-test</module>
         <module>camunda-outbox-example-boot</module>
-        <module>ci/kadai-adapter-sonar-test-coverage</module>
         <module>kadai-adapter-camunda-8-system-connector</module>
         <module>kadai-adapter-camunda-8-spring-boot-example</module>
+        <module>ci/kadai-adapter-sonar-test-coverage</module>
     </modules>
 
     <dependencyManagement>
@@ -367,8 +368,8 @@
             <url>https://repository.jboss.org/nexus/content/groups/public</url>
         </repository>
         <repository>
-          <name>Central Portal Snapshots</name>
           <id>central-portal-snapshots</id>
+          <name>Central Portal Snapshots</name>
           <url>https://central.sonatype.com/repository/maven-snapshots/</url>
           <releases>
             <enabled>false</enabled>
