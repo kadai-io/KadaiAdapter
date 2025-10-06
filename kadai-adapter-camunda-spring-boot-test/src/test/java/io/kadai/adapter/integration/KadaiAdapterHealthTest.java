@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SuppressWarnings({"unchecked", "rawtypes"})
-class ExternalServicesHealthCompositeTest extends AbsIntegrationTest {
+class KadaiAdapterHealthTest extends AbsIntegrationTest {
 
   @Test
   void should_ReturnUp_When_AllContributorsAreUp() {

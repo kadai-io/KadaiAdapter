@@ -5,8 +5,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.configuration.health.CompositeHealthContributorConfigurationProperties;
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
+import io.kadai.adapter.configuration.health.KernelHealthConfigurationProperties;
+import io.kadai.adapter.configuration.health.KernelHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -15,18 +15,18 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.actuate.health.HealthContributor;
 
-class ExternalServicesHealthCompositeTest {
+class KadaiAdapterHealthTest {
 
   @ParameterizedTest
   @MethodSource("coreHealthConfigurationProvider")
   void should_OnlyCreateCoreHealthIndicators_WhenEnabled(
-          ExternalServicesHealthConfigurationProperties properties,
+          KernelHealthConfigurationProperties properties,
           long expectedCoreCount) {
 
     SystemConnectorHealthRegistry mockRegistry = mock(SystemConnectorHealthRegistry.class);
     when(mockRegistry.getEnabledHealthContributors()).thenReturn(Map.of());
 
-    final ExternalServicesHealthComposite composite = new ExternalServicesHealthComposite(
+    final KadaiAdapterHealth composite = new KadaiAdapterHealth(
             properties,
             mockRegistry,
             mock(), mock(), mock(), mock(), mock());
@@ -42,8 +42,8 @@ class ExternalServicesHealthCompositeTest {
             Map.of("mockConnector", mock(HealthContributor.class))
     );
 
-    final ExternalServicesHealthComposite composite = new ExternalServicesHealthComposite(
-            new ExternalServicesHealthConfigurationProperties(),
+    final KadaiAdapterHealth composite = new KadaiAdapterHealth(
+            new KernelHealthConfigurationProperties(),
             mockRegistry,
             mock(), mock(), mock(), mock(), mock());
 
@@ -53,21 +53,21 @@ class ExternalServicesHealthCompositeTest {
 
   private static Stream<Arguments> coreHealthConfigurationProvider() {
     return Stream.of(
-        Arguments.of(new ExternalServicesHealthConfigurationProperties(), 2),
+        Arguments.of(new KernelHealthConfigurationProperties(), 2),
         Arguments.of(
-            new ExternalServicesHealthConfigurationProperties()
+            new KernelHealthConfigurationProperties()
                 .withKadai(new CompositeHealthContributorConfigurationProperties()
                         .withEnabled(false)),
                 1),
         Arguments.of(
-            new ExternalServicesHealthConfigurationProperties()
+            new KernelHealthConfigurationProperties()
                 .withScheduler(
                         (SchedulerHealthConfigurationProperties)
                                 new SchedulerHealthConfigurationProperties()
                                         .withEnabled(false)),
             1),
         Arguments.of(
-            new ExternalServicesHealthConfigurationProperties()
+            new KernelHealthConfigurationProperties()
                 .withKadai(new CompositeHealthContributorConfigurationProperties()
                         .withEnabled(false))
                         .withScheduler(

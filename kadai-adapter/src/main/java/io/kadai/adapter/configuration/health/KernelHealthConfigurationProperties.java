@@ -4,8 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "management.health.external-services")
-public class ExternalServicesHealthConfigurationProperties
+@ConfigurationProperties(prefix = "management.health.kadai-adapter.kernel")
+public class KernelHealthConfigurationProperties
     extends CompositeHealthContributorConfigurationProperties {
 
   private CompositeHealthContributorConfigurationProperties kadai =
@@ -29,13 +29,13 @@ public class ExternalServicesHealthConfigurationProperties
     this.scheduler = scheduler;
   }
 
-  public ExternalServicesHealthConfigurationProperties withKadai(
+  public KernelHealthConfigurationProperties withKadai(
       CompositeHealthContributorConfigurationProperties kadai) {
     this.kadai = kadai;
     return this;
   }
 
-  public ExternalServicesHealthConfigurationProperties withScheduler(
+  public KernelHealthConfigurationProperties withScheduler(
       SchedulerHealthConfigurationProperties scheduler) {
     this.scheduler = scheduler;
     return this;

@@ -19,14 +19,14 @@ class Camunda7HealthContributorTest {
             "http://localhost:10020/engine-rest|http://localhost:10020/outbox-rest"
     );
 
-    Camunda7HealthContributor contributor = new Camunda7HealthContributor(
+    Camunda7HealthContributorFactory contributor = new Camunda7HealthContributorFactory(
             mock(SystemConnectorHealthRegistry.class),
             mock(RestClient.class),
             properties,
             camundaUrls);
 
-    assertThat(contributor.getConnectorName()).isEqualTo("camundaSystems");
-    assertThat(contributor.createHealthContributor())
+    assertThat(contributor.getPluginName()).isEqualTo("camundaSystems");
+    assertThat(contributor.newInstance())
             .isInstanceOf(Camunda7SystemsHealthComposite.class);
     assertThat(contributor.isEnabled()).isTrue();
   }
@@ -41,7 +41,7 @@ class Camunda7HealthContributorTest {
             "http://localhost:10020/engine-rest|http://localhost:10020/outbox-rest"
     );
 
-    Camunda7HealthContributor contributor = new Camunda7HealthContributor(
+    Camunda7HealthContributorFactory contributor = new Camunda7HealthContributorFactory(
             mock(SystemConnectorHealthRegistry.class),
             mock(RestClient.class),
             properties,
