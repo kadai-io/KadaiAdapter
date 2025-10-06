@@ -19,6 +19,7 @@ import org.springframework.boot.actuate.health.NamedContributor;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+/** Root Health-Contributor for all Kadai-Adapter components. */
 @Component("kadai-adapter")
 @ConditionalOnEnabledHealthIndicator("kadai-adapter")
 public class KadaiAdapterHealth implements CompositeHealthContributor {
