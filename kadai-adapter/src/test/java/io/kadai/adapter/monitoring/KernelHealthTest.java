@@ -7,7 +7,7 @@ import io.kadai.adapter.configuration.health.KernelHealthConfigurationProperties
 import io.kadai.adapter.configuration.health.KernelHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
 import org.junit.jupiter.api.Test;
 
-public class KernelHealthTest {
+class KernelHealthTest {
 
   @Test
   void should_DefaultEnabled() {

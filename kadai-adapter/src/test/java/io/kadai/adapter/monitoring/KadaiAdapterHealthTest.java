@@ -7,7 +7,7 @@ import io.kadai.adapter.configuration.health.PluginHealthConfigurationProperties
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
-public class KadaiAdapterHealthTest {
+class KadaiAdapterHealthTest {
 
   @Test
   void should_DefaultEnabled() {
