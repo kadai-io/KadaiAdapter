@@ -20,7 +20,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 /** Root Health-Contributor for all Kadai-Adapter components. */
-@Component("kadai-adapter")
+@Component("kadaiAdapter")
 @ConditionalOnEnabledHealthIndicator("kadai-adapter")
 public class KadaiAdapterHealth implements CompositeHealthContributor {
 

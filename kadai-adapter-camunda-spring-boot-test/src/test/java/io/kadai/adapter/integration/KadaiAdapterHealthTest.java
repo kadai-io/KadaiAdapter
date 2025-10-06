@@ -27,7 +27,7 @@ class KadaiAdapterHealthTest extends AbsIntegrationTest {
   @Test
   void should_ReturnUp_When_AllContributorsAreUp() {
     ResponseEntity<Map> response =
-        restClient.get().uri("/actuator/health/kadai-adapter").retrieve().toEntity(Map.class);
+        restClient.get().uri("/actuator/health/kadaiAdapter").retrieve().toEntity(Map.class);
     Map<String, Object> body = response.getBody();
 
     assertThat(body).isNotNull();

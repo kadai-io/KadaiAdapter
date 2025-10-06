@@ -29,7 +29,7 @@ class SchedulerHealthCompositeTest extends AbsIntegrationTest {
     ResponseEntity<Map> response =
         restClient
             .get()
-            .uri("/actuator/health/kadai-adapter/kernel/scheduler")
+            .uri("/actuator/health/kadaiAdapter/kernel/scheduler")
             .retrieve()
             .toEntity(Map.class);
     Map<String, Object> body = response.getBody();
