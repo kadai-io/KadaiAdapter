@@ -1,13 +1,11 @@
 package io.kadai.adapter.test;
 
 import io.kadai.classification.api.ClassificationService;
-import io.kadai.classification.api.exceptions.ClassificationNotFoundException;
 import io.kadai.classification.api.models.Classification;
 import io.kadai.common.api.KadaiEngine;
 import io.kadai.workbasket.api.WorkbasketPermission;
 import io.kadai.workbasket.api.WorkbasketService;
 import io.kadai.workbasket.api.WorkbasketType;
-import io.kadai.workbasket.api.exceptions.WorkbasketNotFoundException;
 import io.kadai.workbasket.api.models.Workbasket;
 import io.kadai.workbasket.api.models.WorkbasketAccessItem;
 
@@ -25,16 +23,12 @@ public class KadaiAdapterTestUtil {
 
   public void createWorkbasket(String workbasketKey, String domain) throws Exception {
     WorkbasketService workbasketService = this.kadaiEngine.getWorkbasketService();
-    try {
-      workbasketService.getWorkbasket(workbasketKey, domain);
-    } catch (WorkbasketNotFoundException e) {
-      Workbasket wb = workbasketService.newWorkbasket(workbasketKey, domain);
-      wb.setName(workbasketKey);
-      wb.setOwner("teamlead_1");
-      wb.setType(WorkbasketType.PERSONAL);
-      wb = workbasketService.createWorkbasket(wb);
-      createWorkbasketAccessList(wb);
-    }
+    Workbasket wb = workbasketService.newWorkbasket(workbasketKey, domain);
+    wb.setName(workbasketKey);
+    wb.setOwner("teamlead_1");
+    wb.setType(WorkbasketType.PERSONAL);
+    wb = workbasketService.createWorkbasket(wb);
+    createWorkbasketAccessList(wb);
   }
 
   public void createWorkbasketAccessList(Workbasket wb) throws Exception {
@@ -52,13 +46,9 @@ public class KadaiAdapterTestUtil {
 
   public void createClassification(String classificationKey, String domain) throws Exception {
     ClassificationService myClassificationService = this.kadaiEngine.getClassificationService();
-    try {
-      myClassificationService.getClassification(classificationKey, domain);
-    } catch (ClassificationNotFoundException e) {
-      Classification classification =
-          myClassificationService.newClassification(classificationKey, domain, "TASK");
-      classification.setServiceLevel("P1D");
-      myClassificationService.createClassification(classification);
-    }
+    Classification classification =
+        myClassificationService.newClassification(classificationKey, domain, "TASK");
+    classification.setServiceLevel("P1D");
+    myClassificationService.createClassification(classification);
   }
 }
