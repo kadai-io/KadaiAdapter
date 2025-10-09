@@ -1,5 +1,6 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
+import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,5 +40,10 @@ public class Camunda8UtilRequester {
       return isNotExisting;
     }
     return false;
+  }
+
+  public static String getUserTaskKeyFromReferencedTask(ReferencedTask task){
+    String id = task.getId();
+    return id.substring(id.lastIndexOf('-') + 1);
   }
 }

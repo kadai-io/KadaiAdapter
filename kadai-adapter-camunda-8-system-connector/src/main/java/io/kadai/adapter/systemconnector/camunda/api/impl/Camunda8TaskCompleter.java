@@ -1,5 +1,7 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
+import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8UtilRequester.getUserTaskKeyFromReferencedTask;
+
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
@@ -22,10 +24,8 @@ public class Camunda8TaskCompleter {
   private final Camunda8HttpHeaderProvider httpHeaderProvider;
   private final RestTemplate restTemplate;
 
-
-
-  public Camunda8TaskCompleter(Camunda8HttpHeaderProvider httpHeaderProvider,
-                               RestTemplate restTemplate) {
+  public Camunda8TaskCompleter(
+      Camunda8HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
     this.httpHeaderProvider = httpHeaderProvider;
     this.restTemplate = restTemplate;
   }
@@ -36,43 +36,44 @@ public class Camunda8TaskCompleter {
   private boolean completeConfigLogged = false;
 
   public SystemResponse completeCamunda8Task(
-          Camunda8System  camunda8System,
-          ReferencedTask referencedTask) {
+      Camunda8System camunda8System, ReferencedTask referencedTask) {
 
     if (!completeConfigLogged) {
-      LOGGER.info("Synchronizing completion of tasks in KADAI to Camunda 8 is set to {}",
-              completingEnabled);
+      LOGGER.info(
+          "Synchronizing completion of tasks in KADAI to Camunda 8 is set to {}",
+          completingEnabled);
       completeConfigLogged = true;
     }
 
     if (completingEnabled) {
-      String userTaskKey = referencedTask.getId();
       StringBuilder requestUrlBuilder = new StringBuilder();
       requestUrlBuilder
-            .append(camunda8System.getClusterApiUrl())
-            .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
-            .append(referencedTask.getId())
-            .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_COMPLETION);
+          .append(camunda8System.getClusterApiUrl())
+          .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
+          .append(getUserTaskKeyFromReferencedTask(referencedTask))
+          .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_COMPLETION);
 
       HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda8TasklistApi();
       String requestBody = prepareRequestBody(referencedTask);
       HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
       try {
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-                requestUrlBuilder.toString(),
-                requestEntity,
-                String.class);
+        ResponseEntity<String> responseEntity =
+            restTemplate.postForEntity(requestUrlBuilder.toString(), requestEntity, String.class);
 
-        LOGGER.debug("Successfully completed Camunda 8 task {}. Status code = {}",
-                userTaskKey,
-                responseEntity.getStatusCode());
+        LOGGER.debug(
+            "Successfully completed Camunda 8 task {}. Status code = {}",
+            referencedTask.getId(),
+            responseEntity.getStatusCode());
 
         return new SystemResponse(responseEntity.getStatusCode(), null);
 
       } catch (HttpStatusCodeException e) {
         if (Camunda8UtilRequester.isTaskExisting(
-                  httpHeaderProvider, restTemplate, camunda8System, referencedTask.getId())) {
+            httpHeaderProvider,
+            restTemplate,
+            camunda8System,
+            getUserTaskKeyFromReferencedTask(referencedTask))) {
           return new SystemResponse(HttpStatus.OK, null);
         } else {
           LOGGER.warn("Caught Exception when trying to complete camunda task", e);
@@ -89,9 +90,8 @@ public class Camunda8TaskCompleter {
     if (camundaTask.getVariables() == null) {
       requestBody = Camunda8SystemConnectorImpl.BODY_EMPTY_REQUEST;
     } else {
-      requestBody = Camunda8SystemConnectorImpl.BODY_CAMUNDA8_COMPLETE
-                    + camundaTask.getVariables()
-                    + "}}";
+      requestBody =
+          Camunda8SystemConnectorImpl.BODY_CAMUNDA8_COMPLETE + camundaTask.getVariables() + "}}";
     }
     return requestBody;
   }
