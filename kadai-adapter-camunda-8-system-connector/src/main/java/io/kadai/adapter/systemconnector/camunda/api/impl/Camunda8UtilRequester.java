@@ -18,17 +18,18 @@ public class Camunda8UtilRequester {
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda8UtilRequester.class);
 
   public static boolean isTaskExisting(
-        Camunda8HttpHeaderProvider httpHeaderProvider,
-        RestTemplate restTemplate,
-        Camunda8System camunda8System,
-        String userTaskKey) {
+      Camunda8HttpHeaderProvider httpHeaderProvider,
+      RestTemplate restTemplate,
+      Camunda8System camunda8System,
+      String userTaskKey) {
 
-    String requestUrl = camunda8System.getClusterApiUrl()
-                        + Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS
-                        + userTaskKey;
+    String requestUrl =
+        camunda8System.getClusterApiUrl()
+            + Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS
+            + userTaskKey;
 
-    HttpEntity<Void> requestEntity = new HttpEntity<>(httpHeaderProvider
-            .getHttpHeadersForCamunda8TasklistApi());
+    HttpEntity<Void> requestEntity =
+        new HttpEntity<>(httpHeaderProvider.getHttpHeadersForCamunda8TasklistApi());
 
     try {
       restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, String.class);
@@ -42,7 +43,7 @@ public class Camunda8UtilRequester {
     return false;
   }
 
-  public static String getUserTaskKeyFromReferencedTask(ReferencedTask task){
+  public static String getUserTaskKeyFromReferencedTask(ReferencedTask task) {
     String id = task.getId();
     return id.substring(id.lastIndexOf('-') + 1);
   }
