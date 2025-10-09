@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "kadai.adapter.camunda.system")
+@ConfigurationProperties(prefix = "management.health.kadai-adapter.plugin.camunda7")
 public class Camunda7HealthConfigurationProperties
         extends CompositeHealthContributorConfigurationProperties {
 
