@@ -49,27 +49,38 @@ accessed via the SystemConnector
 The adapter performs periodically the following tasks
 
 * `retrieveNewReferencedTasksAndCreateCorrespondingKadaiTasks`
-  * retrieve newly created referenced tasks via `SystemConnector::retrieveNewStartedReferencedTasks`
-  * get the task’s variables via `SystemConnector::retrieveVariables`
-  * map referenced task to KADAI task via `KadaiConnector::convertToKadaiTask`
-  * create an associated KADAI task via `KadaiConnector::createKadaiTask`
-  *	clean the corresponding create-event in the outbox via `SystemConnector::kadaiTasksHaveBeenCreatedForNewReferencedTasks`
+    * retrieve newly created referenced tasks via
+      `SystemConnector::retrieveNewStartedReferencedTasks`
+    * get the task’s variables via `SystemConnector::retrieveVariables`
+    * map referenced task to KADAI task via `KadaiConnector::convertToKadaiTask`
+    * create an associated KADAI task via `KadaiConnector::createKadaiTask`
+    * clean the corresponding create-event in the outbox via
+      `SystemConnector::kadaiTasksHaveBeenCreatedForNewReferencedTasks`
 * `retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks`
-  * retrieve finished referenced tasks via `SystemConnector::retrieveFinishedTasks`
-  * terminate corresponding KADAI tasks via `KadaiConnector::terminateKadaiTask`
-  * clean the corresponding complete/delete-event in the outbox via `SystemConnector::kadaiTasksHaveBeenCompletedForTerminatedReferencedTasks`
+    * retrieve finished referenced tasks via `SystemConnector::retrieveFinishedTasks`
+    * terminate corresponding KADAI tasks via `KadaiConnector::terminateKadaiTask`
+    * clean the corresponding complete/delete-event in the outbox via
+      `SystemConnector::kadaiTasksHaveBeenCompletedForTerminatedReferencedTasks`
 * `retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTasks`
-  * retrieve finished KADAI tasks via `KadaiConnector::retrieveCompletedKadaiTasksAsReferencedTasks`
-  * complete the corresponding referenced tasks in the external system via `SystemConnector::completeReferencedTask`
-  * change the CallbackState of the corresponding task in KADAI to completed via `KadaiConnector::changeReferencedTaskCallbackState`
+    * retrieve finished KADAI tasks via
+      `KadaiConnector::retrieveCompletedKadaiTasksAsReferencedTasks`
+    * complete the corresponding referenced tasks in the external system via
+      `SystemConnector::completeReferencedTask`
+    * change the CallbackState of the corresponding task in KADAI to completed via
+      `KadaiConnector::changeReferencedTaskCallbackState`
 * `retrieveClaimedKadaiTasksAndClaimCorrespondingReferencedTasks`
-  * retrieve claimed KADAI tasks via `KadaiConnector::retrieveClaimedKadaiTasksAsReferencedTasks`
-  * claim the corresponding referenced tasks in the external system via ``SystemConnector::claimReferencedTask``
-  * change the CallbackState of the corresponding task in KADAI to claimed via `KadaiConnector::changeReferencedTaskCallbackState`
+    * retrieve claimed KADAI tasks via `KadaiConnector::retrieveClaimedKadaiTasksAsReferencedTasks`
+    * claim the corresponding referenced tasks in the external system via
+      ``SystemConnector::claimReferencedTask``
+    * change the CallbackState of the corresponding task in KADAI to claimed via
+      `KadaiConnector::changeReferencedTaskCallbackState`
 * `retrieveCancelledClaimKadaiTasksAndCancelClaimCorrespondingReferencedTasks`
-  * retrieve cancel claimed KADAI tasks via `KadaiConnector::retrieveCancelledClaimKadaiTasksAsReferencedTasks`
-  * cancel the claim of the corresponding referenced tasks in the external system via `SystemConnector::cancelClaimReferencedTask`
-  * change the CallbackState of the corresponding task in KADAI to processing required via `KadaiConnector::changeReferencedTaskCallbackState`         
+    * retrieve cancel claimed KADAI tasks via
+      `KadaiConnector::retrieveCancelledClaimKadaiTasksAsReferencedTasks`
+    * cancel the claim of the corresponding referenced tasks in the external system via
+      `SystemConnector::cancelClaimReferencedTask`
+    * change the CallbackState of the corresponding task in KADAI to processing required via
+      `KadaiConnector::changeReferencedTaskCallbackState`
 
 ## 📓Notes
 
@@ -80,18 +91,21 @@ The adapter performs periodically the following tasks
    will attempt to
    retrieve them from the referenced task's process.
    These variables are stored in the **custom attributes** of the corresponding kadai task in a
-   HashMap with key **referenced_task_variables** and value of type String that contains the Json representation of
+   HashMap with key **referenced_task_variables** and value of type String that contains the Json
+   representation of
    the variables.
 2. **Workbaskets** \
    The Adapter does not perform routing of tasks to workbaskets but instead relies on a SPI.
 
 # 📨Contact
 
-If you have any questions or ideas feel free to create an [issue](https://github.com/kadai-io/kadai/issues), 
-contact us via [GitHub Discussions](https://github.com/kadai-io/kadai/discussions) 
+If you have any questions or ideas feel free to create
+an [issue](https://github.com/kadai-io/kadai/issues),
+contact us via [GitHub Discussions](https://github.com/kadai-io/kadai/discussions)
 or E-mail us at [kadai@envite.de](mailto:kadai@envite.de).
 
-We love listening to your feedback, and of course also discussing the project roadmap and possible use cases with you!
+We love listening to your feedback, and of course also discussing the project roadmap and possible
+use cases with you!
 
 This open source project is being developed by [envite consulting GmbH](https://www.envite.de/)
 with the support of the open source community.

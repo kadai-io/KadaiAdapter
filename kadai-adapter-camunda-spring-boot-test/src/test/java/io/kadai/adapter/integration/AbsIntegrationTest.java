@@ -43,10 +43,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 
 /** Parent class for integrationtests for the KADAI-Adapter. */
 @ExtendWith(JaasExtension.class)
@@ -92,7 +91,7 @@ abstract class AbsIntegrationTest {
   @Resource(name = "camundaBpmDataSource")
   protected DataSource camundaBpmDataSource;
 
-  protected TestRestTemplate testRestTemplate;
+  protected RestClient restClient;
 
   @Autowired private ProcessEngineConfiguration processEngineConfiguration;
 
@@ -125,19 +124,18 @@ abstract class AbsIntegrationTest {
 
       isInitialised = true;
     }
-    this.testRestTemplate =
-        new TestRestTemplate(
-            new RestTemplateBuilder()
-                .rootUri("http://localhost:" + port)
-                .requestFactory(HttpComponentsClientHttpRequestFactory.class));
+    this.restClient =
+        RestClient.builder()
+            .baseUrl("http://localhost:" + port)
+            .requestFactory(new HttpComponentsClientHttpRequestFactory())
+            .build();
     // set up camunda requester and kadaiEngine-Taskservice
     this.camundaProcessengineRequester =
         new CamundaProcessengineRequester(
             this.processEngineConfiguration.getProcessEngineName(),
-            this.testRestTemplate,
+            this.restClient,
             this.httpHeaderProvider);
-    this.kadaiOutboxRequester =
-        new KadaiOutboxRequester(this.testRestTemplate, this.httpHeaderProvider);
+    this.kadaiOutboxRequester = new KadaiOutboxRequester(this.restClient, this.httpHeaderProvider);
     this.taskService = kadaiEngine.getTaskService();
 
     // adjust polling interval, give adapter a little more time

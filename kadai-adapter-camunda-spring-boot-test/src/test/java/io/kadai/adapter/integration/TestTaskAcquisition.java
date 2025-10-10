@@ -886,7 +886,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
 
     InboundSystemConnector systemConnector = new CamundaSystemConnectorImpl(systemUrlInfo);
 
-    Map<String, InboundSystemConnector> systemConnectors = adapterManager.getInboundSystemConnectors();
+    Map<String, InboundSystemConnector> systemConnectors =
+        adapterManager.getInboundSystemConnectors();
     systemConnectors.clear();
 
     systemConnectors.put(systemUrlInfo.getSystemRestUrl(), systemConnector);

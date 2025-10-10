@@ -49,9 +49,7 @@ import org.slf4j.LoggerFactory;
 import spinjar.com.fasterxml.jackson.databind.JsonNode;
 import spinjar.com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Implementation of the Outbox REST service.
- */
+/** Implementation of the Outbox REST service. */
 public class CamundaTaskEventsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskEventsService.class);
@@ -63,8 +61,8 @@ public class CamundaTaskEventsService {
 
   private static final String LOCK_FOR = "lock-for";
 
-  private static final List<String> ALLOWED_PARAMS = Stream.of(TYPE, RETRIES, LOCK_FOR)
-      .collect(Collectors.toList());
+  private static final List<String> ALLOWED_PARAMS =
+      Stream.of(TYPE, RETRIES, LOCK_FOR).collect(Collectors.toList());
 
   private static final String OUTBOX_SCHEMA = OutboxRestConfiguration.getOutboxSchema();
   private static final String SQL_GET_CREATE_EVENTS =
@@ -75,8 +73,7 @@ public class CamundaTaskEventsService {
           + "and remaining_retries>0 and blocked_until < ? fetch first %d rows only for update";
   private static final String SQL_GET_ALL_EVENTS = "select * from %s.event_store";
   private static final String SQL_GET_ALL_AVAILABLE_EVENTS =
-      "select * from %s.event_store where lock_expire "
-          + "< ? or lock_expire is null for update";
+      "select * from %s.event_store where lock_expire " + "< ? or lock_expire is null for update";
   private static final String SQL_GET_EVENT = "select * from %s.event_store where id = ? ";
   private static final String SQL_GET_COMPLETE_AND_DELETE_EVENTS =
       "select * from %s.event_store where type = ? OR type = ? fetch first %d rows only";
@@ -133,8 +130,8 @@ public class CamundaTaskEventsService {
     Duration lockDuration = null;
     List<CamundaTaskEvent> camundaTaskEvents;
     if (filterParams.containsKey(LOCK_FOR)) {
-      lockDuration = Duration.of(Long.parseLong(filterParams.get(LOCK_FOR).get(0)),
-          ChronoUnit.SECONDS);
+      lockDuration =
+          Duration.of(Long.parseLong(filterParams.get(LOCK_FOR).get(0)), ChronoUnit.SECONDS);
     }
     if (filterParams.containsKey(TYPE) && filterParams.get(TYPE).contains(CREATE)) {
 
@@ -211,14 +208,15 @@ public class CamundaTaskEventsService {
     }
   }
 
-  public List<CamundaTaskEvent> getEventsFilteredByRetries(Integer remainingRetries,
-      Duration lockDuration) {
+  public List<CamundaTaskEvent> getEventsFilteredByRetries(
+      Integer remainingRetries, Duration lockDuration) {
 
     List<CamundaTaskEvent> camundaTaskEventsFilteredByRetries = new ArrayList<>();
-    String sqlStatement = lockDuration == null
-        ? SQL_GET_EVENTS_FILTERED_BY_RETRIES : SQL_GET_AVAILABLE_EVENTS_FILTERED_BY_RETRIES;
-    String getEventsFilteredByRetriesSql =
-        String.format(sqlStatement, OUTBOX_SCHEMA);
+    String sqlStatement =
+        lockDuration == null
+            ? SQL_GET_EVENTS_FILTERED_BY_RETRIES
+            : SQL_GET_AVAILABLE_EVENTS_FILTERED_BY_RETRIES;
+    String getEventsFilteredByRetriesSql = String.format(sqlStatement, OUTBOX_SCHEMA);
     List<Integer> ids = null;
 
     try (Connection connection = getConnection();
@@ -232,8 +230,10 @@ public class CamundaTaskEventsService {
         ResultSet camundaTaskEventFilteredByRetriesResultSet = preparedStatement.executeQuery();
         camundaTaskEventsFilteredByRetries =
             getCamundaTaskEvents(camundaTaskEventFilteredByRetriesResultSet);
-        ids = camundaTaskEventsFilteredByRetries.stream().map(CamundaTaskEvent::getId)
-            .collect(Collectors.toList());
+        ids =
+            camundaTaskEventsFilteredByRetries.stream()
+                .map(CamundaTaskEvent::getId)
+                .collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
@@ -241,8 +241,7 @@ public class CamundaTaskEventsService {
               ids.stream().map(Object::toString).collect(Collectors.joining(";\n")));
         }
       } catch (Exception e) {
-        LOGGER.warn("Caught Exception while trying to retrieve failed events from the outbox",
-            e);
+        LOGGER.warn("Caught Exception while trying to retrieve failed events from the outbox", e);
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -313,8 +312,8 @@ public class CamundaTaskEventsService {
   public List<CamundaTaskEvent> setRemainingRetriesForMultipleEvents(
       int retries, int retriesToSet) {
 
-    List<CamundaTaskEvent> camundaTaskEventsFilteredByRetries = getEventsFilteredByRetries(retries,
-        null);
+    List<CamundaTaskEvent> camundaTaskEventsFilteredByRetries =
+        getEventsFilteredByRetries(retries, null);
 
     camundaTaskEventsFilteredByRetries.forEach(
         camundaTaskEvent -> camundaTaskEvent.setRemainingRetries(retriesToSet));
@@ -408,8 +407,7 @@ public class CamundaTaskEventsService {
   public List<CamundaTaskEvent> getAllEvents(Duration lockDuration) {
 
     List<CamundaTaskEvent> camundaTaskEvents = new ArrayList<>();
-    String sqlStatement = lockDuration == null
-        ? SQL_GET_ALL_EVENTS : SQL_GET_ALL_AVAILABLE_EVENTS;
+    String sqlStatement = lockDuration == null ? SQL_GET_ALL_EVENTS : SQL_GET_ALL_AVAILABLE_EVENTS;
     String sql = String.format(sqlStatement, OUTBOX_SCHEMA);
     List<Integer> ids = null;
     try (Connection connection = getConnection();
@@ -420,8 +418,7 @@ public class CamundaTaskEventsService {
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camundaTaskEvents = getCamundaTaskEvents(camundaTaskEventResultSet);
-        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId)
-            .collect(Collectors.toList());
+        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
@@ -429,8 +426,7 @@ public class CamundaTaskEventsService {
               ids.stream().map(Object::toString).collect(Collectors.joining(";\n")));
         }
       } catch (Exception e) {
-        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox",
-            e);
+        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox", e);
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -496,8 +492,8 @@ public class CamundaTaskEventsService {
   private List<CamundaTaskEvent> getCreateEvents(Duration lockDuration) {
 
     List<CamundaTaskEvent> camundaTaskEvents = new ArrayList<>();
-    String sqlStatement = lockDuration == null
-        ? SQL_GET_CREATE_EVENTS : SQL_GET_AVAILABLE_CREATE_EVENTS;
+    String sqlStatement =
+        lockDuration == null ? SQL_GET_CREATE_EVENTS : SQL_GET_AVAILABLE_CREATE_EVENTS;
     List<Integer> ids = null;
     try (Connection connection = getConnection()) {
 
@@ -510,8 +506,7 @@ public class CamundaTaskEventsService {
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camundaTaskEvents = getCamundaTaskEvents(camundaTaskEventResultSet);
-        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId)
-            .collect(Collectors.toList());
+        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
@@ -519,8 +514,7 @@ public class CamundaTaskEventsService {
               ids.stream().map(Object::toString).collect(Collectors.joining(";\n")));
         }
       } catch (Exception e) {
-        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox",
-              e);
+        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox", e);
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -601,10 +595,11 @@ public class CamundaTaskEventsService {
   private List<CamundaTaskEvent> getCompleteAndDeleteEvents(Duration lockDuration) {
 
     List<CamundaTaskEvent> camundaTaskEvents = new ArrayList<>();
-    String sqlStatement = lockDuration == null
-        ? SQL_GET_COMPLETE_AND_DELETE_EVENTS : SQL_GET_AVAILABLE_COMPLETE_AND_DELETE_EVENTS;
-    String sql =
-        String.format(sqlStatement, OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+    String sqlStatement =
+        lockDuration == null
+            ? SQL_GET_COMPLETE_AND_DELETE_EVENTS
+            : SQL_GET_AVAILABLE_COMPLETE_AND_DELETE_EVENTS;
+    String sql = String.format(sqlStatement, OUTBOX_SCHEMA, maxNumberOfEventsReturned);
     List<Integer> ids = null;
     try (Connection connection = getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -616,8 +611,7 @@ public class CamundaTaskEventsService {
         }
         ResultSet completeAndDeleteEventsResultSet = preparedStatement.executeQuery();
         camundaTaskEvents = getCamundaTaskEvents(completeAndDeleteEventsResultSet);
-        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId)
-            .collect(Collectors.toList());
+        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId).collect(Collectors.toList());
 
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
@@ -626,8 +620,7 @@ public class CamundaTaskEventsService {
               ids.stream().map(Object::toString).collect(Collectors.joining(";\n")));
         }
       } catch (Exception e) {
-        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox",
-            e);
+        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox", e);
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -682,14 +675,11 @@ public class CamundaTaskEventsService {
     if (lockDuration == null || ids.isEmpty()) {
       return;
     }
-    String commaSeparatedIds = ids.stream()
-        .map(Object::toString)
-        .collect(Collectors.joining(", "));
+    String commaSeparatedIds = ids.stream().map(Object::toString).collect(Collectors.joining(", "));
     String sql = String.format(SQL_SET_LOCK_EXPIRE, OUTBOX_SCHEMA, commaSeparatedIds);
     try {
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setTimestamp(1,
-          Timestamp.from(Instant.now().plus(lockDuration)));
+      preparedStatement.setTimestamp(1, Timestamp.from(Instant.now().plus(lockDuration)));
 
       preparedStatement.execute();
 
@@ -699,9 +689,7 @@ public class CamundaTaskEventsService {
   }
 
   private void unlockEvents(List<Integer> ids, Connection connection) throws SQLException {
-    String commaSeparatedIds = ids.stream()
-        .map(Object::toString)
-        .collect(Collectors.joining(", "));
+    String commaSeparatedIds = ids.stream().map(Object::toString).collect(Collectors.joining(", "));
     String sql = String.format(SQL_UNLOCK, OUTBOX_SCHEMA, commaSeparatedIds);
     try (PreparedStatement preparedStatement2 = connection.prepareStatement(sql)) {
       preparedStatement2.execute();

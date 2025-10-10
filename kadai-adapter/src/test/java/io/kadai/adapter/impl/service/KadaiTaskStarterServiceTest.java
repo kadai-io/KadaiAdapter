@@ -82,8 +82,7 @@ class KadaiTaskStarterServiceTest {
   }
 
   @Test
-  void should_UseRunAsUser_When_CreatingTask()
-      throws TaskCreationFailedException {
+  void should_UseRunAsUser_When_CreatingTask() throws TaskCreationFailedException {
     // Given
     MockedStatic<UserContext> userContextMock = mockStatic(UserContext.class);
 

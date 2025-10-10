@@ -24,8 +24,8 @@ public class Camunda8TaskClaimCanceler {
   private final Camunda8HttpHeaderProvider httpHeaderProvider;
   private final RestTemplate restTemplate;
 
-  public Camunda8TaskClaimCanceler(Camunda8HttpHeaderProvider httpHeaderProvider,
-                                   RestTemplate restTemplate) {
+  public Camunda8TaskClaimCanceler(
+      Camunda8HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
     this.httpHeaderProvider = httpHeaderProvider;
     this.restTemplate = restTemplate;
   }
@@ -36,44 +36,43 @@ public class Camunda8TaskClaimCanceler {
   private boolean cancelClaimConfigLogged = false;
 
   public SystemResponse cancelClaimOfCamunda8Task(
-          Camunda8System camunda8System,
-          ReferencedTask referencedTask) {
+      Camunda8System camunda8System, ReferencedTask referencedTask) {
 
     if (!cancelClaimConfigLogged) {
-      LOGGER.info("Synchronizing CancelClaim of Tasks in KADAI to Camunda 8 is set to {}",
-                claimingEnabled);
+      LOGGER.info(
+          "Synchronizing CancelClaim of Tasks in KADAI to Camunda 8 is set to {}", claimingEnabled);
       cancelClaimConfigLogged = true;
     }
 
     if (claimingEnabled) {
       StringBuilder requestUrlBuilder = new StringBuilder();
       requestUrlBuilder
-                .append(camunda8System.getClusterApiUrl())
-                .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
-                .append(getUserTaskKeyFromReferencedTask(referencedTask))
-                .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_UNCLAIM);
+          .append(camunda8System.getClusterApiUrl())
+          .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
+          .append(getUserTaskKeyFromReferencedTask(referencedTask))
+          .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_UNCLAIM);
 
       String requestBody = Camunda8SystemConnectorImpl.BODY_EMPTY_REQUEST;
       HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda8TasklistApi();
       HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
       try {
-        ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    requestUrlBuilder.toString(),
-                    HttpMethod.DELETE,
-                    requestEntity,
-                    String.class);
+        ResponseEntity<String> responseEntity =
+            restTemplate.exchange(
+                requestUrlBuilder.toString(), HttpMethod.DELETE, requestEntity, String.class);
 
         LOGGER.debug(
             "Successfully canceled claim for Camunda 8 task {}. Status code = {}",
-                referencedTask.getId(),
+            referencedTask.getId(),
             responseEntity.getStatusCode());
 
         return new SystemResponse(responseEntity.getStatusCode(), null);
 
       } catch (HttpStatusCodeException e) {
-        LOGGER.warn("Failed to cancel claim for Camunda 8 task: {}. Error: {}",
-                referencedTask.getId(), e.getMessage());
+        LOGGER.warn(
+            "Failed to cancel claim for Camunda 8 task: {}. Error: {}",
+            referencedTask.getId(),
+            e.getMessage());
         throw e;
       }
     }

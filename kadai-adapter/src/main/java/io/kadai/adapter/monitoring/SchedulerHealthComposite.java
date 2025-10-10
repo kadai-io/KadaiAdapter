@@ -1,6 +1,6 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
+import io.kadai.adapter.configuration.health.KernelHealthConfigurationProperties.SchedulerHealthConfigurationProperties;
 import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
 import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimCanceler;

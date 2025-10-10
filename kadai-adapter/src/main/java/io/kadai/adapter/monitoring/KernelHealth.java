@@ -1,6 +1,6 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.configuration.health.ExternalServicesHealthConfigurationProperties;
+import io.kadai.adapter.configuration.health.KernelHealthConfigurationProperties;
 import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
 import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimCanceler;
@@ -8,39 +8,30 @@ import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.CompositeHealthContributor;
 import org.springframework.boot.actuate.health.HealthContributor;
 import org.springframework.boot.actuate.health.NamedContributor;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-@Component("externalServices")
-@ConditionalOnEnabledHealthIndicator("external-services")
-public class ExternalServicesHealthComposite implements CompositeHealthContributor {
+/**
+ * Health-Contributor for the entirety of the kernel.
+ *
+ * <p>This contributor includes all Health-Indicators for systems or components inherently bound to
+ * or owned by the KadaiAdapter-Kernel.
+ */
+public class KernelHealth implements CompositeHealthContributor {
 
   private final Map<String, HealthContributor> healthContributors = new HashMap<>();
 
-  @Autowired
-  public ExternalServicesHealthComposite(
-      ExternalServicesHealthConfigurationProperties properties,
-      RestTemplate restTemplate,
+  public KernelHealth(
+      KernelHealthConfigurationProperties properties,
       ReferencedTaskCompleter referencedTaskCompleter,
       ReferencedTaskClaimer referencedTaskClaimer,
       ReferencedTaskClaimCanceler referencedTaskClaimCanceler,
       KadaiTaskStarterOrchestrator kadaiTaskStarter,
-      KadaiTaskCompletionOrchestrator kadaiTaskTerminator,
-      @Value("${kadai-system-connector-camundaSystemURLs}") List<String> camundaSystemUrls) {
-    if (properties.getCamundaSystem().getEnabled()) {
-      healthContributors.put(
-          "camundaSystems",
-          new CamundaSystemsHealthComposite(restTemplate, camundaSystemUrls, properties));
-    }
+      KadaiTaskCompletionOrchestrator kadaiTaskTerminator) {
+
     if (properties.getKadai().getEnabled()) {
       healthContributors.put("kadai", new KadaiHealthIndicator());
     }

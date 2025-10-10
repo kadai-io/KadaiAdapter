@@ -25,8 +25,8 @@ public class Camunda8TaskClaimer {
   private final Camunda8HttpHeaderProvider httpHeaderProvider;
   private final RestTemplate restTemplate;
 
-  public Camunda8TaskClaimer(Camunda8HttpHeaderProvider httpHeaderProvider,
-                             RestTemplate restTemplate) {
+  public Camunda8TaskClaimer(
+      Camunda8HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
     this.httpHeaderProvider = httpHeaderProvider;
     this.restTemplate = restTemplate;
   }
@@ -37,41 +37,37 @@ public class Camunda8TaskClaimer {
   private boolean claimConfigLogged = false;
 
   public SystemResponse claimCamunda8Task(
-          Camunda8System camunda8System,
-          ReferencedTask referencedTask) {
+      Camunda8System camunda8System, ReferencedTask referencedTask) {
 
     if (!claimConfigLogged) {
-      LOGGER.info("Synchronizing claim of tasks in KADAI to Camunda 8 is set to {}",
-              claimingEnabled);
+      LOGGER.info(
+          "Synchronizing claim of tasks in KADAI to Camunda 8 is set to {}", claimingEnabled);
       claimConfigLogged = true;
     }
 
     if (claimingEnabled) {
       StringBuilder requestUrlBuilder = new StringBuilder();
       requestUrlBuilder
-                .append(camunda8System.getClusterApiUrl())
-                .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
-                .append(getUserTaskKeyFromReferencedTask(referencedTask))
-                .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_ASSIGNMENT);
+          .append(camunda8System.getClusterApiUrl())
+          .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
+          .append(getUserTaskKeyFromReferencedTask(referencedTask))
+          .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_ASSIGNMENT);
 
-      String requestBody = String.format(
-                Camunda8SystemConnectorImpl.BODY_CAMUNDA8_ASSIGN,
-                referencedTask.getAssignee()
-      );
+      String requestBody =
+          String.format(
+              Camunda8SystemConnectorImpl.BODY_CAMUNDA8_ASSIGN, referencedTask.getAssignee());
 
       HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda8TasklistApi();
       HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
       try {
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-                requestUrlBuilder.toString(),
-                requestEntity,
-                String.class);
+        ResponseEntity<String> responseEntity =
+            restTemplate.postForEntity(requestUrlBuilder.toString(), requestEntity, String.class);
 
         LOGGER.debug(
-                    "claimed camunda 8 task {}. Status code = {}",
-                    referencedTask.getId(),
-                    responseEntity.getStatusCode());
+            "claimed camunda 8 task {}. Status code = {}",
+            referencedTask.getId(),
+            responseEntity.getStatusCode());
 
         return new SystemResponse(responseEntity.getStatusCode(), null);
 

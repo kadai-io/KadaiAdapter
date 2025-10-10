@@ -22,12 +22,12 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SuppressWarnings({"unchecked", "rawtypes"})
-class ExternalServicesHealthCompositeTest extends AbsIntegrationTest {
+class KadaiAdapterHealthTest extends AbsIntegrationTest {
 
   @Test
   void should_ReturnUp_When_AllContributorsAreUp() {
     ResponseEntity<Map> response =
-        testRestTemplate.getForEntity("/actuator/health/externalServices", Map.class);
+        restClient.get().uri("/actuator/health/kadaiAdapter").retrieve().toEntity(Map.class);
     Map<String, Object> body = response.getBody();
 
     assertThat(body).isNotNull();

@@ -28,12 +28,11 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 /** Configures the camunda system connector. */
 @Configuration
@@ -41,13 +40,15 @@ import org.springframework.web.client.RestTemplate;
 public class CamundaSystemConnectorConfiguration {
 
   @Bean
-  RestTemplate restTemplate(
-      RestTemplateBuilder builder, HttpComponentsClientProperties httpComponentsClientProperties) {
-    return builder
-        .connectTimeout(Duration.ofMillis(httpComponentsClientProperties.getConnectionTimeout()))
-        .readTimeout(Duration.ofMillis(httpComponentsClientProperties.getReadTimeout()))
-        .requestFactory(HttpComponentsClientHttpRequestFactory.class)
-        .build();
+  RestClient restClient(HttpComponentsClientProperties httpComponentsClientProperties) {
+    HttpComponentsClientHttpRequestFactory requestFactory =
+        new HttpComponentsClientHttpRequestFactory();
+    requestFactory.setConnectTimeout(
+        (int) Duration.ofMillis(httpComponentsClientProperties.getConnectionTimeout()).toMillis());
+    requestFactory.setReadTimeout(
+        (int) Duration.ofMillis(httpComponentsClientProperties.getReadTimeout()).toMillis());
+
+    return RestClient.builder().requestFactory(requestFactory).build();
   }
 
   @Bean
@@ -78,31 +79,31 @@ public class CamundaSystemConnectorConfiguration {
   CamundaTaskRetriever camundaTaskRetriever(
       final HttpHeaderProvider httpHeaderProvider,
       final ObjectMapper objectMapper,
-      final RestTemplate restTemplate) {
-    return new CamundaTaskRetriever(httpHeaderProvider, objectMapper, restTemplate);
+      final RestClient restClient) {
+    return new CamundaTaskRetriever(httpHeaderProvider, objectMapper, restClient);
   }
 
   @Bean
   CamundaTaskCompleter camundaTaskCompleter(
-      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
-    return new CamundaTaskCompleter(httpHeaderProvider, restTemplate);
+      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
+    return new CamundaTaskCompleter(httpHeaderProvider, restClient);
   }
 
   @Bean
   CamundaTaskClaimer camundaTaskClaimer(
-      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
-    return new CamundaTaskClaimer(httpHeaderProvider, restTemplate);
+      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
+    return new CamundaTaskClaimer(httpHeaderProvider, restClient);
   }
 
   @Bean
   CamundaTaskClaimCanceler camundaTaskClaimCanceler(
-      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
-    return new CamundaTaskClaimCanceler(httpHeaderProvider, restTemplate);
+      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
+    return new CamundaTaskClaimCanceler(httpHeaderProvider, restClient);
   }
 
   @Bean
   CamundaTaskEventCleaner camundaTaskEventCleaner(
-      final HttpHeaderProvider httpHeaderProvider, final RestTemplate restTemplate) {
-    return new CamundaTaskEventCleaner(httpHeaderProvider, restTemplate);
+      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
+    return new CamundaTaskEventCleaner(httpHeaderProvider, restClient);
   }
 }

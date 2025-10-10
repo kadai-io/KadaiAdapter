@@ -6,19 +6,19 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class OutboxHealthIndicator implements HealthIndicator {
+public class Camunda7OutboxHealthIndicator implements HealthIndicator {
 
   private static final String BASE_URL = "baseUrl";
 
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
   private URI url;
   private String urlString;
 
-  public OutboxHealthIndicator(RestTemplate restTemplate, String urlString) {
-    this.restTemplate = restTemplate;
+  public Camunda7OutboxHealthIndicator(RestClient restClient, String urlString) {
+    this.restClient = restClient;
     this.url =
         UriComponentsBuilder.fromUriString(urlString)
             .pathSegment("events")
@@ -54,7 +54,7 @@ public class OutboxHealthIndicator implements HealthIndicator {
     }
   }
 
-  private ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
-    return restTemplate.getForEntity(url, OutboxEventCountRepresentationModel.class);
+  ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
+    return restClient.get().uri(url).retrieve().toEntity(OutboxEventCountRepresentationModel.class);
   }
 }

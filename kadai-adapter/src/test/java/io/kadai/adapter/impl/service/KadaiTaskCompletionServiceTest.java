@@ -78,8 +78,7 @@ class KadaiTaskCompletionServiceTest {
   }
 
   @Test
-  void should_UseRunAsUser_When_TerminatingTask()
-      throws TaskTerminationFailedException {
+  void should_UseRunAsUser_When_TerminatingTask() throws TaskTerminationFailedException {
     // Given
     MockedStatic<UserContext> userContextMock = mockStatic(UserContext.class);
 

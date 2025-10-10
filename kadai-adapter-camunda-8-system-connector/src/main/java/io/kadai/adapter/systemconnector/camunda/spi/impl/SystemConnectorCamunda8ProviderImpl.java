@@ -35,7 +35,8 @@ public class SystemConnectorCamunda8ProviderImpl implements OutboundSystemConnec
         AdapterSpringContextProvider.getBean(Camunda8TaskClaimCanceler.class);
 
     // System Urls duplication?
-    return List.of(new Camunda8SystemConnectorImpl(
+    return List.of(
+        new Camunda8SystemConnectorImpl(
             camunda8System, taskClaimer, taskCompleter, taskClaimCanceler));
   }
 }

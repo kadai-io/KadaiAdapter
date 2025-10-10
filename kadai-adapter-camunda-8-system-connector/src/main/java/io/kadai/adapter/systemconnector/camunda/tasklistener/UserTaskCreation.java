@@ -28,7 +28,7 @@ public class UserTaskCreation {
   public void receiveTaskCreatedEvent(final ActivatedJob job) throws TaskCreationFailedException {
     LOGGER.info(
         "UserTaskListener kadai-receive-task-created-event has been called, "
-        + "connected to process instance '{}'",
+            + "connected to process instance '{}'",
         job.getProcessInstanceKey());
 
     ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);

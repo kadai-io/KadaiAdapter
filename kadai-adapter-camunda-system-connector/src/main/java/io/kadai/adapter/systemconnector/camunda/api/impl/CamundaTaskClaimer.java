@@ -24,13 +24,13 @@ import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClient;
 
 /** Claims tasks in camunda through the camunda REST-API that have been claimed in KADAI. */
 @Component
@@ -38,11 +38,11 @@ public class CamundaTaskClaimer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskClaimer.class);
   private final HttpHeaderProvider httpHeaderProvider;
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
-  public CamundaTaskClaimer(HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
+  public CamundaTaskClaimer(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
     this.httpHeaderProvider = httpHeaderProvider;
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
   }
 
   @Value("${kadai.adapter.camunda.claiming.enabled:false}")
@@ -75,27 +75,31 @@ public class CamundaTaskClaimer {
               + "\"}";
 
       HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
-      HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
       try {
-        ResponseEntity<String> responseEntity =
-            restTemplate.postForEntity(requestUrlBuilder.toString(), requestEntity, String.class);
-
+        ResponseEntity<Void> response =
+            restClient
+                .post()
+                .uri(requestUrlBuilder.toString())
+                .headers(httpHeaders -> httpHeaders.addAll(headers))
+                .body(requestBody)
+                .retrieve()
+                .toEntity(Void.class);
         LOGGER.debug(
             "claimed camunda task {}. Status code = {}",
             referencedTask.getId(),
-            responseEntity.getStatusCode());
-
-        return new SystemResponse(responseEntity.getStatusCode(), null);
-
-      } catch (HttpStatusCodeException e) {
+            response.getStatusCode());
+        return new SystemResponse(response.getStatusCode(), null);
+      } catch (HttpClientErrorException e) {
         if (CamundaUtilRequester.isTaskNotExisting(
-            httpHeaderProvider, restTemplate, camundaSystemUrlInfo, referencedTask.getId())) {
+            httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
-        } else {
-          LOGGER.warn("Caught Exception when trying to claim camunda task", e);
-          throw e;
         }
+        LOGGER.warn("HTTP client error while claiming Camunda task: {}", e.getStatusCode(), e);
+        throw e;
+      } catch (HttpServerErrorException e) {
+        LOGGER.error("HTTP server error while claiming Camunda task: {}", e.getStatusCode(), e);
+        throw e;
       }
     }
     return new SystemResponse(HttpStatus.OK, null);

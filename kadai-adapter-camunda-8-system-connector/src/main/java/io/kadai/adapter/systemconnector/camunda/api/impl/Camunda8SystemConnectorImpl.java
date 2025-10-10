@@ -13,9 +13,8 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
   static final String URL_CAMUNDA8_COMPLETION = "/completion";
   static final String URL_CAMUNDA8_UNCLAIM = "/assignee";
 
-  static final String BODY_CAMUNDA8_ASSIGN = "{\"assignee\": \"%s\", "
-          + "\"allowOverride\": true, "
-          + "\"action\": \"assign\"}";
+  static final String BODY_CAMUNDA8_ASSIGN =
+      "{\"assignee\": \"%s\", " + "\"allowOverride\": true, " + "\"action\": \"assign\"}";
   static final String BODY_CAMUNDA8_COMPLETE = "{\"variables\": {}, \"action\": \"complete\"}";
   static final String BODY_EMPTY_REQUEST = "{}";
 
@@ -25,10 +24,10 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
   private final Camunda8TaskClaimCanceler taskClaimCanceler;
 
   public Camunda8SystemConnectorImpl(
-            Camunda8System camunda8System,
-            Camunda8TaskClaimer taskClaimer,
-            Camunda8TaskCompleter taskCompleter,
-            Camunda8TaskClaimCanceler taskClaimCanceler) {
+      Camunda8System camunda8System,
+      Camunda8TaskClaimer taskClaimer,
+      Camunda8TaskCompleter taskCompleter,
+      Camunda8TaskClaimCanceler taskClaimCanceler) {
     this.camunda8System = camunda8System;
     this.taskClaimer = taskClaimer;
     this.taskCompleter = taskCompleter;
@@ -57,9 +56,14 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   @Override
   public String toString() {
-    return "Camunda8SystemConnectorImpl [camunda8System=" + camunda8System
-            + ", taskClaimer=" + taskClaimer
-            + ", taskCompleter=" + taskCompleter
-            + ", taskClaimCanceler=" + taskClaimCanceler + "]";
+    return "Camunda8SystemConnectorImpl [camunda8System="
+        + camunda8System
+        + ", taskClaimer="
+        + taskClaimer
+        + ", taskCompleter="
+        + taskCompleter
+        + ", taskClaimCanceler="
+        + taskClaimCanceler
+        + "]";
   }
 }

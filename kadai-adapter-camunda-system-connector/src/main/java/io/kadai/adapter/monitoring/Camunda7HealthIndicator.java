@@ -5,19 +5,19 @@ import java.net.URI;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class CamundaHealthIndicator implements HealthIndicator {
+public class Camunda7HealthIndicator implements HealthIndicator {
 
   private static final String BASE_URL = "baseUrl";
 
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
   private URI url;
   private String urlString;
 
-  public CamundaHealthIndicator(RestTemplate restTemplate, String urlString) {
-    this.restTemplate = restTemplate;
+  public Camunda7HealthIndicator(RestClient restClient, String urlString) {
+    this.restClient = restClient;
     this.urlString = urlString;
     this.url = UriComponentsBuilder.fromUriString(urlString).pathSegment("engine").build().toUri();
   }
@@ -43,7 +43,11 @@ public class CamundaHealthIndicator implements HealthIndicator {
     }
   }
 
-  private ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {
-    return restTemplate.getForEntity(url, CamundaEngineInfoRepresentationModel[].class);
+  ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {
+    return restClient
+        .get()
+        .uri(url)
+        .retrieve()
+        .toEntity(CamundaEngineInfoRepresentationModel[].class);
   }
 }

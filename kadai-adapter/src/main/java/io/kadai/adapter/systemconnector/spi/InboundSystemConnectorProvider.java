@@ -25,8 +25,8 @@ import java.util.List;
 public interface InboundSystemConnectorProvider {
 
   /**
-   * Create a list of InboundSystemConnector objects to access multiple external systems
-   * for data retrieval operations.
+   * Create a list of InboundSystemConnector objects to access multiple external systems for data
+   * retrieval operations.
    *
    * @return a list of InboundSystemConnector objects
    */

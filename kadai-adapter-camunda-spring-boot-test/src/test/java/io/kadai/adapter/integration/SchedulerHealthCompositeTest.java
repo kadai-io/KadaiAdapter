@@ -27,7 +27,11 @@ class SchedulerHealthCompositeTest extends AbsIntegrationTest {
   @Test
   void should_ReturnUp_When_AllContributorsAreUp() {
     ResponseEntity<Map> response =
-        testRestTemplate.getForEntity("/actuator/health/externalServices/scheduler", Map.class);
+        restClient
+            .get()
+            .uri("/actuator/health/kadaiAdapter/kernel/scheduler")
+            .retrieve()
+            .toEntity(Map.class);
     Map<String, Object> body = response.getBody();
 
     assertThat(body).isNotNull();

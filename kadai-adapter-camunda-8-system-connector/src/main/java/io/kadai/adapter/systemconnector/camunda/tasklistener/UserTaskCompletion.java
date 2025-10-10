@@ -27,10 +27,10 @@ public class UserTaskCompletion {
 
   @JobWorker(type = "kadai-receive-task-completed-event")
   public void receiveTaskCompletedEvent(final ActivatedJob job)
-          throws TaskTerminationFailedException {
+      throws TaskTerminationFailedException {
     LOGGER.info(
         "UserTaskListener kadai-receive-task-completed-event has been called, "
-        + "connected to process instance '{}'",
+            + "connected to process instance '{}'",
         job.getProcessInstanceKey());
 
     ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
