@@ -1,5 +1,7 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
+import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8UtilRequester.getUserTaskKeyFromReferencedTask;
+
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
@@ -49,7 +51,7 @@ public class Camunda8TaskClaimer {
       requestUrlBuilder
                 .append(camunda8System.getClusterApiUrl())
                 .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
-                .append(referencedTask.getId())
+                .append(getUserTaskKeyFromReferencedTask(referencedTask))
                 .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_ASSIGNMENT);
 
       String requestBody = String.format(
