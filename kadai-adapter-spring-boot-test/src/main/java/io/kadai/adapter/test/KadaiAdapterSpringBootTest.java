@@ -28,6 +28,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith({SpringExtension.class, JaasExtension.class})
-@SpringBootTest(classes = KadaiAdapterTestApplication.class, webEnvironment = WebEnvironment.DEFINED_PORT)
+@SpringBootTest(
+    classes = KadaiAdapterTestApplication.class,
+    webEnvironment = WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(classes = KadaiAdapterSpringBootTestConfiguration.class)
 public @interface KadaiAdapterSpringBootTest {}
