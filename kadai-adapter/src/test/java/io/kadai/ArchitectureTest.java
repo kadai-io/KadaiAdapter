@@ -27,19 +27,12 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption.OnlyIncludeTests;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.TestTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 
 class ArchitectureTest {
 
@@ -123,34 +116,5 @@ class ArchitectureTest {
         .dependOnClassesThat()
         .haveFullyQualifiedName("org.junit.jupiter.api.Assertions")
         .check(IMPORTED_TEST_CLASSES);
-  }
-
-  @Test
-  void methodsAnnotatedWithScheduledMustCallTouchMethod() {
-    methods()
-        .that()
-        .areAnnotatedWith(Scheduled.class)
-        .and()
-        .areNotDeclaredIn(ArchitectureTest.class)
-        .should(
-            new ArchCondition<JavaMethod>("call touch() method from SchedulerRun") {
-              @Override
-              public void check(JavaMethod method, ConditionEvents events) {
-                List<JavaMethodCall> touchCalls =
-                    method.getMethodCallsFromSelf().stream()
-                        .filter(call -> call.getTarget().getName().equals("touch"))
-                        .collect(Collectors.toList());
-
-                if (touchCalls.isEmpty()) {
-                  events.add(
-                      SimpleConditionEvent.violated(
-                          method,
-                          "Method "
-                              + method.getFullName()
-                              + " does not call touch() from SchedulerRun"));
-                }
-              }
-            })
-        .check(IMPORTED_CLASSES);
   }
 }

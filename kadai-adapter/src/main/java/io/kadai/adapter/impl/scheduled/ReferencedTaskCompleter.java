@@ -21,13 +21,13 @@ package io.kadai.adapter.impl.scheduled;
 import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.monitoring.MonitoredRun;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.util.LowerMedian;
 import io.kadai.common.api.exceptions.SystemException;
 import io.kadai.task.api.CallbackState;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -42,11 +42,11 @@ import org.springframework.transaction.annotation.Transactional;
  * Completes ReferencedTasks in the external system after completion of corresponding KADAI tasks.
  */
 @Component
-public class ReferencedTaskCompleter implements ScheduledComponent {
+public class ReferencedTaskCompleter implements MonitoredScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReferencedTaskCompleter.class);
   private final AdapterManager adapterManager;
-  private final SchedulerRun schedulerRun;
+  private final MonitoredRun monitoredRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
 
   @Value("${kadai.adapter.run-as.user}")
@@ -59,7 +59,7 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
   @Autowired
   public ReferencedTaskCompleter(AdapterManager adapterManager) {
     this.adapterManager = adapterManager;
-    this.schedulerRun = new SchedulerRun();
+    this.monitoredRun = new MonitoredRun();
   }
 
   @Scheduled(
@@ -68,7 +68,7 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
               + "in.milliseconds:5000}")
   @Transactional
   public void retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTasks() {
-    final Instant start = Instant.now();
+    monitoredRun.start();
 
     synchronized (ReferencedTaskCompleter.class) {
       if (!adapterManager.isInitialized()) {
@@ -84,11 +84,12 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
               retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTask();
               return null;
             });
-        schedulerRun.touch();
+        monitoredRun.succeed();
       } catch (Exception ex) {
+        monitoredRun.fail();
         LOGGER.debug("Caught exception while trying to complete referenced tasks", ex);
       } finally {
-        runDurationLowerMedian.add(Duration.between(start, Instant.now()));
+        runDurationLowerMedian.add(monitoredRun.getDuration());
       }
     }
   }
@@ -139,8 +140,8 @@ public class ReferencedTaskCompleter implements ScheduledComponent {
   }
 
   @Override
-  public SchedulerRun getLastSchedulerRun() {
-    return schedulerRun;
+  public MonitoredRun getLastRun() {
+    return monitoredRun;
   }
 
   @Override
