@@ -1,19 +1,12 @@
 package io.kadai.adapter.systemconnector.camunda.config;
 
-import io.kadai.adapter.impl.service.KadaiTaskCompletionService;
-import io.kadai.adapter.impl.service.KadaiTaskStarterService;
-import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
-import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
-import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,21 +29,5 @@ public class Camunda8SystemConnectorConfiguration {
   Integer getFromKadaiToAdapterBatchSize(
       @Value("${kadai.adapter.sync.kadai.batchSize:#{64}}") final Integer batchSize) {
     return batchSize;
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-  UserTaskCompletion userTaskListenerCompletion(
-      final KadaiTaskCompletionService completionService,
-      final ReferencedTaskCreator referencedTaskCreator) {
-    return new UserTaskCompletion(completionService, referencedTaskCreator);
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-  UserTaskCreation userTaskListenerCreation(
-      final KadaiTaskStarterService taskStarterService,
-      final ReferencedTaskCreator referencedTaskCreator) {
-    return new UserTaskCreation(taskStarterService, referencedTaskCreator);
   }
 }
