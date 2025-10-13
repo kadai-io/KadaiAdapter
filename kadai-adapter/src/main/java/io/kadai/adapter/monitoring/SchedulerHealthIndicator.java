@@ -24,7 +24,10 @@ public class SchedulerHealthIndicator implements HealthIndicator {
     Instant lastRun = monitoredScheduledComponent.getLastRun().getEnd();
     Instant expectedNextRunBefore =
         lastRun
-            .plus(monitoredScheduledComponent.getRunInterval().multipliedBy(runtimeAcceptanceMultiplier))
+            .plus(
+                monitoredScheduledComponent
+                    .getRunInterval()
+                    .multipliedBy(runtimeAcceptanceMultiplier))
             .plus(monitoredScheduledComponent.getExpectedRunDuration());
     final Map<String, Object> details = new HashMap<>();
     details.put("lastRun", lastRun);
