@@ -17,7 +17,7 @@
           <zeebe:taskListener eventType="completing" type="kadai-receive-task-completed-event" />
           <zeebe:taskListener eventType="creating" type="kadai-receive-task-created-event" />
         </zeebe:taskListeners>
-        <zeebe:taskSchedule dueDate="=date and time(&#34;2025-12-03T12:00:00&#34;)" followUpDate="=date and time(&#34;2025-12-02T12:00:00&#34;)" />
+        <zeebe:taskSchedule dueDate="=date and time(&#34;2025-12-03T12:00:00Z&#34;)" followUpDate="=date and time(&#34;2025-12-02T12:00:00Z&#34;)" />
         <zeebe:priorityDefinition priority="=20" />
         <zeebe:ioMapping>
           <zeebe:input source="=&#34;GPK_KSC&#34;" target="kadai_workbasket_key" />
