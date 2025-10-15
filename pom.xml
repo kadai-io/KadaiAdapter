@@ -66,7 +66,7 @@
         <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
         <version.spring.boot>3.5.7</version.spring.boot>
 
-        <version.camunda>7.23.0</version.camunda>
+        <version.camunda>7.24.0</version.camunda>
         <version.camunda.spin>1.23.0</version.camunda.spin>
         <version.camunda.template-engines-freemarker>7.24.0</version.camunda.template-engines-freemarker>
         <version.camunda.template-engines-velocity>2.1.0</version.camunda.template-engines-velocity>
