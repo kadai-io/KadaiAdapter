@@ -8,6 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -27,6 +28,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith({SpringExtension.class, JaasExtension.class})
-@SpringBootTest(classes = KadaiAdapterTestApplication.class)
+@SpringBootTest(
+    classes = KadaiAdapterTestApplication.class,
+    webEnvironment = WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(classes = KadaiAdapterSpringBootTestConfiguration.class)
 public @interface KadaiAdapterSpringBootTest {}

@@ -3,8 +3,7 @@ package io.kadai.adapter.monitoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.kadai.adapter.impl.scheduled.ScheduledComponent;
-import io.kadai.adapter.impl.scheduled.SchedulerRun;
+import io.kadai.adapter.impl.scheduled.MonitoredScheduledComponent;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,19 +14,19 @@ import org.springframework.boot.actuate.health.Status;
 class SchedulerHealthIndicatorTest {
 
   private SchedulerHealthIndicator schedulerHealthIndicatorSpy;
-  private SchedulerRun schedulerRunSpy;
+  private MonitoredRun monitoredRunSpy;
 
   @BeforeEach
   void setUp() {
-    this.schedulerRunSpy = Mockito.spy(new SchedulerRun());
+    this.monitoredRunSpy = Mockito.spy(new MonitoredRun());
     this.schedulerHealthIndicatorSpy =
         Mockito.spy(
             new SchedulerHealthIndicator(
-                new ScheduledComponent() {
+                new MonitoredScheduledComponent() {
 
                   @Override
-                  public SchedulerRun getLastSchedulerRun() {
-                    return schedulerRunSpy;
+                  public MonitoredRun getLastRun() {
+                    return monitoredRunSpy;
                   }
 
                   @Override
@@ -46,7 +45,7 @@ class SchedulerHealthIndicatorTest {
   @Test
   void should_ReturnUp_When_SchedulerRuns() {
     Instant validRunTime = Instant.now().minus(Duration.ofMinutes(3));
-    when(schedulerRunSpy.getRunTime()).thenReturn(validRunTime);
+    when(monitoredRunSpy.getEnd()).thenReturn(validRunTime);
 
     assertThat(schedulerHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.UP);
   }
@@ -54,7 +53,7 @@ class SchedulerHealthIndicatorTest {
   @Test
   void should_ReturnDown_When_SchedulerDoesNotRun() {
     Instant invalidRunTime = Instant.now().minus(Duration.ofMinutes(15));
-    when(schedulerRunSpy.getRunTime()).thenReturn(invalidRunTime);
+    when(monitoredRunSpy.getEnd()).thenReturn(invalidRunTime);
 
     assertThat(schedulerHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
