@@ -6,10 +6,8 @@ import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
-import java.time.DateTimeException;
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -178,35 +176,16 @@ public class ReferencedTaskCreator {
   }
 
   /**
-   * Parses given Camunda-DateTime and formats it according to ISO8601.
+   * Formats given offset-date-time according to ISO8601.
    *
-   * <p>Returns null if input is null or empty. Exceptions related to parsing and formatting are
-   * caught and logged - null is returned in these cases.
+   * <p>Returns null if input is null.
    *
    * @param camundaDateTime Camunda-DateTime to format
    * @return formatted DateTime
    */
-  private static String formatIso8601OffsetDateTime(String camundaDateTime) {
-    if (camundaDateTime == null || camundaDateTime.isEmpty()) {
-      return null;
-    } else {
-      try {
-        return ZonedDateTime.parse(camundaDateTime)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-      } catch (DateTimeParseException e) {
-        LOGGER.warn(
-            "Caught exception while trying to parse Camunda8-DateTime '{}' as 'ZoneDateTime'.",
-            camundaDateTime,
-            e);
-        return null;
-      } catch (DateTimeException e) {
-        LOGGER.warn(
-            "Caught exception while trying to format Camunda8-DateTime '{}'"
-                + " as ISO8601-formatted String.",
-            camundaDateTime,
-            e);
-        return null;
-      }
-    }
+  private static String formatIso8601OffsetDateTime(OffsetDateTime camundaDateTime) {
+    return camundaDateTime == null
+        ? null
+        : camundaDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
   }
 }

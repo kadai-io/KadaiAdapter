@@ -1,7 +1,7 @@
 package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
+import io.camunda.client.annotation.JobWorker;
 import io.camunda.client.api.response.ActivatedJob;
-import io.camunda.spring.client.annotation.JobWorker;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.impl.service.KadaiTaskStarterService;
 import io.kadai.adapter.monitoring.MonitoredComponent;
