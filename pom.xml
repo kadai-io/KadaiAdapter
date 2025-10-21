@@ -66,6 +66,7 @@
         <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
         <version.spring.boot>3.5.6</version.spring.boot>
 
+        <version.camunda8>8.8.0</version.camunda8>
         <version.camunda>7.23.0</version.camunda>
         <version.camunda.spin>1.23.0</version.camunda.spin>
         <version.camunda.template-engines-freemarker>7.23.0</version.camunda.template-engines-freemarker>
@@ -99,6 +100,7 @@
 
     <modules>
         <module>kadai-adapter</module>
+        <module>kadai-adapter-spring-boot-test</module>
         <module>kadai-adapter-camunda-system-connector</module>
         <module>kadai-adapter-kadai-connector</module>
         <module>kadai-adapter-camunda-spring-boot-example</module>
@@ -108,6 +110,8 @@
         <module>kadai-adapter-camunda-outbox-rest-spring-boot-starter</module>
         <module>kadai-adapter-camunda-spring-boot-test</module>
         <module>camunda-outbox-example-boot</module>
+        <module>kadai-adapter-camunda-8-system-connector</module>
+        <module>kadai-adapter-camunda-8-spring-boot-example</module>
         <module>ci/kadai-adapter-sonar-test-coverage</module>
     </modules>
 
