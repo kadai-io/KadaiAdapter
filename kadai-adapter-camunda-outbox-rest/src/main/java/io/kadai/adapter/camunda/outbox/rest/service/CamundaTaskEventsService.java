@@ -23,7 +23,6 @@ import io.kadai.adapter.camunda.outbox.rest.exception.CamundaTaskEventNotFoundEx
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentException;
 import io.kadai.adapter.camunda.outbox.rest.model.CamundaTaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.repository.CamundaOutboxSqlProvider;
-
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.sql.Connection;

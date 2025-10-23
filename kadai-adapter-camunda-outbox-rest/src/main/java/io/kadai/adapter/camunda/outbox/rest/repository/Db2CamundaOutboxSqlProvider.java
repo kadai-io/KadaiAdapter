@@ -6,14 +6,16 @@ public class Db2CamundaOutboxSqlProvider implements CamundaOutboxSqlProvider {
   public String getAvailableCreateEvents(String schema, int maxRows) {
     final String sql =
         "select * from %s.event_store where type = ? and (lock_expire < ? or lock_expire is null) "
-            + "and remaining_retries>0 and blocked_until < ? fetch first %d rows only for update skip locked data";
+            + "and remaining_retries>0 and blocked_until < ? "
+            + "fetch first %d rows only for update skip locked data";
     return String.format(sql, schema, maxRows);
   }
 
   @Override
   public String getAllAvailableEvents(String schema) {
     final String sql =
-        "select * from %s.event_store where lock_expire < ? or lock_expire is null for update skip locked data";
+        "select * from %s.event_store where lock_expire < ? or lock_expire is null "
+            + "for update skip locked data";
     return String.format(sql, schema);
   }
 

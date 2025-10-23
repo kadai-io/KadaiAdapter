@@ -19,7 +19,8 @@ public class OracleCamundaOutboxSqlProvider implements CamundaOutboxSqlProvider 
   @Override
   public String getAllAvailableEvents(String schema) {
     final String sql =
-        "select * from %s.event_store where lock_expire < ? or lock_expire is null for update skip locked";
+        "select * from %s.event_store where lock_expire < ? or lock_expire is null"
+            + " for update skip locked";
     return String.format(sql, schema);
   }
 
