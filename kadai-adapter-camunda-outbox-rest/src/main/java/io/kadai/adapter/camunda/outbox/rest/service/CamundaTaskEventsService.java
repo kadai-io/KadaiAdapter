@@ -122,10 +122,10 @@ public class CamundaTaskEventsService {
           sqlProvider.getSqlWithoutPlaceholdersDeleteEvents(
               OUTBOX_SCHEMA, preparePlaceHolders(idsAsIntegers.size()));
 
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-
-      setPreparedStatementValues(preparedStatement, idsAsIntegers);
-      preparedStatement.execute();
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        setPreparedStatementValues(preparedStatement, idsAsIntegers);
+        preparedStatement.execute();
+      }
 
     } catch (Exception e) {
       LOGGER.warn("Caught Exception while trying to delete events from the outbox table", e);
@@ -137,18 +137,17 @@ public class CamundaTaskEventsService {
       final CamundaOutboxSqlProvider sqlProvider =
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.decreaseRemainingRetries(OUTBOX_SCHEMA);
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
-      JsonNode id = OBJECT_MAPPER.readTree(eventIdAndErrorLog).get("taskEventId");
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        JsonNode id = OBJECT_MAPPER.readTree(eventIdAndErrorLog).get("taskEventId");
+        JsonNode errorLog = OBJECT_MAPPER.readTree(eventIdAndErrorLog).get("errorLog");
 
-      JsonNode errorLog = OBJECT_MAPPER.readTree(eventIdAndErrorLog).get("errorLog");
-
-      Instant blockedUntil = getBlockedUntil();
-      preparedStatement.setTimestamp(1, Timestamp.from(blockedUntil));
-      preparedStatement.setString(2, errorLog.toString());
-      preparedStatement.setInt(3, id.asInt());
-      preparedStatement.execute();
-
+        Instant blockedUntil = getBlockedUntil();
+        preparedStatement.setTimestamp(1, Timestamp.from(blockedUntil));
+        preparedStatement.setString(2, errorLog.toString());
+        preparedStatement.setInt(3, id.asInt());
+        preparedStatement.execute();
+      }
     } catch (Exception e) {
       LOGGER.warn(
           "Caught Exception while trying to decrease the remaining retries of camunda task event",
@@ -170,7 +169,6 @@ public class CamundaTaskEventsService {
               ? sqlProvider.getEventsFilteredByRetries(OUTBOX_SCHEMA)
               : sqlProvider.getAvailableEventsFilteredByRetries(OUTBOX_SCHEMA);
       try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
         preparedStatement.setInt(1, remainingRetries);
         if (lockDuration != null) {
           preparedStatement.setTimestamp(1, Timestamp.from(Instant.now()));
@@ -210,23 +208,19 @@ public class CamundaTaskEventsService {
   }
 
   public String getEventsCount(int remainingRetries) {
-
     String eventsCount = "{\"eventsCount\":0}";
-
     try (Connection connection = getConnection()) {
       final CamundaOutboxSqlProvider sqlProvider =
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.getEventsCount(OUTBOX_SCHEMA);
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setInt(1, remainingRetries);
-
-      ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
-
-      if (camundaTaskEventResultSet.next()) {
-
-        eventsCount = eventsCount.replace("0", String.valueOf(camundaTaskEventResultSet.getInt(1)));
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setInt(1, remainingRetries);
+        ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
+        if (camundaTaskEventResultSet.next()) {
+          eventsCount =
+              eventsCount.replace("0", String.valueOf(camundaTaskEventResultSet.getInt(1)));
+        }
       }
-
     } catch (Exception e) {
       LOGGER.warn("Caught Exception while trying to retrieve events count from the outbox", e);
     }
@@ -235,20 +229,18 @@ public class CamundaTaskEventsService {
 
   public CamundaTaskEvent setRemainingRetries(int id, int retriesToSet)
       throws CamundaTaskEventNotFoundException {
-
     CamundaTaskEvent event = getEvent(id);
-
     event.setRemainingRetries(retriesToSet);
 
     try (Connection connection = getConnection()) {
       final CamundaOutboxSqlProvider sqlProvider =
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.setRemainingRetries(OUTBOX_SCHEMA);
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setInt(1, retriesToSet);
-      preparedStatement.setInt(2, id);
-      preparedStatement.execute();
-
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setInt(1, retriesToSet);
+        preparedStatement.setInt(2, id);
+        preparedStatement.execute();
+      }
     } catch (Exception e) {
       LOGGER.warn(
           "Caught Exception while trying to set remaining retries for camunda task event", e);
@@ -259,10 +251,8 @@ public class CamundaTaskEventsService {
 
   public List<CamundaTaskEvent> setRemainingRetriesForMultipleEvents(
       int retries, int retriesToSet) {
-
     List<CamundaTaskEvent> camundaTaskEventsFilteredByRetries =
         getEventsFilteredByRetries(retries, null);
-
     camundaTaskEventsFilteredByRetries.forEach(
         camundaTaskEvent -> camundaTaskEvent.setRemainingRetries(retriesToSet));
 
@@ -270,11 +260,11 @@ public class CamundaTaskEventsService {
       final CamundaOutboxSqlProvider sqlProvider =
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.setRemainingRetriesForMultipleEvents(OUTBOX_SCHEMA);
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setInt(1, retriesToSet);
-      preparedStatement.setInt(2, retries);
-      preparedStatement.execute();
-
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setInt(1, retriesToSet);
+        preparedStatement.setInt(2, retries);
+        preparedStatement.execute();
+      }
     } catch (Exception e) {
       LOGGER.warn(
           "Caught Exception while trying to set remaining retries "
@@ -290,10 +280,10 @@ public class CamundaTaskEventsService {
       final CamundaOutboxSqlProvider sqlProvider =
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.deleteFailedEvent(OUTBOX_SCHEMA);
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setInt(1, id);
-      preparedStatement.execute();
-
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setInt(1, id);
+        preparedStatement.execute();
+      }
     } catch (Exception e) {
       LOGGER.warn("Caught Exception while trying to delete failed camunda task event", e);
     }
@@ -304,9 +294,9 @@ public class CamundaTaskEventsService {
       final CamundaOutboxSqlProvider sqlProvider =
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.deleteAllFailedEvents(OUTBOX_SCHEMA);
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.execute();
-
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.execute();
+      }
     } catch (Exception e) {
       LOGGER.warn("Caught Exception while trying to delete all failed camunda task events", e);
     }
@@ -318,25 +308,24 @@ public class CamundaTaskEventsService {
       final CamundaOutboxSqlProvider sqlProvider =
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.getEvent(OUTBOX_SCHEMA);
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setInt(1, id);
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setInt(1, id);
+        ResultSet completeAndDeleteEventsResultSet = preparedStatement.executeQuery();
+        if (completeAndDeleteEventsResultSet.next()) {
+          camundaTaskEvent = new CamundaTaskEvent();
 
-      ResultSet completeAndDeleteEventsResultSet = preparedStatement.executeQuery();
-      if (completeAndDeleteEventsResultSet.next()) {
-        camundaTaskEvent = new CamundaTaskEvent();
+          camundaTaskEvent.setId(completeAndDeleteEventsResultSet.getInt(1));
+          camundaTaskEvent.setType(completeAndDeleteEventsResultSet.getString(2));
+          camundaTaskEvent.setCreated(formatDate(completeAndDeleteEventsResultSet.getTimestamp(3)));
+          camundaTaskEvent.setPayload(completeAndDeleteEventsResultSet.getString(4));
+          camundaTaskEvent.setRemainingRetries(completeAndDeleteEventsResultSet.getInt(5));
+          camundaTaskEvent.setBlockedUntil(completeAndDeleteEventsResultSet.getString(6));
+          camundaTaskEvent.setError(completeAndDeleteEventsResultSet.getString(7));
+          camundaTaskEvent.setCamundaTaskId(completeAndDeleteEventsResultSet.getString(8));
 
-        camundaTaskEvent.setId(completeAndDeleteEventsResultSet.getInt(1));
-        camundaTaskEvent.setType(completeAndDeleteEventsResultSet.getString(2));
-        camundaTaskEvent.setCreated(formatDate(completeAndDeleteEventsResultSet.getTimestamp(3)));
-        camundaTaskEvent.setPayload(completeAndDeleteEventsResultSet.getString(4));
-        camundaTaskEvent.setRemainingRetries(completeAndDeleteEventsResultSet.getInt(5));
-        camundaTaskEvent.setBlockedUntil(completeAndDeleteEventsResultSet.getString(6));
-        camundaTaskEvent.setError(completeAndDeleteEventsResultSet.getString(7));
-        camundaTaskEvent.setCamundaTaskId(completeAndDeleteEventsResultSet.getString(8));
-
-        return camundaTaskEvent;
+          return camundaTaskEvent;
+        }
       }
-
     } catch (SQLException e) {
       LOGGER.error("Caughr exception while trying to retrieve camunda task event", e);
     }
@@ -406,21 +395,18 @@ public class CamundaTaskEventsService {
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.setLockExpire(OUTBOX_SCHEMA, commaSeparatedIds);
 
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setTimestamp(1, Timestamp.from(Instant.now().plus(lockDuration)));
-
-      preparedStatement.execute();
-
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setTimestamp(1, Timestamp.from(Instant.now().plus(lockDuration)));
+        preparedStatement.execute();
+      }
     } catch (SQLException e) {
       LOGGER.error("Caught exception while trying to lock events", e);
     }
   }
 
   private int getRetries(List<String> retries) throws InvalidArgumentException {
-
     try {
       return Integer.parseInt(retries.get(0));
-
     } catch (NumberFormatException e) {
       throw new InvalidArgumentException("retries param must be of type Integer!");
     }
@@ -428,7 +414,6 @@ public class CamundaTaskEventsService {
 
   private void verifyNoInvalidParameters(MultivaluedMap<String, String> filterParams)
       throws InvalidArgumentException {
-
     List<String> invalidParams =
         filterParams.keySet().stream()
             .filter(key -> !ALLOWED_PARAMS.contains(key))
@@ -440,9 +425,7 @@ public class CamundaTaskEventsService {
   }
 
   private Instant getBlockedUntil() {
-
     Duration blockedDuration = OutboxRestConfiguration.getDurationBetweenTaskCreationRetries();
-
     return Instant.now().plus(blockedDuration);
   }
 
@@ -511,11 +494,9 @@ public class CamundaTaskEventsService {
 
   private List<CamundaTaskEvent> getCamundaTaskEvents(ResultSet createEventsResultSet)
       throws SQLException {
-
     List<CamundaTaskEvent> camundaTaskEvents = new ArrayList<>();
 
     while (createEventsResultSet.next()) {
-
       CamundaTaskEvent camundaTaskEvent = new CamundaTaskEvent();
 
       camundaTaskEvent.setId(createEventsResultSet.getInt(1));
@@ -536,17 +517,14 @@ public class CamundaTaskEventsService {
   }
 
   private List<Integer> getIdsAsIntegers(String idsAsJsonArray) {
-
     ObjectMapper objectMapper = new ObjectMapper();
     List<Integer> idsAsIntegers = new ArrayList<>();
 
     try {
       JsonNode idsAsJsonArrayNode = objectMapper.readTree(idsAsJsonArray).get("taskCreationIds");
-
       if (idsAsJsonArrayNode != null) {
         idsAsJsonArrayNode.forEach(id -> idsAsIntegers.add(id.asInt()));
       }
-
     } catch (IOException e) {
       LOGGER.warn(
           "Caught IOException while trying to read the passed JSON-Object in the POST-Request"
@@ -627,7 +605,6 @@ public class CamundaTaskEventsService {
   }
 
   private DataSource getDataSource() {
-
     synchronized (CamundaTaskEventsService.class) {
       if (dataSource == null) {
         return getDataSourceFromPropertiesFile();
