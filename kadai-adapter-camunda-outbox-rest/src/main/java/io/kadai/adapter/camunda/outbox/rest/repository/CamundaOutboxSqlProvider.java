@@ -1,17 +1,18 @@
 package io.kadai.adapter.camunda.outbox.rest.repository;
 
 import io.kadai.common.api.exceptions.UnsupportedDatabaseException;
+import io.kadai.common.internal.configuration.DB;
 
 public interface CamundaOutboxSqlProvider {
 
   static CamundaOutboxSqlProvider valueOf(String databaseProductName) {
-    if (databaseProductName.toLowerCase().contains("h2")) {
+    if (databaseProductName.equals(DB.H2.dbProductName)) {
       return new H2CamundaOutboxSqlProvider();
-    } else if (databaseProductName.contains("db2")) {
+    } else if (databaseProductName.equals(DB.DB2.dbProductName)) {
       return new Db2CamundaOutboxSqlProvider();
-    } else if (databaseProductName.contains("postgres")) {
+    } else if (databaseProductName.equals(DB.POSTGRES.dbProductName)) {
       return new PostgresCamundaOutboxSqlProvider();
-    } else if (databaseProductName.contains("oracle")) {
+    } else if (databaseProductName.contains("Oracle")) {
       return new OracleCamundaOutboxSqlProvider();
     } else {
       throw new UnsupportedDatabaseException(databaseProductName);
