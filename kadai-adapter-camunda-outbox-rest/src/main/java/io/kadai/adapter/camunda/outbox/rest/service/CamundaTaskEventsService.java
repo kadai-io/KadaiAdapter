@@ -22,6 +22,8 @@ import io.kadai.adapter.camunda.OutboxRestConfiguration;
 import io.kadai.adapter.camunda.outbox.rest.exception.CamundaTaskEventNotFoundException;
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentException;
 import io.kadai.adapter.camunda.outbox.rest.model.CamundaTaskEvent;
+import io.kadai.adapter.camunda.outbox.rest.repository.CamundaOutboxSqlProvider;
+
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.sql.Connection;
@@ -49,9 +51,7 @@ import org.slf4j.LoggerFactory;
 import spinjar.com.fasterxml.jackson.databind.JsonNode;
 import spinjar.com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Implementation of the Outbox REST service.
- */
+/** Implementation of the Outbox REST service. */
 public class CamundaTaskEventsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CamundaTaskEventsService.class);
@@ -60,66 +60,15 @@ public class CamundaTaskEventsService {
   private static final String DELETE = "delete";
   private static final String RETRIES = "retries";
   private static final String TYPE = "type";
-
   private static final String LOCK_FOR = "lock-for";
-
-  private static final List<String> ALLOWED_PARAMS = Stream.of(TYPE, RETRIES, LOCK_FOR)
-      .collect(Collectors.toList());
-
+  private static final List<String> ALLOWED_PARAMS =
+      Stream.of(TYPE, RETRIES, LOCK_FOR).collect(Collectors.toList());
   private static final String OUTBOX_SCHEMA = OutboxRestConfiguration.getOutboxSchema();
-  private static final String SQL_GET_CREATE_EVENTS =
-      "select * from %s.event_store where type = ? "
-          + "and remaining_retries>0 and blocked_until < ? fetch first %d rows only";
-  private static final String SQL_GET_AVAILABLE_CREATE_EVENTS =
-      "select * from %s.event_store where type = ? and (lock_expire < ? or lock_expire is null) "
-          + "and remaining_retries>0 and blocked_until < ? fetch first %d rows only for update";
-  private static final String SQL_GET_ALL_EVENTS = "select * from %s.event_store";
-  private static final String SQL_GET_ALL_AVAILABLE_EVENTS =
-      "select * from %s.event_store where lock_expire "
-          + "< ? or lock_expire is null for update";
-  private static final String SQL_GET_EVENT = "select * from %s.event_store where id = ? ";
-  private static final String SQL_GET_COMPLETE_AND_DELETE_EVENTS =
-      "select * from %s.event_store where type = ? OR type = ? fetch first %d rows only";
-  private static final String SQL_GET_AVAILABLE_COMPLETE_AND_DELETE_EVENTS =
-      "select * from %s.event_store where (type = ? OR type = ?) and (lock_expire < ? or"
-          + " lock_expire is null)"
-          + " fetch first %d rows only for update";
-  private static final String SQL_GET_EVENTS_FILTERED_BY_RETRIES =
-      "select * from %s.event_store where remaining_retries = ?";
-
-  private static final String SQL_GET_AVAILABLE_EVENTS_FILTERED_BY_RETRIES =
-      "select * from %s.event_store where remaining_retries = ? and lock_expire "
-          + "< ? or lock_expire is null for update";
-  private static final String SQL_GET_EVENTS_COUNT =
-      "select count(id) from %s.event_store where remaining_retries = ?";
-  private static final String SQL_WITHOUT_PLACEHOLDERS_DELETE_EVENTS =
-      "delete from %s.event_store where id in (%s)";
-  private static final String SQL_DECREASE_REMAINING_RETRIES =
-      "update %s.event_store set remaining_retries = remaining_retries-1, blocked_until = ?, "
-          + "error = ? where id = ?";
-  private static final String SQL_SET_REMAINING_RETRIES =
-      "update %s.event_store set remaining_retries = ? where id = ?";
-  private static final String SQL_SET_REMAINING_RETRIES_FOR_MULTIPLE_EVENTS =
-      "update %s.event_store set remaining_retries = ? where remaining_retries = ?";
-  private static final String SQL_DELETE_FAILED_EVENT =
-      "delete from %s.event_store where id = ? and remaining_retries <=0";
-  private static final String SQL_DELETE_ALL_FAILED_EVENTS =
-      "delete from %s.event_store where remaining_retries <= 0 ";
-
-  private static final String SQL_SET_LOCK_EXPIRE =
-      "update %s.event_store set lock_expire = ? where id in (%s)";
-
-  private static final String SQL_UNLOCK =
-      "update %s.event_store set lock_expire = null where id in (%s)";
-
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
   private static int maxNumberOfEventsReturned = 0;
 
   static {
-    if (maxNumberOfEventsReturned == 0) {
-      maxNumberOfEventsReturned = OutboxRestConfiguration.getOutboxMaxNumberOfEvents();
-    }
+    maxNumberOfEventsReturned = OutboxRestConfiguration.getOutboxMaxNumberOfEvents();
     LOGGER.info(
         "Outbox Rest Api will return at max {} events per request", maxNumberOfEventsReturned);
   }
@@ -133,8 +82,8 @@ public class CamundaTaskEventsService {
     Duration lockDuration = null;
     List<CamundaTaskEvent> camundaTaskEvents;
     if (filterParams.containsKey(LOCK_FOR)) {
-      lockDuration = Duration.of(Long.parseLong(filterParams.get(LOCK_FOR).get(0)),
-          ChronoUnit.SECONDS);
+      lockDuration =
+          Duration.of(Long.parseLong(filterParams.get(LOCK_FOR).get(0)), ChronoUnit.SECONDS);
     }
     if (filterParams.containsKey(TYPE) && filterParams.get(TYPE).contains(CREATE)) {
 
@@ -165,19 +114,16 @@ public class CamundaTaskEventsService {
   }
 
   public void deleteEvents(String idsAsJsonArray) {
-
     List<Integer> idsAsIntegers = getIdsAsIntegers(idsAsJsonArray);
 
-    String deleteEventsSqlWithPlaceholders =
-        String.format(
-            SQL_WITHOUT_PLACEHOLDERS_DELETE_EVENTS,
-            OUTBOX_SCHEMA,
-            preparePlaceHolders(idsAsIntegers.size()));
-
     try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql =
+          sqlProvider.getSqlWithoutPlaceholdersDeleteEvents(
+              OUTBOX_SCHEMA, preparePlaceHolders(idsAsIntegers.size()));
 
-      PreparedStatement preparedStatement =
-          connection.prepareStatement(deleteEventsSqlWithPlaceholders);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
       setPreparedStatementValues(preparedStatement, idsAsIntegers);
       preparedStatement.execute();
@@ -188,11 +134,11 @@ public class CamundaTaskEventsService {
   }
 
   public void decreaseRemainingRetriesAndLogError(String eventIdAndErrorLog) {
-
-    String sql = String.format(SQL_DECREASE_REMAINING_RETRIES, OUTBOX_SCHEMA);
-
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql = sqlProvider.decreaseRemainingRetries(OUTBOX_SCHEMA);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
       JsonNode id = OBJECT_MAPPER.readTree(eventIdAndErrorLog).get("taskEventId");
 
@@ -211,20 +157,21 @@ public class CamundaTaskEventsService {
     }
   }
 
-  public List<CamundaTaskEvent> getEventsFilteredByRetries(Integer remainingRetries,
-      Duration lockDuration) {
+  public List<CamundaTaskEvent> getEventsFilteredByRetries(
+      Integer remainingRetries, Duration lockDuration) {
 
     List<CamundaTaskEvent> camundaTaskEventsFilteredByRetries = new ArrayList<>();
-    String sqlStatement = lockDuration == null
-        ? SQL_GET_EVENTS_FILTERED_BY_RETRIES : SQL_GET_AVAILABLE_EVENTS_FILTERED_BY_RETRIES;
-    String getEventsFilteredByRetriesSql =
-        String.format(sqlStatement, OUTBOX_SCHEMA);
     List<Integer> ids = null;
 
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement =
-            connection.prepareStatement(getEventsFilteredByRetriesSql)) {
-      try {
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql =
+          lockDuration == null
+              ? sqlProvider.getEventsFilteredByRetries(OUTBOX_SCHEMA)
+              : sqlProvider.getAvailableEventsFilteredByRetries(OUTBOX_SCHEMA);
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
         preparedStatement.setInt(1, remainingRetries);
         if (lockDuration != null) {
           preparedStatement.setTimestamp(1, Timestamp.from(Instant.now()));
@@ -232,8 +179,10 @@ public class CamundaTaskEventsService {
         ResultSet camundaTaskEventFilteredByRetriesResultSet = preparedStatement.executeQuery();
         camundaTaskEventsFilteredByRetries =
             getCamundaTaskEvents(camundaTaskEventFilteredByRetriesResultSet);
-        ids = camundaTaskEventsFilteredByRetries.stream().map(CamundaTaskEvent::getId)
-            .collect(Collectors.toList());
+        ids =
+            camundaTaskEventsFilteredByRetries.stream()
+                .map(CamundaTaskEvent::getId)
+                .collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
@@ -241,8 +190,7 @@ public class CamundaTaskEventsService {
               ids.stream().map(Object::toString).collect(Collectors.joining(";\n")));
         }
       } catch (Exception e) {
-        LOGGER.warn("Caught Exception while trying to retrieve failed events from the outbox",
-            e);
+        LOGGER.warn("Caught Exception while trying to retrieve failed events from the outbox", e);
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -266,11 +214,11 @@ public class CamundaTaskEventsService {
 
     String eventsCount = "{\"eventsCount\":0}";
 
-    String getEventsCountSql = String.format(SQL_GET_EVENTS_COUNT, OUTBOX_SCHEMA);
-
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(getEventsCountSql)) {
-
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql = sqlProvider.getEventsCount(OUTBOX_SCHEMA);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setInt(1, remainingRetries);
 
       ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
@@ -293,11 +241,11 @@ public class CamundaTaskEventsService {
 
     event.setRemainingRetries(retriesToSet);
 
-    String setRemainingRetriesSql = String.format(SQL_SET_REMAINING_RETRIES, OUTBOX_SCHEMA);
-
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(setRemainingRetriesSql)) {
-
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql = sqlProvider.setRemainingRetries(OUTBOX_SCHEMA);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setInt(1, retriesToSet);
       preparedStatement.setInt(2, id);
       preparedStatement.execute();
@@ -313,19 +261,17 @@ public class CamundaTaskEventsService {
   public List<CamundaTaskEvent> setRemainingRetriesForMultipleEvents(
       int retries, int retriesToSet) {
 
-    List<CamundaTaskEvent> camundaTaskEventsFilteredByRetries = getEventsFilteredByRetries(retries,
-        null);
+    List<CamundaTaskEvent> camundaTaskEventsFilteredByRetries =
+        getEventsFilteredByRetries(retries, null);
 
     camundaTaskEventsFilteredByRetries.forEach(
         camundaTaskEvent -> camundaTaskEvent.setRemainingRetries(retriesToSet));
 
-    String setRemainingRetriesForAllFilteredByRetriesSql =
-        String.format(SQL_SET_REMAINING_RETRIES_FOR_MULTIPLE_EVENTS, OUTBOX_SCHEMA);
-
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement =
-            connection.prepareStatement(setRemainingRetriesForAllFilteredByRetriesSql)) {
-
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql = sqlProvider.setRemainingRetriesForMultipleEvents(OUTBOX_SCHEMA);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setInt(1, retriesToSet);
       preparedStatement.setInt(2, retries);
       preparedStatement.execute();
@@ -341,12 +287,11 @@ public class CamundaTaskEventsService {
   }
 
   public void deleteFailedEvent(int id) {
-
-    String deleteFailedEventSql = String.format(SQL_DELETE_FAILED_EVENT, OUTBOX_SCHEMA);
-
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(deleteFailedEventSql)) {
-
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql = sqlProvider.deleteFailedEvent(OUTBOX_SCHEMA);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setInt(1, id);
       preparedStatement.execute();
 
@@ -356,14 +301,11 @@ public class CamundaTaskEventsService {
   }
 
   public void deleteAllFailedEvents() {
-
-    String flagEventsSqlWithPlaceholders =
-        String.format(SQL_DELETE_ALL_FAILED_EVENTS, OUTBOX_SCHEMA);
-
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement =
-            connection.prepareStatement(flagEventsSqlWithPlaceholders)) {
-
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql = sqlProvider.deleteAllFailedEvents(OUTBOX_SCHEMA);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.execute();
 
     } catch (Exception e) {
@@ -372,14 +314,12 @@ public class CamundaTaskEventsService {
   }
 
   public CamundaTaskEvent getEvent(int id) throws CamundaTaskEventNotFoundException {
-
-    String sql = String.format(SQL_GET_EVENT, OUTBOX_SCHEMA);
-
     CamundaTaskEvent camundaTaskEvent;
-
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql = sqlProvider.getEvent(OUTBOX_SCHEMA);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setInt(1, id);
 
       ResultSet completeAndDeleteEventsResultSet = preparedStatement.executeQuery();
@@ -406,22 +346,22 @@ public class CamundaTaskEventsService {
   }
 
   public List<CamundaTaskEvent> getAllEvents(Duration lockDuration) {
-
     List<CamundaTaskEvent> camundaTaskEvents = new ArrayList<>();
-    String sqlStatement = lockDuration == null
-        ? SQL_GET_ALL_EVENTS : SQL_GET_ALL_AVAILABLE_EVENTS;
-    String sql = String.format(sqlStatement, OUTBOX_SCHEMA);
     List<Integer> ids = null;
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-      try {
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql =
+          lockDuration == null
+              ? sqlProvider.getAllEvents(OUTBOX_SCHEMA)
+              : sqlProvider.getAllAvailableEvents(OUTBOX_SCHEMA);
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
         if (lockDuration != null) {
           preparedStatement.setTimestamp(1, Timestamp.from(Instant.now()));
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camundaTaskEvents = getCamundaTaskEvents(camundaTaskEventResultSet);
-        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId)
-            .collect(Collectors.toList());
+        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
@@ -429,8 +369,7 @@ public class CamundaTaskEventsService {
               ids.stream().map(Object::toString).collect(Collectors.joining(";\n")));
         }
       } catch (Exception e) {
-        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox",
-            e);
+        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox", e);
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -455,6 +394,26 @@ public class CamundaTaskEventsService {
       unlockEvents(Collections.singletonList((eventId)), connection);
     } catch (Exception e) {
       LOGGER.error("Failed to unlock events", e);
+    }
+  }
+
+  public void lockEvents(List<Integer> ids, Duration lockDuration, Connection connection) {
+    if (lockDuration == null || ids.isEmpty()) {
+      return;
+    }
+    String commaSeparatedIds = ids.stream().map(Object::toString).collect(Collectors.joining(", "));
+    try {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql = sqlProvider.setLockExpire(OUTBOX_SCHEMA, commaSeparatedIds);
+
+      PreparedStatement preparedStatement = connection.prepareStatement(sql);
+      preparedStatement.setTimestamp(1, Timestamp.from(Instant.now().plus(lockDuration)));
+
+      preparedStatement.execute();
+
+    } catch (SQLException e) {
+      LOGGER.error("Caught exception while trying to lock events", e);
     }
   }
 
@@ -494,14 +453,16 @@ public class CamundaTaskEventsService {
   }
 
   private List<CamundaTaskEvent> getCreateEvents(Duration lockDuration) {
-
     List<CamundaTaskEvent> camundaTaskEvents = new ArrayList<>();
-    String sqlStatement = lockDuration == null
-        ? SQL_GET_CREATE_EVENTS : SQL_GET_AVAILABLE_CREATE_EVENTS;
     List<Integer> ids = null;
-    try (Connection connection = getConnection()) {
 
-      String sql = String.format(sqlStatement, OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql =
+          lockDuration == null
+              ? sqlProvider.getCreateEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned)
+              : sqlProvider.getAvailableCreateEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned);
       try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
         preparedStatement.setString(1, CREATE);
         preparedStatement.setTimestamp(2, Timestamp.from(Instant.now()));
@@ -510,8 +471,7 @@ public class CamundaTaskEventsService {
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camundaTaskEvents = getCamundaTaskEvents(camundaTaskEventResultSet);
-        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId)
-            .collect(Collectors.toList());
+        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
@@ -519,8 +479,7 @@ public class CamundaTaskEventsService {
               ids.stream().map(Object::toString).collect(Collectors.joining(";\n")));
         }
       } catch (Exception e) {
-        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox",
-              e);
+        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox", e);
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -601,14 +560,16 @@ public class CamundaTaskEventsService {
   private List<CamundaTaskEvent> getCompleteAndDeleteEvents(Duration lockDuration) {
 
     List<CamundaTaskEvent> camundaTaskEvents = new ArrayList<>();
-    String sqlStatement = lockDuration == null
-        ? SQL_GET_COMPLETE_AND_DELETE_EVENTS : SQL_GET_AVAILABLE_COMPLETE_AND_DELETE_EVENTS;
-    String sql =
-        String.format(sqlStatement, OUTBOX_SCHEMA, maxNumberOfEventsReturned);
     List<Integer> ids = null;
-    try (Connection connection = getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-      try {
+    try (Connection connection = getConnection()) {
+      final CamundaOutboxSqlProvider sqlProvider =
+          CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+      String sql =
+          lockDuration == null
+              ? sqlProvider.getCompleteAndDeleteEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned)
+              : sqlProvider.getAvailableCompleteAndDeleteEvents(
+                  OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
         preparedStatement.setString(1, COMPLETE);
         preparedStatement.setString(2, DELETE);
         if (lockDuration != null) {
@@ -616,8 +577,7 @@ public class CamundaTaskEventsService {
         }
         ResultSet completeAndDeleteEventsResultSet = preparedStatement.executeQuery();
         camundaTaskEvents = getCamundaTaskEvents(completeAndDeleteEventsResultSet);
-        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId)
-            .collect(Collectors.toList());
+        ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId).collect(Collectors.toList());
 
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
@@ -626,8 +586,7 @@ public class CamundaTaskEventsService {
               ids.stream().map(Object::toString).collect(Collectors.joining(";\n")));
         }
       } catch (Exception e) {
-        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox",
-            e);
+        LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox", e);
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -678,31 +637,11 @@ public class CamundaTaskEventsService {
     return dataSource;
   }
 
-  public void lockEvents(List<Integer> ids, Duration lockDuration, Connection connection) {
-    if (lockDuration == null || ids.isEmpty()) {
-      return;
-    }
-    String commaSeparatedIds = ids.stream()
-        .map(Object::toString)
-        .collect(Collectors.joining(", "));
-    String sql = String.format(SQL_SET_LOCK_EXPIRE, OUTBOX_SCHEMA, commaSeparatedIds);
-    try {
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setTimestamp(1,
-          Timestamp.from(Instant.now().plus(lockDuration)));
-
-      preparedStatement.execute();
-
-    } catch (SQLException e) {
-      LOGGER.error("Caught exception while trying to lock events", e);
-    }
-  }
-
   private void unlockEvents(List<Integer> ids, Connection connection) throws SQLException {
-    String commaSeparatedIds = ids.stream()
-        .map(Object::toString)
-        .collect(Collectors.joining(", "));
-    String sql = String.format(SQL_UNLOCK, OUTBOX_SCHEMA, commaSeparatedIds);
+    final CamundaOutboxSqlProvider sqlProvider =
+        CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
+    String commaSeparatedIds = ids.stream().map(Object::toString).collect(Collectors.joining(", "));
+    String sql = sqlProvider.unlock(OUTBOX_SCHEMA, commaSeparatedIds);
     try (PreparedStatement preparedStatement2 = connection.prepareStatement(sql)) {
       preparedStatement2.execute();
     }
