@@ -55,7 +55,8 @@ public class CamundaUtilRequester {
           .toEntity(String.class)
           .getBody();
     } catch (HttpClientErrorException ex) {
-      boolean isNotExisting = HttpStatus.NOT_FOUND.equals(ex.getStatusCode());
+      boolean isNotExisting =
+          HttpStatus.NOT_FOUND.equals(ex.getStatusCode());
       if (isNotExisting) {
         LOGGER.debug("Camunda Task {} is not existing. Returning silently", camundaTaskId);
       }

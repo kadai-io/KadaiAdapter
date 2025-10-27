@@ -33,7 +33,8 @@ public class CamundaTaskEventListResource implements Serializable {
 
   public CamundaTaskEventListResource() {}
 
-  public CamundaTaskEventListResource(CamundaTaskEventList camundaTaskEventList) {
+  public CamundaTaskEventListResource(
+      CamundaTaskEventList camundaTaskEventList) {
     this.camundaTaskEvents = camundaTaskEventList.getCamundaTaskEvents();
   }
 

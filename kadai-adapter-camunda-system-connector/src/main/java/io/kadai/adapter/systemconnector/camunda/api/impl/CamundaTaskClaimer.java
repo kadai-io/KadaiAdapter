@@ -92,7 +92,7 @@ public class CamundaTaskClaimer {
         return new SystemResponse(response.getStatusCode(), null);
       } catch (HttpClientErrorException e) {
         if (CamundaUtilRequester.isTaskNotExisting(
-            httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
+                httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
         }
         LOGGER.warn("HTTP client error while claiming Camunda task: {}", e.getStatusCode(), e);

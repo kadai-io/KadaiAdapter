@@ -124,11 +124,10 @@ abstract class AbsIntegrationTest {
 
       isInitialised = true;
     }
-    this.restClient =
-        RestClient.builder()
-            .baseUrl("http://localhost:" + port)
-            .requestFactory(new HttpComponentsClientHttpRequestFactory())
-            .build();
+    this.restClient = RestClient.builder()
+        .baseUrl("http://localhost:" + port)
+        .requestFactory(new HttpComponentsClientHttpRequestFactory())
+        .build();
     // set up camunda requester and kadaiEngine-Taskservice
     this.camundaProcessengineRequester =
         new CamundaProcessengineRequester(

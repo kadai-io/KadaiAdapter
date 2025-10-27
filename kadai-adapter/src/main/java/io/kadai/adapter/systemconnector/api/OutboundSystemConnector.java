@@ -18,7 +18,9 @@
 
 package io.kadai.adapter.systemconnector.api;
 
-/** Interface for outbound operations - sending commands to external systems. */
+/**
+ * Interface for outbound operations - sending commands to external systems.
+ */
 public interface OutboundSystemConnector extends BaseSystemConnector {
 
   /**

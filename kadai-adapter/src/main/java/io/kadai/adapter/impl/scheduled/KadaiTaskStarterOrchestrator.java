@@ -93,9 +93,8 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
   }
 
   public void retrieveReferencedTasksAndCreateCorrespondingKadaiTasks() {
-    LOGGER.trace(
-        "KadaiTaskStarterOrchestrator."
-            + "retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY");
+    LOGGER.trace("KadaiTaskStarterOrchestrator."
+        + "retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY");
     for (InboundSystemConnector systemConnector :
         (adapterManager.getInboundSystemConnectors().values())) {
       try {

@@ -117,9 +117,11 @@ public class CamundaTaskEventsController {
   @Path(Mapping.URL_UNLOCK_EVENT)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  public Response unlockEvent(@PathParam("eventId") final int eventId) {
+  public Response unlockEvent(
+      @PathParam("eventId") final int eventId) {
 
-    camundaTaskEventService.unlockEventForId(eventId);
+    camundaTaskEventService.unlockEventForId(
+        eventId);
 
     return Response.status(204).build();
   }

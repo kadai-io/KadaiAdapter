@@ -55,6 +55,9 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
   }
 
   ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
-    return restClient.get().uri(url).retrieve().toEntity(OutboxEventCountRepresentationModel.class);
+    return restClient.get()
+        .uri(url)
+        .retrieve()
+        .toEntity(OutboxEventCountRepresentationModel.class);
   }
 }

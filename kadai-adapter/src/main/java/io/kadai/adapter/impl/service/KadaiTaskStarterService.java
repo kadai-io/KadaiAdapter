@@ -21,7 +21,9 @@ package io.kadai.adapter.impl.service;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 
-/** Service interface for creating KADAI tasks from referenced tasks. */
+/**
+ * Service interface for creating KADAI tasks from referenced tasks.
+ */
 public interface KadaiTaskStarterService {
 
   /**
@@ -30,5 +32,6 @@ public interface KadaiTaskStarterService {
    * @param referencedTask the referenced task to create a KADAI task for (must have systemUrl set)
    * @throws TaskCreationFailedException if the task creation fails
    */
-  void createKadaiTask(ReferencedTask referencedTask) throws TaskCreationFailedException;
+  void createKadaiTask(ReferencedTask referencedTask)
+      throws TaskCreationFailedException;
 }

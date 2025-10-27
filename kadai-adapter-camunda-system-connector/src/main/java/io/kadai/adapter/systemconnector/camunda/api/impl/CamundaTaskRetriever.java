@@ -107,14 +107,12 @@ public class CamundaTaskRetriever {
 
     try {
 
-      camundaTaskEventListResource =
-          restClient
-              .get()
-              .uri(requestUrl)
-              .headers(httpHeaders -> httpHeaders.addAll(headers))
-              .retrieve()
-              .toEntity(CamundaTaskEventListResource.class)
-              .getBody();
+      camundaTaskEventListResource = restClient.get()
+          .uri(requestUrl)
+          .headers(httpHeaders -> httpHeaders.addAll(headers))
+          .retrieve()
+          .toEntity(CamundaTaskEventListResource.class)
+          .getBody();
 
       List<CamundaTaskEvent> retrievedEvents = camundaTaskEventListResource.getCamundaTaskEvents();
 

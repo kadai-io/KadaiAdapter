@@ -44,8 +44,7 @@ public class Camunda7HealthIndicator implements HealthIndicator {
   }
 
   ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {
-    return restClient
-        .get()
+    return restClient.get()
         .uri(url)
         .retrieve()
         .toEntity(CamundaEngineInfoRepresentationModel[].class);
