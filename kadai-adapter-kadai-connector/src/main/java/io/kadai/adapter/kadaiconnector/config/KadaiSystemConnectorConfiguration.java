@@ -41,9 +41,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-/**
- * Configuration for KADAI task system connector.
- */
+/** Configuration for KADAI task system connector. */
 @Configuration
 @DependsOn(value = {"adapterSpringContextProvider"})
 @EnableTransactionManagement
@@ -83,8 +81,7 @@ public class KadaiSystemConnectorConfiguration {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-  public SpringKadaiEngine kadaiEngine(KadaiConfiguration kadaiConfiguration)
-      throws SQLException {
+  public SpringKadaiEngine kadaiEngine(KadaiConfiguration kadaiConfiguration) throws SQLException {
     return SpringKadaiEngine.buildKadaiEngine(kadaiConfiguration);
   }
 

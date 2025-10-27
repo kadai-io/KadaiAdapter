@@ -27,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implements InboundSystemConnectorProvider for Camunda.
- * Creates CamundaSystemConnectorImpl instances for inbound operations.
+ * Implements InboundSystemConnectorProvider for Camunda. Creates CamundaSystemConnectorImpl
+ * instances for inbound operations.
  */
 public class InboundSystemConnectorCamundaProviderImpl implements InboundSystemConnectorProvider {
 

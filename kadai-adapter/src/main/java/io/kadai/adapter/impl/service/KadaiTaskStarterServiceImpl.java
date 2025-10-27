@@ -39,8 +39,7 @@ public class KadaiTaskStarterServiceImpl implements KadaiTaskStarterService {
   }
 
   @Override
-  public void createKadaiTask(ReferencedTask referencedTask)
-      throws TaskCreationFailedException {
+  public void createKadaiTask(ReferencedTask referencedTask) throws TaskCreationFailedException {
     LOGGER.trace("KadaiTaskStarterService.createKadaiTask ENTRY");
 
     KadaiConnector kadaiConnector = adapterManager.getKadaiConnector();
