@@ -25,9 +25,10 @@ class UserTaskCancellationTest {
   @Autowired
   private KadaiEngine kadaiEngine;
 
+
   @Test
   @WithAccessId(user = "admin")
-  void should_CompleteKadaiTask_When_CamundaTaskIsCompleted() throws Exception {
+  void should_CancelKadaiTask_When_CamundaTaskIsCompleted() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
 
@@ -55,7 +56,7 @@ class UserTaskCancellationTest {
 
     client.newCancelInstanceCommand(processInstance.getProcessInstanceKey()).send().join();
 
-    client.wait(100);
+    Thread.sleep(100);
 
     final Task canceledTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(canceledTask.getState()).isEqualTo(TaskState.CANCELLED);
