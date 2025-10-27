@@ -80,7 +80,7 @@ class TestTaskTermination extends AbsIntegrationTest {
           this.camundaProcessengineRequester.getTaskFromTaskId(camundaTaskId);
       assertThat(taskRetrievalSuccessful).isFalse();
     }
-    Instant lastRunTime = kadaiTaskTerminator.getLastSchedulerRun().getRunTime();
+    Instant lastRunTime = kadaiTaskTerminator.getLastRun().getEnd();
     assertThat(lastRunTime).isNotNull().isAfter(Instant.now().minusSeconds(5));
   }
 }
