@@ -21,9 +21,9 @@ package io.kadai.adapter.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import io.kadai.adapter.impl.LastSchedulerRun;
+import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.manager.AdapterManager;
-import io.kadai.adapter.systemconnector.api.SystemConnector;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaSystemConnectorImpl;
 import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
@@ -75,7 +75,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TestTaskAcquisition.class);
   @Autowired AdapterManager adapterManager;
-  @Autowired private LastSchedulerRun lastSchedulerRun;
+  @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
 
   @Value("${kadai-system-connector-camundaSystemURLs}")
   private String configuredSystemConnectorUrls;
@@ -158,9 +158,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       assertThat(processInstanceId).isEqualTo(businessProcessId);
     }
 
-    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
-    assertThat(lastRunTime).isNotNull();
-    assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
+    Instant lastRunTime = kadaiTaskStarter.getLastSchedulerRun().getRunTime();
+    assertThat(lastRunTime).isNotNull().isAfter(Instant.now().minusSeconds(5));
   }
 
   @WithAccessId(
@@ -530,8 +529,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
   void should_CreateKadaiTask_When_SystemConnectorHasCorrectSystemEngineIdentifier()
       throws Exception {
 
-    final Map<String, SystemConnector> originalSystemConnectors =
-        new HashMap<>(adapterManager.getSystemConnectors());
+    final Map<String, InboundSystemConnector> originalSystemConnectors =
+        new HashMap<>(adapterManager.getInboundSystemConnectors());
 
     setSystemConnector("default");
 
@@ -554,8 +553,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       assertThat(processInstanceId).isEqualTo(businessProcessId);
     }
 
-    adapterManager.getSystemConnectors().clear();
-    adapterManager.getSystemConnectors().putAll(originalSystemConnectors);
+    adapterManager.getInboundSystemConnectors().clear();
+    adapterManager.getInboundSystemConnectors().putAll(originalSystemConnectors);
   }
 
   @WithAccessId(
@@ -656,8 +655,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
   void should_NotCreateKadaiTask_When_SystemConnectorHasIncorrectSystemEngineIdentifier()
       throws Exception {
 
-    final Map<String, SystemConnector> originalSystemConnectors =
-        new HashMap<>(adapterManager.getSystemConnectors());
+    final Map<String, InboundSystemConnector> originalSystemConnectors =
+        new HashMap<>(adapterManager.getInboundSystemConnectors());
 
     setSystemConnector("wrongIdentifier");
 
@@ -681,8 +680,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
 
     Assertions.assertThat(kadaiOutboxRequester.getAllEvents()).hasSize(1);
 
-    adapterManager.getSystemConnectors().clear();
-    adapterManager.getSystemConnectors().putAll(originalSystemConnectors);
+    adapterManager.getInboundSystemConnectors().clear();
+    adapterManager.getInboundSystemConnectors().putAll(originalSystemConnectors);
   }
 
   @WithAccessId(
@@ -834,7 +833,11 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @ParameterizedTest
-  @ValueSource(strings = {"simple_user_task_process_with_taskana_prefix", "simple_user_task_process_with_both_prefixes"})
+  @ValueSource(
+      strings = {
+        "simple_user_task_process_with_taskana_prefix",
+        "simple_user_task_process_with_both_prefixes"
+      })
   void should_HandlePrefixesCorrectly_When_StartCamundaTaskWithPrefixes(String processDefinitionKey)
       throws Exception {
     String processInstanceId =
@@ -863,15 +866,14 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       Map<String, String> customAttributes =
           retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
       assertThat(
-          expectedPrimitiveVariable1,
-          SameJSONAs.sameJSONAs(customAttributes.get("camunda:item")));
+          expectedPrimitiveVariable1, SameJSONAs.sameJSONAs(customAttributes.get("camunda:item")));
       assertThat(
-          expectedPrimitiveVariable2, SameJSONAs.sameJSONAs(customAttributes.get("camunda:amount")));
+          expectedPrimitiveVariable2,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:amount")));
     }
 
-    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
-    assertThat(lastRunTime).isNotNull();
-    assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
+    Instant lastRunTime = kadaiTaskStarter.getLastSchedulerRun().getRunTime();
+    assertThat(lastRunTime).isNotNull().isAfter(Instant.now().minusSeconds(5));
   }
 
   private void setSystemConnector(String systemEngineIdentifier) {
@@ -882,9 +884,9 @@ class TestTaskAcquisition extends AbsIntegrationTest {
     systemUrlInfo.setSystemRestUrl(systemConfigParts.nextToken().trim());
     systemUrlInfo.setSystemTaskEventUrl(systemConfigParts.nextToken().trim());
 
-    SystemConnector systemConnector = new CamundaSystemConnectorImpl(systemUrlInfo);
+    InboundSystemConnector systemConnector = new CamundaSystemConnectorImpl(systemUrlInfo);
 
-    Map<String, SystemConnector> systemConnectors = adapterManager.getSystemConnectors();
+    Map<String, InboundSystemConnector> systemConnectors = adapterManager.getInboundSystemConnectors();
     systemConnectors.clear();
 
     systemConnectors.put(systemUrlInfo.getSystemRestUrl(), systemConnector);

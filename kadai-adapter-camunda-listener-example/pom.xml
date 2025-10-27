@@ -12,7 +12,7 @@
     <parent>
         <groupId>io.kadai</groupId>
         <artifactId>kadai-adapter-parent</artifactId>
-        <version>9.3.2-SNAPSHOT</version>
+        <version>11.0.1-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -32,16 +32,6 @@
             <groupId>org.camunda.bpm</groupId>
             <artifactId>camunda-engine</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <!-- client for Java EE application server integration, included in WAR as an alternative to write your own ProcessApplication class -->
-            <groupId>org.camunda.bpm.javaee</groupId>
-            <artifactId>camunda-ejb-client</artifactId>
-        </dependency>
-        <dependency>
-            <!-- CDI integration, needs to be included in WAR, otherwise CDI can not work correctly -->
-            <groupId>org.camunda.bpm</groupId>
-            <artifactId>camunda-engine-cdi</artifactId>
         </dependency>
         <!-- Required to use Spin dataformat support in unit tests -->
         <dependency>
@@ -115,12 +105,6 @@
                 <groupId>org.jboss.as.plugins</groupId>
                 <artifactId>jboss-as-maven-plugin</artifactId>
                 <version>${version.maven.jboss-as.plugin}</version>
-            </plugin>
-            <plugin>
-                <!-- Deploy to Wildfly: mvn clean wildfly:deploy See also: https://docs.jboss.org/wildfly/plugins/maven/latest/examples/deployment-example.html -->
-                <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-maven-plugin</artifactId>
-                <version>${version.maven.wildfly.plugin}</version>
             </plugin>
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>

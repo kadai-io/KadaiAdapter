@@ -25,7 +25,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.kadai.adapter.impl.LastSchedulerRun;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
 import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaUtilRequester;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
@@ -57,7 +57,8 @@ import uk.co.datumedge.hamcrest.json.SameJSONAs;
 @ExtendWith(JaasExtension.class)
 @ContextConfiguration
 class TestCompletedTaskRetrieval extends AbsIntegrationTest {
-  @Autowired private LastSchedulerRun lastSchedulerRun;
+
+  @Autowired ReferencedTaskCompleter referencedTaskCompleter;
 
   @WithAccessId(
       user = "teamlead_1",
@@ -95,7 +96,7 @@ class TestCompletedTaskRetrieval extends AbsIntegrationTest {
           this.camundaProcessengineRequester.getTaskFromHistoryFromTaskId(camundaTaskId);
       assertThat(taskRetrievalFromHistorySuccessful).isTrue();
     }
-    Instant lastRunTime = lastSchedulerRun.getLastRunTime();
+    Instant lastRunTime = referencedTaskCompleter.getLastSchedulerRun().getRunTime();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }

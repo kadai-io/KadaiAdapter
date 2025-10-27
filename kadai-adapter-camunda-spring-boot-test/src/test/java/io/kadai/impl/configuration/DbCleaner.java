@@ -34,7 +34,6 @@ public class DbCleaner {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbCleaner.class);
   private static final String KADAI_DB_CLEAR_SCRIPT = "/sql/clear-kadai-db.sql";
-  private static final String KADAI_ADAPTER_DB_CLEAR_SCRIPT = "/sql/clear-kadai-adapter-db.sql";
   private static final String CAMUNDA_DB_CLEAR_SCRIPT = "/sql/clear-camunda-db.sql";
   private static final String OUTBOX_DB_CLEAR_SCRIPT = "/sql/clear-outbox-db.sql";
   private static final String KADAI_ADAPTER_DB_CLEAR_POSTGRES =
@@ -51,7 +50,6 @@ public class DbCleaner {
 
   public DbCleaner() {
     this.typeScriptMap.put(ApplicationDatabaseType.KADAI, KADAI_DB_CLEAR_SCRIPT);
-    this.typeScriptMap.put(ApplicationDatabaseType.KADAI_ADAPTER, KADAI_ADAPTER_DB_CLEAR_SCRIPT);
     this.typeScriptMap.put(ApplicationDatabaseType.CAMUNDA, CAMUNDA_DB_CLEAR_SCRIPT);
     this.typeScriptMap.put(ApplicationDatabaseType.OUTBOX, OUTBOX_DB_CLEAR_SCRIPT);
 

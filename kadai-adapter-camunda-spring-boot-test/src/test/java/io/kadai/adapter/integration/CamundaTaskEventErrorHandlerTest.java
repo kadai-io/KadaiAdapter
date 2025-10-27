@@ -22,11 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.camunda.outbox.rest.model.CamundaTaskEvent;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
+import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.impl.configuration.DbCleaner;
 import io.kadai.impl.configuration.DbCleaner.ApplicationDatabaseType;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -83,23 +86,25 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    this.adapterManager
-        .getSystemConnectors()
-        .forEach(
-            (name, connector) ->
-                connector
-                    .retrieveNewStartedReferencedTasks()
-                    .forEach(
-                        referencedTask ->
-                            connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
-                                referencedTask, testException)));
+    List<ReferencedTask> referencedTasks =
+        this.adapterManager.getInboundSystemConnectors().entrySet().stream()
+            .flatMap(
+                entry -> {
+                  InboundSystemConnector connector = entry.getValue();
+                  return connector.retrieveNewStartedReferencedTasks().stream()
+                      .peek(
+                          task ->
+                              connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
+                                  task, testException));
+                })
+            .toList();
 
     try {
       Thread.sleep(100);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    CamundaTaskEvent camundaTaskEvent = kadaiOutboxRequester.getAllEvents().get(0);
+    CamundaTaskEvent camundaTaskEvent = getAnEventWithError(referencedTasks);
     JSONObject errorJson = new JSONObject(camundaTaskEvent.getError());
 
     assertThat(errorJson).hasToString(expectedErrorJson.toString());
@@ -131,17 +136,21 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    this.adapterManager
-        .getSystemConnectors()
-        .forEach(
-            (name, connector) ->
-                connector
-                    .retrieveNewStartedReferencedTasks()
-                    .forEach(
-                        referencedTask ->
-                            connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
-                                referencedTask, testException)));
-    CamundaTaskEvent camundaTaskEvent = kadaiOutboxRequester.getAllEvents().get(0);
+
+    List<ReferencedTask> referencedTasks =
+        this.adapterManager.getInboundSystemConnectors().entrySet().stream()
+            .flatMap(
+                entry -> {
+                  InboundSystemConnector connector = entry.getValue();
+                  return connector.retrieveNewStartedReferencedTasks().stream()
+                      .peek(
+                          task ->
+                              connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
+                                  task, testException));
+                })
+            .toList();
+
+    CamundaTaskEvent camundaTaskEvent = getAnEventWithError(referencedTasks);
     JSONObject errorJson = new JSONObject(camundaTaskEvent.getError());
 
     assertThat(errorJson).hasToString(expectedErrorJson.toString());
@@ -179,17 +188,19 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    this.adapterManager
-        .getSystemConnectors()
-        .forEach(
-            (name, connector) ->
-                connector
-                    .retrieveNewStartedReferencedTasks()
-                    .forEach(
-                        referencedTask ->
-                            connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
-                                referencedTask, testException)));
-    CamundaTaskEvent camundaTaskEvent = kadaiOutboxRequester.getAllEvents().get(0);
+    List<ReferencedTask> referencedTasks =
+        this.adapterManager.getInboundSystemConnectors().entrySet().stream()
+            .flatMap(
+                entry -> {
+                  InboundSystemConnector connector = entry.getValue();
+                  return connector.retrieveNewStartedReferencedTasks().stream()
+                      .peek(
+                          task ->
+                              connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
+                                  task, testException));
+                })
+            .toList();
+    CamundaTaskEvent camundaTaskEvent = getAnEventWithError(referencedTasks);
     JSONObject errorJson = new JSONObject(camundaTaskEvent.getError());
     assertThat(errorJson).hasToString(expectedErrorJson.toString());
   }
@@ -209,19 +220,34 @@ class CamundaTaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    this.adapterManager
-        .getSystemConnectors()
-        .forEach(
-            (name, connector) ->
-                connector
-                    .retrieveNewStartedReferencedTasks()
-                    .forEach(
-                        referencedTask ->
-                            connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
-                                referencedTask, testException)));
-    CamundaTaskEvent camundaTaskEvent = kadaiOutboxRequester.getAllEvents().get(0);
+    List<ReferencedTask> referencedTasks =
+        this.adapterManager.getInboundSystemConnectors().entrySet().stream()
+            .flatMap(
+                entry -> {
+                  InboundSystemConnector connector = entry.getValue();
+                  return connector.retrieveNewStartedReferencedTasks().stream()
+                      .peek(
+                          task ->
+                              connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
+                                  task, testException));
+                })
+            .toList();
+    CamundaTaskEvent camundaTaskEvent = getAnEventWithError(referencedTasks);
     JSONObject errorJson = new JSONObject(camundaTaskEvent.getError());
 
     assertThat(errorJson).hasToString(expectedErrorJson.toString());
+  }
+
+  private CamundaTaskEvent getAnEventWithError(List<ReferencedTask> referencedTasks) {
+    List<CamundaTaskEvent> allEvents = kadaiOutboxRequester.getAllEvents();
+
+    return allEvents.stream()
+        .filter(
+            event ->
+                referencedTasks.stream()
+                    .anyMatch(
+                        task -> String.valueOf(event.getId()).equals(task.getOutboxEventId())))
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException("No matching CamundaTaskEvent found"));
   }
 }
