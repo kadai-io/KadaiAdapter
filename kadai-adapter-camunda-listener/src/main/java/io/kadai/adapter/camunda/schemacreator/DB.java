@@ -24,7 +24,8 @@ import io.kadai.adapter.camunda.exceptions.UnsupportedDatabaseException;
 public enum DB {
   H2("H2", "h2"),
   DB2("DB2", "db2"),
-  POSTGRESS("PostgreSQL", "postgres");
+  POSTGRESS("PostgreSQL", "postgres"),
+  ORACLE("Oracle", "oracle");
 
   public final String dbProductname;
   public final String dbProductId;
@@ -46,6 +47,10 @@ public enum DB {
     return POSTGRESS.dbProductname.equals(dbProductName);
   }
 
+  public static boolean isOracle(String dbProductName) {
+    return dbProductName != null && dbProductName.contains(ORACLE.dbProductname);
+  }
+
   public static String getDatabaseProductId(String dbProductName) {
 
     if (isDb2(dbProductName)) {
@@ -54,6 +59,8 @@ public enum DB {
       return H2.dbProductId;
     } else if (isPostgreSql(dbProductName)) {
       return POSTGRESS.dbProductId;
+    } else if (isOracle(dbProductName)) {
+      return ORACLE.dbProductId;
     } else {
       throw new UnsupportedDatabaseException(dbProductName);
     }
