@@ -13,10 +13,12 @@ import io.kadai.task.api.models.TaskSummary;
 import io.kadai.common.test.security.WithAccessId;
 
 import java.time.Duration;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -41,6 +43,12 @@ class Camunda8TaskClaimerTest {
   @Autowired private Camunda8System camunda8System;
   @Autowired private Camunda8HttpHeaderProvider httpHeaderProvider;
   @Autowired private RestTemplate restTemplate;
+  @Autowired private ApplicationContext applicationContext;
+
+  @BeforeEach
+  void setup() {
+    camunda8System.setClusterApiUrl(client.getConfiguration().getRestAddress().toString());
+  }
 
   @Test
   @WithAccessId(user = "admin")
