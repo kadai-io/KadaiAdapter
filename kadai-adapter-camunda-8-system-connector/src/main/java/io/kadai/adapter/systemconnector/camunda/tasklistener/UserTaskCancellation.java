@@ -9,7 +9,6 @@ import io.kadai.adapter.monitoring.MonitoredRun;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import io.kadai.adapter.util.LowerMedian;
-
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
