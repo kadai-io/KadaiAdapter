@@ -25,6 +25,9 @@ env:
   ARTIFACTS_JACOCO_REPORTS_NAME: jacoco-reports
   ARTIFACTS_JACOCO_REPORTS_PATH: '**/jacoco.exec'
 
+permissions: # give GITHUB_TOKEN the right to push directly to master
+  contents: write
+
 jobs:
 
   compile_and_test:
