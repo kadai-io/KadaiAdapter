@@ -128,7 +128,9 @@ jobs:
           -pl :kadai-adapter-parent,\
           :kadai-adapter,:kadai-adapter-camunda-system-connector,:kadai-adapter-kadai-connector,\
           :kadai-adapter-camunda-listener,:kadai-adapter-camunda-outbox-rest,\
-          :kadai-adapter-camunda-outbox-rest-spring-boot-starter
+          :kadai-adapter-camunda-outbox-rest-spring-boot-starter,\
+          :kadai-adapter-spring-boot-test,\
+          :kadai-adapter-camunda-8-system-connector
         env:
           GPG_KEY_NAME: ${{ secrets.GPG_KEY_NAME }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
