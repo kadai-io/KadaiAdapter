@@ -96,7 +96,7 @@ class TestCompletedTaskRetrieval extends AbsIntegrationTest {
           this.camundaProcessengineRequester.getTaskFromHistoryFromTaskId(camundaTaskId);
       assertThat(taskRetrievalFromHistorySuccessful).isTrue();
     }
-    Instant lastRunTime = referencedTaskCompleter.getLastSchedulerRun().getRunTime();
+    Instant lastRunTime = referencedTaskCompleter.getLastRun().getEnd();
     assertThat(lastRunTime).isNotNull();
     assertThat(lastRunTime).isAfter(Instant.now().minusSeconds(5));
   }

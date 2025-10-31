@@ -7,13 +7,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "management.health.kadai-adapter.plugin.camunda7")
 public class Camunda7HealthConfigurationProperties
-        extends CompositeHealthContributorConfigurationProperties {
+    extends CompositeHealthContributorConfigurationProperties {
 
   private CompositeHealthContributorConfigurationProperties camunda =
-          new CompositeHealthContributorConfigurationProperties();
+      new CompositeHealthContributorConfigurationProperties();
 
   private CompositeHealthContributorConfigurationProperties outbox =
-          new CompositeHealthContributorConfigurationProperties();
+      new CompositeHealthContributorConfigurationProperties();
 
   public CompositeHealthContributorConfigurationProperties getCamunda() {
     return camunda;

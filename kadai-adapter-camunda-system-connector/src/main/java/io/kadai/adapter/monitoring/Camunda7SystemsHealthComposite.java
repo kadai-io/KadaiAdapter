@@ -30,8 +30,7 @@ public class Camunda7SystemsHealthComposite implements CompositeHealthContributo
 
         healthContributors.put(
             "camundaSystem" + ++i,
-            new Camunda7OutboxHealthComposite(
-                restClient, camundaUrl, outboxUrl, properties));
+            new Camunda7OutboxHealthComposite(restClient, camundaUrl, outboxUrl, properties));
       }
     }
   }

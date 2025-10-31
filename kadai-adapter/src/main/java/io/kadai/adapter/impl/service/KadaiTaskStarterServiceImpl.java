@@ -19,12 +19,15 @@
 package io.kadai.adapter.impl.service;
 
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
+import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
+import io.kadai.common.internal.util.CheckedSupplier;
 import io.kadai.task.api.models.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,19 +37,28 @@ public class KadaiTaskStarterServiceImpl implements KadaiTaskStarterService {
 
   private final AdapterManager adapterManager;
 
-  public KadaiTaskStarterServiceImpl(AdapterManager adapterManager) {
+  private final String runAsUser;
+
+  public KadaiTaskStarterServiceImpl(
+      AdapterManager adapterManager, @Value("${kadai.adapter.run-as.user}") String runAsUser) {
     this.adapterManager = adapterManager;
+    this.runAsUser = runAsUser;
   }
 
   @Override
-  public void createKadaiTask(ReferencedTask referencedTask)
-      throws TaskCreationFailedException {
+  public void createKadaiTask(ReferencedTask referencedTask) throws TaskCreationFailedException {
     LOGGER.trace("KadaiTaskStarterService.createKadaiTask ENTRY");
 
     KadaiConnector kadaiConnector = adapterManager.getKadaiConnector();
 
-    Task kadaiTask = kadaiConnector.convertToKadaiTask(referencedTask);
-    kadaiConnector.createKadaiTask(kadaiTask);
+    UserContext.runAsUser(
+        runAsUser,
+        CheckedSupplier.rethrowing(
+            () -> {
+              Task kadaiTask = kadaiConnector.convertToKadaiTask(referencedTask);
+              kadaiConnector.createKadaiTask(kadaiTask);
+              return null;
+            }));
 
     LOGGER.trace("KadaiTaskStarterService.createKadaiTask EXIT");
   }

@@ -46,13 +46,13 @@ class Camunda7OutboxHealthCompositeTest {
     Camunda7HealthConfigurationProperties allEnabled = new Camunda7HealthConfigurationProperties();
 
     Camunda7HealthConfigurationProperties camundaDisabled =
-            new Camunda7HealthConfigurationProperties();
+        new Camunda7HealthConfigurationProperties();
     camundaDisabled.setCamunda(
-            new CompositeHealthContributorConfigurationProperties().withEnabled(false));
+        new CompositeHealthContributorConfigurationProperties().withEnabled(false));
     Camunda7HealthConfigurationProperties outboxDisabled =
-            new Camunda7HealthConfigurationProperties();
+        new Camunda7HealthConfigurationProperties();
     outboxDisabled.setOutbox(
-            new CompositeHealthContributorConfigurationProperties().withEnabled(false));
+        new CompositeHealthContributorConfigurationProperties().withEnabled(false));
 
     return Stream.of(
         Arguments.of(allEnabled, 2),

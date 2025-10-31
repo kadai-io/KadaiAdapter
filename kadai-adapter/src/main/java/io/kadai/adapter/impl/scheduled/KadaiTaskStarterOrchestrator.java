@@ -21,12 +21,12 @@ package io.kadai.adapter.impl.scheduled;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.impl.service.KadaiTaskStarterService;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.monitoring.MonitoredRun;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.util.LowerMedian;
 import io.kadai.task.api.exceptions.TaskAlreadyExistException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -38,16 +38,13 @@ import org.springframework.stereotype.Component;
 
 /** Orchestrates the retrieval of new referenced tasks and creation of corresponding KADAI tasks. */
 @Component
-public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
+public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskStarterOrchestrator.class);
   private final AdapterManager adapterManager;
   private final KadaiTaskStarterService kadaiTaskStarterService;
-  private final SchedulerRun schedulerRun;
+  private final MonitoredRun monitoredRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
-
-  @Value("${kadai.adapter.run-as.user}")
-  protected String runAsUser;
 
   @Value("${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
   private int runIntervalMillis;
@@ -57,14 +54,14 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
       AdapterManager adapterManager, KadaiTaskStarterService kadaiTaskStarterService) {
     this.adapterManager = adapterManager;
     this.kadaiTaskStarterService = kadaiTaskStarterService;
-    this.schedulerRun = new SchedulerRun();
+    this.monitoredRun = new MonitoredRun();
   }
 
   @Scheduled(
       fixedRateString =
           "${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
   public void retrieveNewReferencedTasksAndCreateCorrespondingKadaiTasks() {
-    final Instant start = Instant.now();
+    monitoredRun.start();
     if (!adapterIsInitialized()) {
       return;
     }
@@ -76,25 +73,22 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
       LOGGER.debug(
           "-retrieveNewReferencedTasksAndCreateCorrespondingKadaiTasks started---------------");
       try {
-        UserContext.runAsUser(
-            runAsUser,
-            () -> {
-              retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
-              return null;
-            });
-        schedulerRun.touch();
+        retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
+        monitoredRun.succeed();
       } catch (Exception ex) {
+        monitoredRun.fail();
         LOGGER.error(
             "Caught exception while trying to create Kadai tasks from referenced tasks", ex);
       } finally {
-        runDurationLowerMedian.add(Duration.between(start, Instant.now()));
+        runDurationLowerMedian.add(monitoredRun.getDuration());
       }
     }
   }
 
   public void retrieveReferencedTasksAndCreateCorrespondingKadaiTasks() {
-    LOGGER.trace("KadaiTaskStarterOrchestrator."
-        + "retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY");
+    LOGGER.trace(
+        "KadaiTaskStarterOrchestrator."
+            + "retrieveReferencedTasksAndCreateCorrespondingKadaiTasks ENTRY");
     for (InboundSystemConnector systemConnector :
         (adapterManager.getInboundSystemConnectors().values())) {
       try {
@@ -114,8 +108,8 @@ public class KadaiTaskStarterOrchestrator implements ScheduledComponent {
   }
 
   @Override
-  public SchedulerRun getLastSchedulerRun() {
-    return schedulerRun;
+  public MonitoredRun getLastRun() {
+    return monitoredRun;
   }
 
   @Override

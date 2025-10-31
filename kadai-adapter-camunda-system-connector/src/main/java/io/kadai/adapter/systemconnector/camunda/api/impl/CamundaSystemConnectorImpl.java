@@ -130,11 +130,6 @@ public class CamundaSystemConnectorImpl implements InboundSystemConnector, Outbo
   }
 
   @Override
-  public String getSystemIdentifier() {
-    return camundaSystemUrl.getCamundaEngineIdentifier();
-  }
-
-  @Override
   public void kadaiTaskFailedToBeCreatedForNewReferencedTask(
       ReferencedTask referencedTask, Exception e) {
     taskEventErrorHandler.decreaseRemainingRetriesAndLogErrorForReferencedTask(

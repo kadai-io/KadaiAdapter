@@ -25,8 +25,8 @@ import java.util.List;
 public interface OutboundSystemConnectorProvider {
 
   /**
-   * Create a list of OutboundSystemConnector objects to access multiple external systems
-   * for sending commands and operations.
+   * Create a list of OutboundSystemConnector objects to access multiple external systems for
+   * sending commands and operations.
    *
    * @return a list of OutboundSystemConnector objects
    */

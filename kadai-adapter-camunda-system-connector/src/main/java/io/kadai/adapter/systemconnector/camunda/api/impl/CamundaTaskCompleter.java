@@ -58,7 +58,7 @@ public class CamundaTaskCompleter {
 
     } catch (HttpClientErrorException e) {
       if (CamundaUtilRequester.isTaskNotExisting(
-              httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
+          httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
         return new SystemResponse(HttpStatus.OK, null);
       }
       LOGGER.warn("Client error while completing Camunda task: {}", e.getStatusCode(), e);

@@ -158,7 +158,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
       assertThat(processInstanceId).isEqualTo(businessProcessId);
     }
 
-    Instant lastRunTime = kadaiTaskStarter.getLastSchedulerRun().getRunTime();
+    Instant lastRunTime = kadaiTaskStarter.getLastRun().getEnd();
     assertThat(lastRunTime).isNotNull().isAfter(Instant.now().minusSeconds(5));
   }
 
@@ -872,7 +872,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
           SameJSONAs.sameJSONAs(customAttributes.get("camunda:amount")));
     }
 
-    Instant lastRunTime = kadaiTaskStarter.getLastSchedulerRun().getRunTime();
+    Instant lastRunTime = kadaiTaskStarter.getLastRun().getEnd();
     assertThat(lastRunTime).isNotNull().isAfter(Instant.now().minusSeconds(5));
   }
 
@@ -886,7 +886,8 @@ class TestTaskAcquisition extends AbsIntegrationTest {
 
     InboundSystemConnector systemConnector = new CamundaSystemConnectorImpl(systemUrlInfo);
 
-    Map<String, InboundSystemConnector> systemConnectors = adapterManager.getInboundSystemConnectors();
+    Map<String, InboundSystemConnector> systemConnectors =
+        adapterManager.getInboundSystemConnectors();
     systemConnectors.clear();
 
     systemConnectors.put(systemUrlInfo.getSystemRestUrl(), systemConnector);

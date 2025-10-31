@@ -20,8 +20,7 @@ public class Camunda7OutboxHealthComposite implements CompositeHealthContributor
       Camunda7HealthConfigurationProperties properties) {
 
     if (properties.getCamunda().getEnabled()) {
-      healthContributors.put(
-          "camunda", new Camunda7HealthIndicator(restClient, camundaUrl));
+      healthContributors.put("camunda", new Camunda7HealthIndicator(restClient, camundaUrl));
     }
     if (properties.getOutbox().getEnabled()) {
       healthContributors.put("outbox", new Camunda7OutboxHealthIndicator(restClient, outboxUrl));

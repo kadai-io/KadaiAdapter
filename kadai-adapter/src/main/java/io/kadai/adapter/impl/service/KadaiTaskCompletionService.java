@@ -22,8 +22,8 @@ import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 
 /**
- * Service interface for completing KADAI tasks.
- * This service handles the core business logic of task completion without orchestration concerns.
+ * Service interface for completing KADAI tasks. This service handles the core business logic of
+ * task completion without orchestration concerns.
  */
 public interface KadaiTaskCompletionService {
 
@@ -33,6 +33,5 @@ public interface KadaiTaskCompletionService {
    * @param referencedTask the referenced task for which to terminate the KADAI task
    * @throws TaskTerminationFailedException if the task termination fails
    */
-  void terminateKadaiTask(ReferencedTask referencedTask)
-      throws TaskTerminationFailedException;
+  void terminateKadaiTask(ReferencedTask referencedTask) throws TaskTerminationFailedException;
 }
