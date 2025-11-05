@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.process.test.api.CamundaAssert;
-import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.KadaiAdapterCamunda8SpringBootTest;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
 import io.kadai.common.api.KadaiEngine;
@@ -14,28 +13,19 @@ import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
 import io.kadai.task.api.models.TaskSummary;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Tests for completing tasks from Kadai to Camunda 8. Tests the synchronisation of status when
  * tasks get completed in Kadai.
  */
 @KadaiAdapterCamunda8SpringBootTest
-public class Camunda8TaskCompleterTest extends AbsIntegrationTest {
+public class Camunda8TaskCompleterTest {
   @Autowired private CamundaClient client;
   @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
   @Autowired private KadaiEngine kadaiEngine;
-  @Autowired private Camunda8System camunda8System;
-  @Autowired private Camunda8HttpHeaderProvider httpHeaderProvider;
-  @Autowired private RestTemplate restTemplate;
-
-  @BeforeEach
-  void setup() {
-    camunda8System.setClusterApiUrl(client.getConfiguration().getRestAddress().toString());
-  }
+  @Autowired Camunda8TestUtil camunda8TestUtil;
 
   @Test
   @WithAccessId(user = "admin")
@@ -68,11 +58,8 @@ public class Camunda8TaskCompleterTest extends AbsIntegrationTest {
 
     final Task completedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(completedKadaiTask.getState()).isEqualTo(TaskState.COMPLETED);
-    Thread.sleep(10000);
-
     String externalId = kadaiTask.getExternalId();
     long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
-    String state = getCamundaTaskStatus(camundaTaskKey);
-    assertThat(state).isEqualTo("COMPLETED");
+    camunda8TestUtil.waitUntil(() -> "COMPLETED".equals(camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey)));
   }
 }

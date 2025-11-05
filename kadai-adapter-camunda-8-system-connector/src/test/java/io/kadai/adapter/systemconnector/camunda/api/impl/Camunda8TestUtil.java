@@ -1,43 +1,40 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+
 import io.camunda.client.CamundaClient;
-import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
-import io.kadai.adapter.systemconnector.camunda.tasklistener.KadaiAdapterCamunda8SpringBootTest;
-import io.kadai.adapter.test.KadaiAdapterTestUtil;
-import io.kadai.common.api.KadaiEngine;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Base class for Camunda 8 integration tests providing common functionality for task operations and
- * Camunda API interactions.
+ * Utility class for Camunda 8 test operations.
+ * Similar to KadaiAdapterTestUtil but for Camunda 8 specific operations.
  */
-@KadaiAdapterCamunda8SpringBootTest
-public abstract class AbsIntegrationTest {
+@Component
+ public class Camunda8TestUtil {
 
-  @Autowired protected CamundaClient client;
-  @Autowired protected KadaiAdapterTestUtil kadaiAdapterTestUtil;
-  @Autowired protected KadaiEngine kadaiEngine;
-  @Autowired protected Camunda8System camunda8System;
-  @Autowired protected Camunda8HttpHeaderProvider httpHeaderProvider;
-  @Autowired protected RestTemplate restTemplate;
+  @Autowired
+  private CamundaClient client;
 
-  protected final ObjectMapper mapper = new ObjectMapper();
+  @Autowired
+  private Camunda8HttpHeaderProvider httpHeaderProvider;
 
-  @BeforeEach
-  void setup() {
-    camunda8System.setClusterApiUrl(client.getConfiguration().getRestAddress().toString());
-  }
+  @Autowired
+  private RestTemplate restTemplate;
 
-  protected String getCamundaTaskAssignee(long taskKey) {
+  private final ObjectMapper mapper = new ObjectMapper();
+
+  public String getCamundaTaskAssignee(long taskKey) {
     try {
       String jsonResponse = getCamundaTaskJson(taskKey);
       return extractAssigneeFromJson(jsonResponse);
@@ -46,7 +43,7 @@ public abstract class AbsIntegrationTest {
     }
   }
 
-  protected String getCamundaTaskStatus(long taskKey) {
+  public String getCamundaTaskStatus(long taskKey) {
     try {
       String jsonResponse = getCamundaTaskJson(taskKey);
       return extractStateFromJson(jsonResponse);
@@ -55,7 +52,7 @@ public abstract class AbsIntegrationTest {
     }
   }
 
-  protected void assignCamundaTask(long taskKey, String assignee) {
+  public void assignCamundaTask(long taskKey, String assignee) {
     try {
       String requestUrl =
           client.getConfiguration().getRestAddress() + "/v2/user-tasks/" + taskKey + "/assignment";
@@ -77,6 +74,15 @@ public abstract class AbsIntegrationTest {
     } catch (Exception e) {
       throw new RuntimeException("Failed to assign Camunda task", e);
     }
+  }
+
+  public long extractCamundaTaskKeyFromExternalId(String externalId) {
+    return Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+  }
+
+  public long extractCamundaTaskKey(io.kadai.task.api.models.Task kadaiTask) {
+    String externalId = kadaiTask.getExternalId();
+    return extractCamundaTaskKeyFromExternalId(externalId);
   }
 
   private String getCamundaTaskJson(long taskKey) {
@@ -108,5 +114,12 @@ public abstract class AbsIntegrationTest {
     } catch (Exception e) {
       return null;
     }
+  }
+
+  public void waitUntil(Callable<Boolean> condition) {
+    await()
+        .atMost(15, TimeUnit.SECONDS)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .until(condition);
   }
 }

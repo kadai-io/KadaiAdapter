@@ -2,6 +2,8 @@ package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
 import io.camunda.process.test.api.CamundaProcessTestExecutionListener;
 import io.camunda.process.test.impl.configuration.CamundaProcessTestAutoConfiguration;
+
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TestSetupListener;
 import io.kadai.adapter.test.KadaiAdapterSpringBootTest;
 import io.kadai.adapter.test.KadaiAdapterSpringBootTestExecutionListener;
 import java.lang.annotation.ElementType;
@@ -31,7 +33,8 @@ import org.springframework.test.context.TestPropertySource;
 @TestExecutionListeners(
     value = {
       KadaiAdapterSpringBootTestExecutionListener.class,
-      CamundaProcessTestExecutionListener.class
+      CamundaProcessTestExecutionListener.class,
+      Camunda8TestSetupListener.class
     },
     mergeMode = MergeMode.MERGE_WITH_DEFAULTS)
 @TestPropertySource("classpath:camunda8-test-application.properties")

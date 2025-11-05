@@ -13,7 +13,6 @@ import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.models.Task;
 import io.kadai.task.api.models.TaskSummary;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
@@ -23,19 +22,12 @@ import org.springframework.web.client.RestTemplate;
  * tasks get claimed in Kadai.
  */
 @KadaiAdapterCamunda8SpringBootTest
-class Camunda8TaskClaimerTest extends AbsIntegrationTest {
+class Camunda8TaskClaimerTest {
 
   @Autowired private CamundaClient client;
   @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
   @Autowired private KadaiEngine kadaiEngine;
-  @Autowired private Camunda8System camunda8System;
-  @Autowired private Camunda8HttpHeaderProvider httpHeaderProvider;
-  @Autowired private RestTemplate restTemplate;
-
-  @BeforeEach
-  void setup() {
-    camunda8System.setClusterApiUrl(client.getConfiguration().getRestAddress().toString());
-  }
+  @Autowired Camunda8TestUtil camunda8TestUtil;
 
   @Test
   @WithAccessId(user = "admin")
@@ -68,12 +60,10 @@ class Camunda8TaskClaimerTest extends AbsIntegrationTest {
     final Task claimedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(claimedKadaiTask.getOwner()).isEqualTo("admin");
     assertThat(claimedKadaiTask.getState()).isEqualTo(io.kadai.task.api.TaskState.CLAIMED);
-    Thread.sleep(10000);
-
     String externalId = kadaiTask.getExternalId();
     long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
-    String camundaAssignee = getCamundaTaskAssignee(camundaTaskKey);
-    assertThat(camundaAssignee).isEqualTo("admin");
+    camunda8TestUtil.waitUntil(
+        () -> "admin".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
   }
 
   @Test
@@ -105,24 +95,19 @@ class Camunda8TaskClaimerTest extends AbsIntegrationTest {
     String externalId = kadaiTask.getExternalId();
     long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
 
-    assignCamundaTask(camundaTaskKey, "user-1-1");
-    Thread.sleep(10000);
-
-    String initialCamundaAssignee = getCamundaTaskAssignee(camundaTaskKey);
-    assertThat(initialCamundaAssignee).isEqualTo("user-1-1");
+    camunda8TestUtil.assignCamundaTask(camundaTaskKey, "user-1-1");
+    camunda8TestUtil.waitUntil(
+        () -> "user-1-1".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
 
     assertThat(kadaiTask.getState()).isEqualTo(io.kadai.task.api.TaskState.READY);
-
     kadaiEngine.getTaskService().claim(kadaiTask.getId());
 
     final Task claimedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(claimedKadaiTask.getState()).isEqualTo(io.kadai.task.api.TaskState.CLAIMED);
     assertThat(claimedKadaiTask.getOwner()).isEqualTo("admin");
 
-    Thread.sleep(10000);
-
-    String camundaAssignee = getCamundaTaskAssignee(camundaTaskKey);
-    assertThat(camundaAssignee).isEqualTo("admin");
+    camunda8TestUtil.waitUntil(
+        () -> "admin".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
   }
 
   @Test
@@ -156,19 +141,17 @@ class Camunda8TaskClaimerTest extends AbsIntegrationTest {
     final Task claimedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(claimedKadaiTask.getOwner()).isEqualTo("admin");
     assertThat(claimedKadaiTask.getState()).isEqualTo(io.kadai.task.api.TaskState.CLAIMED);
-    Thread.sleep(10000);
 
     String externalId = kadaiTask.getExternalId();
     long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
-    String camundaAssignee = getCamundaTaskAssignee(camundaTaskKey);
-    assertThat(camundaAssignee).isEqualTo("admin");
+    camunda8TestUtil.waitUntil(
+        () -> "admin".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
 
     kadaiEngine.getTaskService().cancelClaim(kadaiTask.getId());
     Task cancelClaimedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(cancelClaimedKadaiTask.getState()).isEqualTo(io.kadai.task.api.TaskState.READY);
-    Thread.sleep(10000);
-    camundaAssignee = getCamundaTaskAssignee(camundaTaskKey);
-    assertThat(camundaAssignee).isEqualTo(null);
+    camunda8TestUtil.waitUntil(
+        () -> camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey) == null);
   }
 
   @Test
@@ -193,8 +176,6 @@ class Camunda8TaskClaimerTest extends AbsIntegrationTest {
 
     CamundaAssert.assertThat(processInstance).isActive();
 
-    Thread.sleep(10000);
-
     final List<TaskSummary> tasks = kadaiEngine.getTaskService().createTaskQuery().list();
     assertThat(tasks).hasSize(1);
 
@@ -203,18 +184,18 @@ class Camunda8TaskClaimerTest extends AbsIntegrationTest {
     long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
 
     kadaiEngine.getTaskService().claim(kadaiTask.getId());
-    Thread.sleep(10000);
-    assertThat(getCamundaTaskAssignee(camundaTaskKey)).isEqualTo("admin");
+    camunda8TestUtil.waitUntil(
+        () -> "admin".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
 
     kadaiEngine.getTaskService().cancelClaim(kadaiTask.getId());
-    Thread.sleep(10000);
-    assertThat(getCamundaTaskAssignee(camundaTaskKey)).isNull();
+    camunda8TestUtil.waitUntil(
+        () -> camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey) == null);
 
     kadaiEngine.getTaskService().claim(kadaiTask.getId());
-    Thread.sleep(10000);
-
     Task finalKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(finalKadaiTask.getState()).isEqualTo(io.kadai.task.api.TaskState.CLAIMED);
-    assertThat(getCamundaTaskAssignee(camundaTaskKey)).isEqualTo("admin");
+
+    camunda8TestUtil.waitUntil(
+        () -> "admin".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
   }
 }
