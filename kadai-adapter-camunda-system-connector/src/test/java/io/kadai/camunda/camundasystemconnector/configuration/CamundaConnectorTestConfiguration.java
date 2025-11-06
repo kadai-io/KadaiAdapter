@@ -62,7 +62,7 @@ public class CamundaConnectorTestConfiguration {
   }
 
   @Bean
-  Camunda7TaskRetriever camundaTaskRetriever(
+  Camunda7TaskRetriever camunda7TaskRetriever(
       final HttpHeaderProvider httpHeaderProvider,
       final ObjectMapper objectMapper,
       final RestClient restClient) {
@@ -70,7 +70,7 @@ public class CamundaConnectorTestConfiguration {
   }
 
   @Bean
-  Camunda7TaskCompleter camundaTaskCompleter(
+  Camunda7TaskCompleter camunda7TaskCompleter(
       final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
     return new Camunda7TaskCompleter(httpHeaderProvider, restClient);
   }
