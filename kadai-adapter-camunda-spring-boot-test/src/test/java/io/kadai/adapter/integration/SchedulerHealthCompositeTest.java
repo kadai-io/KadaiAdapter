@@ -2,7 +2,7 @@ package io.kadai.adapter.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kadai.adapter.test.KadaiAdapterTestApplication;
+import io.kadai.adapter.test.KadaiAdapterCamunda7TestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest(
-    classes = KadaiAdapterTestApplication.class,
+    classes = KadaiAdapterCamunda7TestApplication.class,
     webEnvironment = WebEnvironment.DEFINED_PORT)
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)

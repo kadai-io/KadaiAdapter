@@ -1,6 +1,6 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.models.CamundaEngineInfoRepresentationModel;
+import io.kadai.adapter.models.Camunda7EngineInfoRepresentationModel;
 import java.net.URI;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -25,8 +25,8 @@ public class Camunda7HealthIndicator implements HealthIndicator {
   @Override
   public Health health() {
     try {
-      ResponseEntity<CamundaEngineInfoRepresentationModel[]> response = pingCamundaRest();
-      CamundaEngineInfoRepresentationModel[] engines = response.getBody();
+      ResponseEntity<Camunda7EngineInfoRepresentationModel[]> response = pingCamundaRest();
+      Camunda7EngineInfoRepresentationModel[] engines = response.getBody();
 
       if (engines == null || engines.length == 0) {
         return Health.down()
@@ -43,11 +43,11 @@ public class Camunda7HealthIndicator implements HealthIndicator {
     }
   }
 
-  ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {
+  ResponseEntity<Camunda7EngineInfoRepresentationModel[]> pingCamundaRest() {
     return restClient
         .get()
         .uri(url)
         .retrieve()
-        .toEntity(CamundaEngineInfoRepresentationModel[].class);
+        .toEntity(Camunda7EngineInfoRepresentationModel[].class);
   }
 }

@@ -26,8 +26,8 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimCanceler;
 import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimer;
-import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaUtilRequester;
-import io.kadai.adapter.test.KadaiAdapterTestApplication;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7UtilRequester;
+import io.kadai.adapter.test.KadaiAdapterCamunda7TestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.TaskState;
@@ -47,7 +47,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Test class to test the synchronisation of assignees when tasks get claimed in camunda or kadai.
  */
 @SpringBootTest(
-    classes = KadaiAdapterTestApplication.class,
+    classes = KadaiAdapterCamunda7TestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
@@ -285,7 +285,7 @@ class TestTaskClaim extends AbsIntegrationTest {
       throws Exception {
 
     Logger camundaUtilRequesterLogger =
-        (Logger) LoggerFactory.getLogger(CamundaUtilRequester.class);
+        (Logger) LoggerFactory.getLogger(Camunda7UtilRequester.class);
 
     camundaUtilRequesterLogger.setLevel(Level.DEBUG);
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
@@ -325,7 +325,7 @@ class TestTaskClaim extends AbsIntegrationTest {
 
       List<ILoggingEvent> logsList = listAppender.list;
 
-      // verify that the CamundaUtilRequester log contains 1 entry for
+      // verify that the Camunda7UtilRequester log contains 1 entry for
       // the failed try to claim the not existing camunda task
       assertThat(logsList).hasSize(1);
 
@@ -344,7 +344,7 @@ class TestTaskClaim extends AbsIntegrationTest {
       throws Exception {
 
     Logger camundaUtilRequesterLogger =
-        (Logger) LoggerFactory.getLogger(CamundaUtilRequester.class);
+        (Logger) LoggerFactory.getLogger(Camunda7UtilRequester.class);
 
     camundaUtilRequesterLogger.setLevel(Level.DEBUG);
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
@@ -395,7 +395,7 @@ class TestTaskClaim extends AbsIntegrationTest {
 
       List<ILoggingEvent> logsList = listAppender.list;
 
-      // verify that the CamundaUtilRequester log contains 1 entry for
+      // verify that the Camunda7UtilRequester log contains 1 entry for
       // the failed try to cancel claim the not existing camunda task
       assertThat(logsList).hasSize(1);
 

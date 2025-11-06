@@ -21,7 +21,7 @@ package io.kadai.adapter.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.kadai.adapter.test.KadaiAdapterTestApplication;
+import io.kadai.adapter.test.KadaiAdapterCamunda7TestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.TaskState;
@@ -44,7 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
  * versa.
  */
 @SpringBootTest(
-    classes = KadaiAdapterTestApplication.class,
+    classes = KadaiAdapterCamunda7TestApplication.class,
     webEnvironment = WebEnvironment.DEFINED_PORT)
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)

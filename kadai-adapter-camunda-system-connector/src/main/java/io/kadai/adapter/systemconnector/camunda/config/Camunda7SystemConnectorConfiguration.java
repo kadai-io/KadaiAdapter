@@ -16,38 +16,28 @@
  *
  */
 
-package io.kadai.camunda.camundasystemconnector.configuration;
+package io.kadai.adapter.systemconnector.camunda.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskClaimCanceler;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskClaimer;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskCompleter;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskEventCleaner;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-/**
- * Configuration for test of Camunda System Connector.
- *
- * @author bbr
- */
+/** Configures the camunda system connector. */
 @Configuration
-@EnableConfigurationProperties(HttpComponentsClientProperties.class)
-public class CamundaConnectorTestConfiguration {
-
-  @Bean
-  ObjectMapper objectMapper() {
-    return new ObjectMapper();
-  }
-
-  @Bean
-  HttpHeaderProvider httpHeaderProvider() {
-    return new HttpHeaderProvider();
-  }
+@DependsOn(value = {"adapterSpringContextProvider"})
+public class Camunda7SystemConnectorConfiguration {
 
   @Bean
   RestClient restClient(HttpComponentsClientProperties httpComponentsClientProperties) {
@@ -62,6 +52,30 @@ public class CamundaConnectorTestConfiguration {
   }
 
   @Bean
+  HttpHeaderProvider httpHeaderProvider() {
+    return new HttpHeaderProvider();
+  }
+
+  @Bean
+  Camunda7SystemUrls camundaSystemUrls(
+      @Value("${kadai-system-connector-camundaSystemURLs}") final String strUrls) {
+    return new Camunda7SystemUrls(strUrls);
+  }
+
+  @Bean
+  Duration getLockDuration(
+      @Value("${kadai.adapter.events.lockDuration:#{0}}") final Long lockDuration) {
+    return Duration.ofSeconds(lockDuration);
+  }
+
+  @Bean
+  Integer getFromKadaiToAdapterBatchSize(
+      @Value("${kadai.adapter.sync.kadai.batchSize:#{64}}") final Integer batchSize) {
+    return batchSize;
+  }
+
+  @Bean
+  @DependsOn(value = {"httpHeaderProvider"})
   Camunda7TaskRetriever camundaTaskRetriever(
       final HttpHeaderProvider httpHeaderProvider,
       final ObjectMapper objectMapper,
@@ -73,5 +87,23 @@ public class CamundaConnectorTestConfiguration {
   Camunda7TaskCompleter camundaTaskCompleter(
       final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
     return new Camunda7TaskCompleter(httpHeaderProvider, restClient);
+  }
+
+  @Bean
+  Camunda7TaskClaimer camundaTaskClaimer(
+      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
+    return new Camunda7TaskClaimer(httpHeaderProvider, restClient);
+  }
+
+  @Bean
+  Camunda7TaskClaimCanceler camundaTaskClaimCanceler(
+      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
+    return new Camunda7TaskClaimCanceler(httpHeaderProvider, restClient);
+  }
+
+  @Bean
+  Camunda7TaskEventCleaner camundaTaskEventCleaner(
+      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
+    return new Camunda7TaskEventCleaner(httpHeaderProvider, restClient);
   }
 }

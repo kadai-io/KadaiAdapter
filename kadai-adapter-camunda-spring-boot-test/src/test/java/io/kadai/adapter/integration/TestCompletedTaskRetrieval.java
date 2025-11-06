@@ -26,8 +26,8 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
-import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaUtilRequester;
-import io.kadai.adapter.test.KadaiAdapterTestApplication;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7UtilRequester;
+import io.kadai.adapter.test.KadaiAdapterCamunda7TestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.TaskState;
@@ -51,7 +51,7 @@ import uk.co.datumedge.hamcrest.json.SameJSONAs;
  * Test class to test the completion of camunda tasks upon completion of kadai tasks and vice versa.
  */
 @SpringBootTest(
-    classes = KadaiAdapterTestApplication.class,
+    classes = KadaiAdapterCamunda7TestApplication.class,
     webEnvironment = WebEnvironment.DEFINED_PORT)
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
@@ -375,7 +375,7 @@ class TestCompletedTaskRetrieval extends AbsIntegrationTest {
       throws Exception {
 
     Logger camundaUtilRequesterLogger =
-        (Logger) LoggerFactory.getLogger(CamundaUtilRequester.class);
+        (Logger) LoggerFactory.getLogger(Camunda7UtilRequester.class);
 
     camundaUtilRequesterLogger.setLevel(Level.DEBUG);
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
@@ -415,7 +415,7 @@ class TestCompletedTaskRetrieval extends AbsIntegrationTest {
 
       List<ILoggingEvent> logsList = listAppender.list;
 
-      // verify that the CamundaUtilRequester log contains 1 entry for
+      // verify that the Camunda7UtilRequester log contains 1 entry for
       // the failed try to complete the not existing camunda task
       assertThat(logsList).hasSize(1);
 

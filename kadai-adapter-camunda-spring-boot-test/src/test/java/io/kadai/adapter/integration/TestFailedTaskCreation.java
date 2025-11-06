@@ -20,8 +20,8 @@ package io.kadai.adapter.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kadai.adapter.camunda.outbox.rest.model.CamundaTaskEvent;
-import io.kadai.adapter.test.KadaiAdapterTestApplication;
+import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
+import io.kadai.adapter.test.KadaiAdapterCamunda7TestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.impl.configuration.DbCleaner;
@@ -38,7 +38,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /** Test class to test failed task creation scenarios from camunda to KADAI. */
 @SpringBootTest(
-    classes = KadaiAdapterTestApplication.class,
+    classes = KadaiAdapterCamunda7TestApplication.class,
     webEnvironment = WebEnvironment.DEFINED_PORT)
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
@@ -72,7 +72,7 @@ class TestFailedTaskCreation extends AbsIntegrationTest {
 
     // retries still above 0
 
-    List<CamundaTaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
+    List<Camunda7TaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
 
     assertThat(failedEvents).isEmpty();
 
@@ -101,7 +101,7 @@ class TestFailedTaskCreation extends AbsIntegrationTest {
 
     Thread.sleep((long) (this.adapterTaskPollingInterval * 1.2));
 
-    List<CamundaTaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
+    List<Camunda7TaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
 
     // retries still above 0
     assertThat(failedEvents).isEmpty();
@@ -115,11 +115,11 @@ class TestFailedTaskCreation extends AbsIntegrationTest {
     assertThat(failedEvents).hasSize(3);
 
     assertThat(failedEvents)
-        .extracting(CamundaTaskEvent::getCamundaTaskId)
+        .extracting(Camunda7TaskEvent::getCamundaTaskId)
         .containsExactlyInAnyOrderElementsOf(camundaTaskIds);
 
     assertThat(failedEvents)
-        .extracting(CamundaTaskEvent::getError)
+        .extracting(Camunda7TaskEvent::getError)
         .allMatch(
             error ->
                 error.contains(
@@ -150,7 +150,7 @@ class TestFailedTaskCreation extends AbsIntegrationTest {
         (long) (this.adapterTaskPollingInterval * 1.2 + this.adapterRetryAndBlockingInterval));
 
     // retries = 0, no retries left
-    List<CamundaTaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
+    List<Camunda7TaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
 
     assertThat(failedEvents).hasSize(3);
 
@@ -181,7 +181,7 @@ class TestFailedTaskCreation extends AbsIntegrationTest {
 
     // retries = 0, no retries left
 
-    List<CamundaTaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
+    List<Camunda7TaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
     assertThat(failedEvents).hasSize(3);
 
     boolean eventsDeleted = kadaiOutboxRequester.deleteAllFailedEvents();
@@ -212,7 +212,7 @@ class TestFailedTaskCreation extends AbsIntegrationTest {
         (long) (this.adapterTaskPollingInterval * 1.2 + this.adapterRetryAndBlockingInterval));
 
     // retries = 0, no retries left
-    List<CamundaTaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
+    List<Camunda7TaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
 
     assertThat(failedEvents).hasSize(3);
 
@@ -247,7 +247,7 @@ class TestFailedTaskCreation extends AbsIntegrationTest {
         (long) (this.adapterTaskPollingInterval * 1.2 + this.adapterRetryAndBlockingInterval));
 
     // retries = 0, no retries left
-    List<CamundaTaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
+    List<Camunda7TaskEvent> failedEvents = kadaiOutboxRequester.getFailedEvents();
 
     assertThat(failedEvents).hasSize(3);
 

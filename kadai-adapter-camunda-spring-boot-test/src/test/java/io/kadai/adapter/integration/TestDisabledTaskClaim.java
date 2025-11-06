@@ -20,9 +20,9 @@ package io.kadai.adapter.integration;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskClaimCanceler;
-import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskClaimer;
-import io.kadai.adapter.test.KadaiAdapterTestApplication;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskClaimCanceler;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskClaimer;
+import io.kadai.adapter.test.KadaiAdapterCamunda7TestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.TaskState;
@@ -40,15 +40,17 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest(
-    classes = KadaiAdapterTestApplication.class,
+    classes = KadaiAdapterCamunda7TestApplication.class,
     webEnvironment = WebEnvironment.DEFINED_PORT)
 @AutoConfigureWebTestClient
 @ContextConfiguration
 @ExtendWith(JaasExtension.class)
 class TestDisabledTaskClaim extends AbsIntegrationTest {
 
-  @Autowired CamundaTaskClaimer camundaTaskClaimer;
-  @Autowired CamundaTaskClaimCanceler camundaTaskClaimCanceler;
+  @Autowired
+  Camunda7TaskClaimer camunda7TaskClaimer;
+  @Autowired
+  Camunda7TaskClaimCanceler camunda7TaskClaimCanceler;
 
   @Value("${kadai.adapter.camunda.claiming.enabled}")
   private boolean claimingEnabled;
@@ -115,12 +117,12 @@ class TestDisabledTaskClaim extends AbsIntegrationTest {
 
   private void setClaimingEnabled(boolean claimingEnbaled) throws Exception {
     Field claimerClaimingEnabled =
-        camundaTaskClaimer.getClass().getDeclaredField("claimingEnabled");
+        camunda7TaskClaimer.getClass().getDeclaredField("claimingEnabled");
     claimerClaimingEnabled.setAccessible(true);
-    claimerClaimingEnabled.setBoolean(camundaTaskClaimer, claimingEnbaled);
+    claimerClaimingEnabled.setBoolean(camunda7TaskClaimer, claimingEnbaled);
     Field claimCancelerClaimingEnabled =
-        camundaTaskClaimCanceler.getClass().getDeclaredField("claimingEnabled");
+        camunda7TaskClaimCanceler.getClass().getDeclaredField("claimingEnabled");
     claimCancelerClaimingEnabled.setAccessible(true);
-    claimCancelerClaimingEnabled.setBoolean(camundaTaskClaimCanceler, claimingEnbaled);
+    claimCancelerClaimingEnabled.setBoolean(camunda7TaskClaimCanceler, claimingEnbaled);
   }
 }

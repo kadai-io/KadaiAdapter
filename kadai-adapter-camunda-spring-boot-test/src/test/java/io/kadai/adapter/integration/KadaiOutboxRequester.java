@@ -18,8 +18,8 @@
 
 package io.kadai.adapter.integration;
 
-import io.kadai.adapter.camunda.outbox.rest.model.CamundaTaskEvent;
-import io.kadai.adapter.camunda.outbox.rest.resource.CamundaTaskEventListResource;
+import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
+import io.kadai.adapter.camunda.outbox.rest.resource.Camunda7TaskEventListResource;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import java.util.List;
 import org.json.JSONException;
@@ -81,34 +81,34 @@ public class KadaiOutboxRequester {
     return false;
   }
 
-  public List<CamundaTaskEvent> getFailedEvents() {
+  public List<Camunda7TaskEvent> getFailedEvents() {
 
     String url = BASIC_OUTBOX_PATH + "?retries=0";
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    ResponseEntity<CamundaTaskEventListResource> answer =
+    ResponseEntity<Camunda7TaskEventListResource> answer =
         restClient
             .get()
             .uri(url)
             .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
-            .toEntity(CamundaTaskEventListResource.class);
+            .toEntity(Camunda7TaskEventListResource.class);
 
     return answer.getBody().getCamundaTaskEvents();
   }
 
-  public List<CamundaTaskEvent> getAllEvents() {
+  public List<Camunda7TaskEvent> getAllEvents() {
 
     String url = BASIC_OUTBOX_PATH;
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    ResponseEntity<CamundaTaskEventListResource> answer =
+    ResponseEntity<Camunda7TaskEventListResource> answer =
         restClient
             .get()
             .uri(url)
             .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
-            .toEntity(CamundaTaskEventListResource.class);
+            .toEntity(Camunda7TaskEventListResource.class);
 
     return answer.getBody().getCamundaTaskEvents();
   }

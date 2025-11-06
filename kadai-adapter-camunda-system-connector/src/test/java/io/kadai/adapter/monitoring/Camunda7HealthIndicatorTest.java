@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.kadai.adapter.models.CamundaEngineInfoRepresentationModel;
+import io.kadai.adapter.models.Camunda7EngineInfoRepresentationModel;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -35,8 +35,8 @@ class Camunda7HealthIndicatorTest {
   void should_ReturnUp_When_CamundaRespondsSuccessfully() {
     Camunda7HealthIndicator camundaHealthIndicator =
         new Camunda7HealthIndicator(restClient, BASE_URL);
-    CamundaEngineInfoRepresentationModel engine = new CamundaEngineInfoRepresentationModel();
-    CamundaEngineInfoRepresentationModel[] engines = {engine};
+    Camunda7EngineInfoRepresentationModel engine = new Camunda7EngineInfoRepresentationModel();
+    Camunda7EngineInfoRepresentationModel[] engines = {engine};
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
@@ -44,7 +44,7 @@ class Camunda7HealthIndicatorTest {
     when(restClient.get()).thenReturn(mockRequestSpec);
     when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(CamundaEngineInfoRepresentationModel[].class))
+    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
         .thenReturn(ResponseEntity.ok(engines));
 
     assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
@@ -61,8 +61,8 @@ class Camunda7HealthIndicatorTest {
     when(restClient.get()).thenReturn(mockRequestSpec);
     when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(CamundaEngineInfoRepresentationModel[].class))
-        .thenReturn(ResponseEntity.ok(new CamundaEngineInfoRepresentationModel[0]));
+    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
+        .thenReturn(ResponseEntity.ok(new Camunda7EngineInfoRepresentationModel[0]));
 
     assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }
@@ -79,7 +79,7 @@ class Camunda7HealthIndicatorTest {
     when(restClient.get()).thenReturn(mockRequestSpec);
     when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(CamundaEngineInfoRepresentationModel[].class))
+    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
         .thenThrow(new RuntimeException("HTTP " + httpStatus.value()));
 
     assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
