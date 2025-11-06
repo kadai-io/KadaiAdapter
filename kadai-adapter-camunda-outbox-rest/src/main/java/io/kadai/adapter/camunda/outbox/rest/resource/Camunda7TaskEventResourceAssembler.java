@@ -21,8 +21,8 @@ package io.kadai.adapter.camunda.outbox.rest.resource;
 import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
 
 /**
- * Transforms {@link Camunda7TaskEvent} to its resource counterpart {@link Camunda7TaskEventResource}
- * and vice versa.
+ * Transforms {@link Camunda7TaskEvent} to its resource counterpart {@link
+ * Camunda7TaskEventResource} and vice versa.
  */
 public class Camunda7TaskEventResourceAssembler {
 

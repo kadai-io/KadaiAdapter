@@ -30,9 +30,11 @@ public class Camunda7TaskEventListResourceAssembler {
     return new Camunda7TaskEventListResource(camunda7TaskEventList);
   }
 
-  public Camunda7TaskEventList toModel(Camunda7TaskEventListResource camunda7TaskEventListResource) {
+  public Camunda7TaskEventList toModel(
+      Camunda7TaskEventListResource camunda7TaskEventListResource) {
     Camunda7TaskEventList camunda7TaskEventList = new Camunda7TaskEventList();
-    camunda7TaskEventList.setCamundaTaskEvents(camunda7TaskEventListResource.getCamundaTaskEvents());
+    camunda7TaskEventList.setCamundaTaskEvents(
+        camunda7TaskEventListResource.getCamundaTaskEvents());
 
     return camunda7TaskEventList;
   }

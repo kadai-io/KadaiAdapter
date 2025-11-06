@@ -316,7 +316,8 @@ public class Camunda7TaskEventsService {
 
           camunda7TaskEvent.setId(completeAndDeleteEventsResultSet.getInt(1));
           camunda7TaskEvent.setType(completeAndDeleteEventsResultSet.getString(2));
-          camunda7TaskEvent.setCreated(formatDate(completeAndDeleteEventsResultSet.getTimestamp(3)));
+          camunda7TaskEvent.setCreated(
+              formatDate(completeAndDeleteEventsResultSet.getTimestamp(3)));
           camunda7TaskEvent.setPayload(completeAndDeleteEventsResultSet.getString(4));
           camunda7TaskEvent.setRemainingRetries(completeAndDeleteEventsResultSet.getInt(5));
           camunda7TaskEvent.setBlockedUntil(completeAndDeleteEventsResultSet.getString(6));
@@ -349,7 +350,8 @@ public class Camunda7TaskEventsService {
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camunda7TaskEvents = getCamundaTaskEvents(camundaTaskEventResultSet);
-        ids = camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
+        ids =
+            camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
@@ -453,7 +455,8 @@ public class Camunda7TaskEventsService {
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camunda7TaskEvents = getCamundaTaskEvents(camundaTaskEventResultSet);
-        ids = camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
+        ids =
+            camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
@@ -554,7 +557,8 @@ public class Camunda7TaskEventsService {
         }
         ResultSet completeAndDeleteEventsResultSet = preparedStatement.executeQuery();
         camunda7TaskEvents = getCamundaTaskEvents(completeAndDeleteEventsResultSet);
-        ids = camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
+        ids =
+            camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
 
         lockEvents(ids, lockDuration, connection);
         if (LOGGER.isDebugEnabled()) {
