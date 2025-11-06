@@ -76,7 +76,7 @@ public class Camunda7SystemConnectorConfiguration {
 
   @Bean
   @DependsOn(value = {"httpHeaderProvider"})
-  Camunda7TaskRetriever camundaTaskRetriever(
+  Camunda7TaskRetriever camunda7TaskRetriever(
       final HttpHeaderProvider httpHeaderProvider,
       final ObjectMapper objectMapper,
       final RestClient restClient) {
@@ -84,25 +84,25 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   @Bean
-  Camunda7TaskCompleter camundaTaskCompleter(
+  Camunda7TaskCompleter camunda7TaskCompleter(
       final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
     return new Camunda7TaskCompleter(httpHeaderProvider, restClient);
   }
 
   @Bean
-  Camunda7TaskClaimer camundaTaskClaimer(
+  Camunda7TaskClaimer camunda7TaskClaimer(
       final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
     return new Camunda7TaskClaimer(httpHeaderProvider, restClient);
   }
 
   @Bean
-  Camunda7TaskClaimCanceler camundaTaskClaimCanceler(
+  Camunda7TaskClaimCanceler camunda7TaskClaimCanceler(
       final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
     return new Camunda7TaskClaimCanceler(httpHeaderProvider, restClient);
   }
 
   @Bean
-  Camunda7TaskEventCleaner camundaTaskEventCleaner(
+  Camunda7TaskEventCleaner camunda7TaskEventCleaner(
       final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
     return new Camunda7TaskEventCleaner(httpHeaderProvider, restClient);
   }
