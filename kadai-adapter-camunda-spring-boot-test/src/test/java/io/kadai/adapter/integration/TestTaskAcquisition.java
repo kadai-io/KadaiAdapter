@@ -77,7 +77,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
   @Autowired AdapterManager adapterManager;
   @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
 
-  @Value("${kadai-system-connector-camundaSystemURLs}")
+  @Value("${kadai-system-connector-camunda7SystemURLs}")
   private String configuredSystemConnectorUrls;
 
   @WithAccessId(

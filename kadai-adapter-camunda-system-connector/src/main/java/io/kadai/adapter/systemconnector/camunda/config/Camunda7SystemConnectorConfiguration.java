@@ -57,8 +57,8 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   @Bean
-  Camunda7SystemUrls camundaSystemUrls(
-      @Value("${kadai-system-connector-camundaSystemURLs}") final String strUrls) {
+  Camunda7SystemUrls camunda7SystemUrls(
+      @Value("${kadai-system-connector-camunda7SystemURLs}") final String strUrls) {
     return new Camunda7SystemUrls(strUrls);
   }
 

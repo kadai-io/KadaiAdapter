@@ -14,16 +14,16 @@ public class Camunda7HealthContributorFactory implements PluginHealthContributor
 
   private final RestClient restClient;
   private final Camunda7HealthConfigurationProperties properties;
-  private final List<String> camundaSystemUrls;
+  private final List<String> camunda7SystemUrls;
 
   @Autowired
   public Camunda7HealthContributorFactory(
       RestClient restClient,
       Camunda7HealthConfigurationProperties properties,
-      @Value("${kadai-system-connector-camundaSystemURLs}") List<String> camundaSystemUrls) {
+      @Value("${kadai-system-connector-camunda7SystemURLs}") List<String> camunda7SystemUrls) {
     this.restClient = restClient;
     this.properties = properties;
-    this.camundaSystemUrls = camundaSystemUrls;
+    this.camunda7SystemUrls = camunda7SystemUrls;
   }
 
   @Override
@@ -34,7 +34,8 @@ public class Camunda7HealthContributorFactory implements PluginHealthContributor
   @Override
   public Optional<HealthContributor> newInstance() {
     return properties.getEnabled()
-        ? Optional.of(new Camunda7SystemsHealthComposite(restClient, camundaSystemUrls, properties))
+        ? Optional.of(
+            new Camunda7SystemsHealthComposite(restClient, camunda7SystemUrls, properties))
         : Optional.empty();
   }
 }

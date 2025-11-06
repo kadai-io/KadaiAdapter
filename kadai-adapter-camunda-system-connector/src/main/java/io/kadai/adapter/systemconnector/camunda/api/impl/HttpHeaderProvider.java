@@ -30,10 +30,10 @@ public class HttpHeaderProvider {
 
   private static String undefined = "undefined";
 
-  @Value("${kadai-system-connector-camunda-rest-api-user-name:undefined}")
+  @Value("${kadai-system-connector-camunda7-rest-api-user-name:undefined}")
   private String camundaRestApiUserName;
 
-  @Value("${kadai-system-connector-camunda-rest-api-user-password:undefined}")
+  @Value("${kadai-system-connector-camunda7-rest-api-user-password:undefined}")
   private String camundaRestApiUserPassword;
 
   @Value("${kadai-system-connector-outbox-rest-api-user-name:undefined}")
