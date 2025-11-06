@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.kadai</groupId>
     <artifactId>kadai-adapter-parent</artifactId>
-    <version>11.0.1-SNAPSHOT</version>
+    <version>11.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -42,11 +42,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <version.kadai>11.0.1-SNAPSHOT</version.kadai>
+        <version.kadai>11.1.1-SNAPSHOT</version.kadai>
 
         <!-- build dependencies -->
-        <version.checkstyle>12.1.0</version.checkstyle>
-        <version.google-java-format>1.30.0</version.google-java-format>
+        <version.checkstyle>12.1.1</version.checkstyle>
+        <version.google-java-format>1.31.0</version.google-java-format>
         <version.maven.checkstyle>3.6.0</version.maven.checkstyle>
         <version.maven.compiler>3.13.0</version.maven.compiler>
         <version.maven.dependency>3.8.1</version.maven.dependency>
@@ -64,12 +64,12 @@
         <version.spring.mybatis>3.0.5</version.spring.mybatis>
 
         <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
-        <version.spring.boot>3.5.6</version.spring.boot>
+        <version.spring.boot>3.5.7</version.spring.boot>
 
-        <version.camunda8>8.8.0</version.camunda8>
+        <version.camunda8>8.8.3</version.camunda8>
         <version.camunda>7.23.0</version.camunda>
         <version.camunda.spin>1.23.0</version.camunda.spin>
-        <version.camunda.template-engines-freemarker>7.23.0</version.camunda.template-engines-freemarker>
+        <version.camunda.template-engines-freemarker>7.24.0</version.camunda.template-engines-freemarker>
         <version.camunda.template-engines-velocity>2.1.0</version.camunda.template-engines-velocity>
 
         <version.jakarta.annotation>3.0.0</version.jakarta.annotation>

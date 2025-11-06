@@ -25,6 +25,9 @@ env:
   ARTIFACTS_JACOCO_REPORTS_NAME: jacoco-reports
   ARTIFACTS_JACOCO_REPORTS_PATH: '**/jacoco.exec'
 
+permissions: # give GITHUB_TOKEN the right to push directly to master
+  contents: write
+
 jobs:
 
   compile_and_test:
@@ -48,7 +51,7 @@ jobs:
       - name: Test
         run: ./mvnw -B verify
       - name: Upload JaCoCo Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.ARTIFACTS_JACOCO_REPORTS_NAME }}
           path: ${{ env.ARTIFACTS_JACOCO_REPORTS_PATH }}
@@ -125,7 +128,9 @@ jobs:
           -pl :kadai-adapter-parent,\
           :kadai-adapter,:kadai-adapter-camunda-system-connector,:kadai-adapter-kadai-connector,\
           :kadai-adapter-camunda-listener,:kadai-adapter-camunda-outbox-rest,\
-          :kadai-adapter-camunda-outbox-rest-spring-boot-starter
+          :kadai-adapter-camunda-outbox-rest-spring-boot-starter,\
+          :kadai-adapter-spring-boot-test,\
+          :kadai-adapter-camunda-8-system-connector
         env:
           GPG_KEY_NAME: ${{ secrets.GPG_KEY_NAME }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
@@ -177,7 +182,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}
       - name: Download JaCoCo reports
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ env.ARTIFACTS_JACOCO_REPORTS_NAME }}
       - name: Install kadai adapter
