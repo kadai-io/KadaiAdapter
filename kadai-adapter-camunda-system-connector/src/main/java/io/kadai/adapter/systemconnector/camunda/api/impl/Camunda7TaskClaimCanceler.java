@@ -21,7 +21,6 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemUrls;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,15 +43,15 @@ public class Camunda7TaskClaimCanceler {
   private final HttpHeaderProvider httpHeaderProvider;
   private final RestClient restClient;
 
-  public Camunda7TaskClaimCanceler(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
-    this.httpHeaderProvider = httpHeaderProvider;
-    this.restClient = restClient;
-  }
-
   @Value("${kadai.adapter.camunda.claiming.enabled:false}")
   private boolean claimingEnabled;
 
   private boolean cancelClaimConfigLogged = false;
+
+  public Camunda7TaskClaimCanceler(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.restClient = restClient;
+  }
 
   public SystemResponse cancelClaimOfCamundaTask(
       Camunda7SystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {

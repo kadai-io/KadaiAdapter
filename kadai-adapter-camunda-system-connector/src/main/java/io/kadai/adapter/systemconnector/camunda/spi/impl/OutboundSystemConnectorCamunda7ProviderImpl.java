@@ -30,7 +30,8 @@ import java.util.List;
  * Implements OutboundSystemConnectorProvider for Camunda. Creates Camunda7SystemConnectorImpl
  * instances for outbound operations.
  */
-public class OutboundSystemConnectorCamunda7ProviderImpl implements OutboundSystemConnectorProvider {
+public class OutboundSystemConnectorCamunda7ProviderImpl
+    implements OutboundSystemConnectorProvider {
 
   @Override
   public List<OutboundSystemConnector> create() {

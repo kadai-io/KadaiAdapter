@@ -183,7 +183,9 @@ public class Camunda7TaskCompleter {
       requestBody = Camunda7SystemConnectorImpl.EMPTY_REQUEST_BODY;
     } else {
       requestBody =
-          Camunda7SystemConnectorImpl.BODY_SET_CAMUNDA_VARIABLES + camundaTask.getVariables() + "}}";
+          Camunda7SystemConnectorImpl.BODY_SET_CAMUNDA_VARIABLES
+              + camundaTask.getVariables()
+              + "}}";
     }
 
     return requestBody;

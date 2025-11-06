@@ -28,7 +28,8 @@ import java.time.Duration;
 import java.util.List;
 
 /** Sample Implementation of SystemConnector. */
-public class Camunda7SystemConnectorImpl implements InboundSystemConnector, OutboundSystemConnector {
+public class Camunda7SystemConnectorImpl
+    implements InboundSystemConnector, OutboundSystemConnector {
 
   static final String URL_GET_CAMUNDA_TASKS = "/task/";
 

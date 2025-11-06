@@ -102,7 +102,8 @@ public class Camunda7TaskRetriever {
     LOGGER.debug(
         "retrieving camunda task event resources with url {} and headers {}", requestUrl, headers);
 
-    Camunda7TaskEventListResource camunda7TaskEventListResource = new Camunda7TaskEventListResource();
+    Camunda7TaskEventListResource camunda7TaskEventListResource =
+        new Camunda7TaskEventListResource();
     camunda7TaskEventListResource.setCamundaTaskEvents(new ArrayList<>());
 
     try {
@@ -116,7 +117,8 @@ public class Camunda7TaskRetriever {
               .toEntity(Camunda7TaskEventListResource.class)
               .getBody();
 
-      List<Camunda7TaskEvent> retrievedEvents = camunda7TaskEventListResource.getCamundaTaskEvents();
+      List<Camunda7TaskEvent> retrievedEvents =
+          camunda7TaskEventListResource.getCamundaTaskEvents();
 
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("retrieved camunda task events {}", retrievedEvents);
@@ -142,7 +144,8 @@ public class Camunda7TaskRetriever {
     for (Camunda7TaskEvent camunda7TaskEvent : camunda7TaskEvents) {
 
       if (systemEngineIdentifier == null
-          || Objects.equals(camunda7TaskEvent.getSystemEngineIdentifier(), systemEngineIdentifier)) {
+          || Objects.equals(
+              camunda7TaskEvent.getSystemEngineIdentifier(), systemEngineIdentifier)) {
 
         String referencedTaskJson = camunda7TaskEvent.getPayload();
 
