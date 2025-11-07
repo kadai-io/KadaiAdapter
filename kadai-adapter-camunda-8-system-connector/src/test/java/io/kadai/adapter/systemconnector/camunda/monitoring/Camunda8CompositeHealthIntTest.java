@@ -33,7 +33,8 @@ class Camunda8CompositeHealthIntTest {
   class Camunda8CompositeUp {
     @Test
     @WithAccessId(user = "admin")
-    void should_ReturnUp_When_JobWorkerRanSuccessfully() throws Exception {
+    void should_ReturnUp_When_AnyJobWorkerRanSuccessfullyAndAllOthersHaveNotAtAll()
+        throws Exception {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
       kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
       client
@@ -41,6 +42,11 @@ class Camunda8CompositeHealthIntTest {
           .addResourceFromClasspath("processes/sayHello.bpmn")
           .send()
           .join();
+
+      client.newCreateInstanceCommand().bpmnProcessId("Test_Process").latestVersion().send().join();
+
+      // Wait for JobWorker to finish running
+      Thread.sleep(5000);
 
       RestClient restClient =
           RestClient.builder()
@@ -57,7 +63,7 @@ class Camunda8CompositeHealthIntTest {
       Map<String, Object> body = response.getBody();
 
       assertThat(body).isNotNull();
-      assertThat(body).extracting("status").isEqualTo("UNKNOWN");
+      assertThat(body).extracting("status").isEqualTo("UP");
     }
   }
 
@@ -90,7 +96,7 @@ class Camunda8CompositeHealthIntTest {
   class Camunda8CompositeDown {
     @Test
     @WithAccessId(user = "admin")
-    void should_ReturnDown_When_JobWorkerRanWithError() {
+    void should_ReturnDown_When_AnyJobWorkerRanWithError() {
       client
           .newDeployResourceCommand()
           .addResourceFromClasspath("processes/sayHello.bpmn")
