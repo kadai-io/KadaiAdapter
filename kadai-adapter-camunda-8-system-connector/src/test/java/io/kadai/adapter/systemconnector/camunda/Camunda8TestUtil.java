@@ -3,6 +3,7 @@ package io.kadai.adapter.systemconnector.camunda;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.camunda.client.CamundaClient;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8HttpHeaderProvider;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,6 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8HttpHeaderProvider;
-
 /**
  * Utility class for Camunda 8 test operations. Similar to KadaiAdapterTestUtil but for Camunda 8
  * specific operations.
@@ -25,13 +24,10 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8HttpHeaderProvi
 @Component
 public class Camunda8TestUtil {
 
-  @Autowired private CamundaClient client;
-
-  @Autowired private Camunda8HttpHeaderProvider httpHeaderProvider;
-
-  @Autowired private RestTemplate restTemplate;
-
   private final ObjectMapper mapper = new ObjectMapper();
+  @Autowired private CamundaClient client;
+  @Autowired private Camunda8HttpHeaderProvider httpHeaderProvider;
+  @Autowired private RestTemplate restTemplate;
 
   public String getCamundaTaskAssignee(long taskKey) {
     try {
@@ -84,6 +80,10 @@ public class Camunda8TestUtil {
     return extractCamundaTaskKeyFromExternalId(externalId);
   }
 
+  public void waitUntil(Callable<Boolean> condition) {
+    await().atMost(15, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).until(condition);
+  }
+
   private String getCamundaTaskJson(long taskKey) {
     String requestUrl = client.getConfiguration().getRestAddress() + "/v2/user-tasks/" + taskKey;
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda8TasklistApi();
@@ -113,9 +113,5 @@ public class Camunda8TestUtil {
     } catch (Exception e) {
       return null;
     }
-  }
-
-  public void waitUntil(Callable<Boolean> condition) {
-    await().atMost(15, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).until(condition);
   }
 }

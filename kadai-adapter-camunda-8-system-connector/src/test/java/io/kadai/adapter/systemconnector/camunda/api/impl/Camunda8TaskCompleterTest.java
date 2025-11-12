@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.process.test.api.CamundaAssert;
-
 import io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
@@ -24,11 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @KadaiAdapterCamunda8SpringBootTest
 class Camunda8TaskCompleterTest {
+  @Autowired Camunda8TestUtil camunda8TestUtil;
   @Autowired private CamundaClient client;
   @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
   @Autowired private KadaiEngine kadaiEngine;
-  @Autowired
-  Camunda8TestUtil camunda8TestUtil;
 
   @Test
   @WithAccessId(user = "admin")
