@@ -13,7 +13,7 @@ class Camunda8SystemHealthCompositeTest {
     final Camunda8HealthConfigurationProperties camunda8HealthConfigurationProperties =
         new Camunda8HealthConfigurationProperties();
     final Camunda8SystemHealthComposite camunda8SystemHealthComposite =
-        new Camunda8SystemHealthComposite(camunda8HealthConfigurationProperties, null, null);
+        new Camunda8SystemHealthComposite(camunda8HealthConfigurationProperties, null, null, null);
 
     assertThat(camunda8SystemHealthComposite.getContributor("jobWorker")).isNotNull();
   }
@@ -27,7 +27,7 @@ class Camunda8SystemHealthCompositeTest {
     jobWorkerHealthConfigurationProperties.setEnabled(true);
     camunda8HealthConfigurationProperties.setJobWorker(jobWorkerHealthConfigurationProperties);
     final Camunda8SystemHealthComposite camunda8SystemHealthComposite =
-        new Camunda8SystemHealthComposite(camunda8HealthConfigurationProperties, null, null);
+        new Camunda8SystemHealthComposite(camunda8HealthConfigurationProperties, null, null, null);
 
     assertThat(camunda8SystemHealthComposite.getContributor("jobWorker")).isNotNull();
   }
@@ -41,7 +41,7 @@ class Camunda8SystemHealthCompositeTest {
     jobWorkerHealthConfigurationProperties.setEnabled(false);
     camunda8HealthConfigurationProperties.setJobWorker(jobWorkerHealthConfigurationProperties);
     final Camunda8SystemHealthComposite camunda8SystemHealthComposite =
-        new Camunda8SystemHealthComposite(camunda8HealthConfigurationProperties, null, null);
+        new Camunda8SystemHealthComposite(camunda8HealthConfigurationProperties, null, null, null);
 
     assertThat(camunda8SystemHealthComposite.getContributor("jobWorker")).isNull();
   }
