@@ -45,8 +45,8 @@
         <version.kadai>11.1.1-SNAPSHOT</version.kadai>
 
         <!-- build dependencies -->
-        <version.checkstyle>12.1.1</version.checkstyle>
-        <version.google-java-format>1.31.0</version.google-java-format>
+        <version.checkstyle>12.1.2</version.checkstyle>
+        <version.google-java-format>1.32.0</version.google-java-format>
         <version.maven.checkstyle>3.6.0</version.maven.checkstyle>
         <version.maven.compiler>3.13.0</version.maven.compiler>
         <version.maven.dependency>3.8.1</version.maven.dependency>
@@ -55,7 +55,7 @@
         <version.maven.javadoc>3.11.2</version.maven.javadoc>
         <version.maven.jboss-as.plugin>7.9.Final</version.maven.jboss-as.plugin>
         <version.maven.resources>3.3.1</version.maven.resources>
-        <version.maven.sonar>5.2.0.4988</version.maven.sonar>
+        <version.maven.sonar>5.3.0.6276</version.maven.sonar>
         <version.maven.source>3.3.1</version.maven.source>
         <version.maven.surefire.plugin>3.2.5</version.maven.surefire.plugin>
         <version.maven-war-plugin>3.4.0</version.maven-war-plugin>
@@ -351,16 +351,8 @@
         <repository>
             <id>camunda-bpm-nexus</id>
             <name>Camunda Maven Repository</name>
-            <url>https://app.camunda.com/nexus/content/groups/public</url>
+            <url>https://artifacts.camunda.com/artifactory/public/</url>
         </repository>
-        <!-- enable this for EE dependencies (requires credentials in ~/.m2/settings.xml) -->
-        <!--
-        <repository>
-          <id>camunda-bpm-nexus-ee</id>
-          <name>Camunda Enterprise Maven Repository</name>
-          <url>https://app.camunda.com/nexus/content/repositories/camunda-bpm-ee</url>
-        </repository>
-        -->
         <repository>
             <id>jboss-public-repository</id>
             <name>JBoss Repository</name>
