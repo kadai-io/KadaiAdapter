@@ -1,8 +1,8 @@
-package io.kadai.adapter.systemconnector.camunda.tasklistener;
+package io.kadai.adapter.systemconnector.camunda;
 
 import io.camunda.process.test.api.CamundaProcessTestExecutionListener;
 import io.camunda.process.test.impl.configuration.CamundaProcessTestAutoConfiguration;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TestSetupListener;
+
 import io.kadai.adapter.test.KadaiAdapterSpringBootTest;
 import io.kadai.adapter.test.KadaiAdapterSpringBootTestExecutionListener;
 import java.lang.annotation.ElementType;

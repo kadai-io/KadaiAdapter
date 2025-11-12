@@ -1,4 +1,4 @@
-package io.kadai.adapter.systemconnector.camunda.api.impl;
+package io.kadai.adapter.systemconnector.camunda;
 
 import io.camunda.client.CamundaClient;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;

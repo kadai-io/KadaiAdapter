@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import io.camunda.client.CamundaClient;
-import io.kadai.adapter.systemconnector.camunda.tasklistener.KadaiAdapterCamunda8SpringBootTest;
+import io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil;
+import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
+import io.kadai.common.api.KadaiEngine;
 import io.kadai.common.test.security.WithAccessId;
 import java.util.Map;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -25,8 +27,10 @@ import org.springframework.web.client.RestClient;
 class Camunda8CompositeHealthIntTest {
 
   @LocalServerPort private Integer port;
+  @Autowired private Camunda8TestUtil camunda8TestUtil;
   @Autowired private CamundaClient client;
   @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
+  @Autowired private KadaiEngine kadaiEngine;
 
   @Nested
   @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -45,8 +49,8 @@ class Camunda8CompositeHealthIntTest {
 
       client.newCreateInstanceCommand().bpmnProcessId("Test_Process").latestVersion().send().join();
 
-      // Wait for JobWorker to finish running
-      Thread.sleep(5000);
+      camunda8TestUtil.waitUntil(
+          () -> !kadaiEngine.getTaskService().createTaskQuery().list().isEmpty());
 
       RestClient restClient =
           RestClient.builder()

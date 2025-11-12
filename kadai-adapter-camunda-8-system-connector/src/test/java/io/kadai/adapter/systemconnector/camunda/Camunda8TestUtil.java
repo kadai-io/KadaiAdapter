@@ -1,4 +1,4 @@
-package io.kadai.adapter.systemconnector.camunda.api.impl;
+package io.kadai.adapter.systemconnector.camunda;
 
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
@@ -15,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
+
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8HttpHeaderProvider;
 
 /**
  * Utility class for Camunda 8 test operations. Similar to KadaiAdapterTestUtil but for Camunda 8
