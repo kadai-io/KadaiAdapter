@@ -29,7 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -43,18 +43,19 @@ public class CamundaTaskClaimCanceler {
   private final HttpHeaderProvider httpHeaderProvider;
   private final RestClient restClient;
 
-  public CamundaTaskClaimCanceler(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
-    this.httpHeaderProvider = httpHeaderProvider;
-    this.restClient = restClient;
-  }
-
   @Value("${kadai.adapter.camunda.claiming.enabled:false}")
   private boolean claimingEnabled;
 
   private boolean cancelClaimConfigLogged = false;
 
+  public CamundaTaskClaimCanceler(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.restClient = restClient;
+  }
+
   public SystemResponse cancelClaimOfCamundaTask(
-      CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {
+      CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask)
+      throws HttpStatusCodeException {
 
     if (!cancelClaimConfigLogged) {
       LOGGER.info(
@@ -94,12 +95,6 @@ public class CamundaTaskClaimCanceler {
             httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
         }
-        LOGGER.warn(
-            "HTTP client error while cancel claiming Camunda task: {}", e.getStatusCode(), e);
-        throw e;
-      } catch (HttpServerErrorException e) {
-        LOGGER.error(
-            "HTTP server error while cancel claiming Camunda task: {}", e.getStatusCode(), e);
         throw e;
       }
     }

@@ -24,8 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -44,7 +43,8 @@ public class CamundaTaskEventCleaner {
   }
 
   public void cleanEventsForReferencedTasks(
-      List<ReferencedTask> referencedTasks, String camundaSystemTaskEventUrl) {
+      List<ReferencedTask> referencedTasks, String camundaSystemTaskEventUrl)
+      throws HttpStatusCodeException {
 
     LOGGER.debug(
         "entry to cleanEventsForReferencedTasks, CamundaSystemURL = {}", camundaSystemTaskEventUrl);
@@ -68,25 +68,16 @@ public class CamundaTaskEventCleaner {
   }
 
   private void deleteCamundaTaskEventsFromOutbox(
-      String requestUrl, String idsOfCamundaTaskEventsToDeleteFromOutbox) {
+      String requestUrl, String idsOfCamundaTaskEventsToDeleteFromOutbox)
+      throws HttpStatusCodeException {
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    try {
-      restClient
-          .post()
-          .uri(requestUrl)
-          .headers(httpHeaders -> httpHeaders.addAll(headers))
-          .body(idsOfCamundaTaskEventsToDeleteFromOutbox)
-          .retrieve()
-          .toEntity(Void.class);
-    } catch (HttpClientErrorException e) {
-      LOGGER.error(
-          "HTTP client error while deleting Camunda task events: {}", e.getStatusCode(), e);
-      throw e;
-    } catch (HttpServerErrorException e) {
-      LOGGER.error(
-          "HTTP server error while deleting Camunda task events: {}", e.getStatusCode(), e);
-      throw e;
-    }
+    restClient
+        .post()
+        .uri(requestUrl)
+        .headers(httpHeaders -> httpHeaders.addAll(headers))
+        .body(idsOfCamundaTaskEventsToDeleteFromOutbox)
+        .retrieve()
+        .toEntity(Void.class);
   }
 
   private String getIdsOfCamundaTaskEventsToDeleteFromOutbox(List<ReferencedTask> referencedTasks) {
