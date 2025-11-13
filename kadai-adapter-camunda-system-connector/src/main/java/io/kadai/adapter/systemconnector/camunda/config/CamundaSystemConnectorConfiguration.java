@@ -69,12 +69,6 @@ public class CamundaSystemConnectorConfiguration {
   }
 
   @Bean
-  Integer getFromKadaiToAdapterBatchSize(
-      @Value("${kadai.adapter.sync.kadai.batchSize:#{64}}") final Integer batchSize) {
-    return batchSize;
-  }
-
-  @Bean
   @DependsOn(value = {"httpHeaderProvider"})
   CamundaTaskRetriever camundaTaskRetriever(
       final HttpHeaderProvider httpHeaderProvider,

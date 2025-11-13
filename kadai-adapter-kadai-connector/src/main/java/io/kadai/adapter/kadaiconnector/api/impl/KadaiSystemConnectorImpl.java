@@ -18,7 +18,6 @@
 
 package io.kadai.adapter.kadaiconnector.api.impl;
 
-import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
@@ -41,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /** Implements KadaiConnector. */
@@ -55,14 +55,16 @@ public class KadaiSystemConnectorImpl implements KadaiConnector {
 
   private final TaskService taskService;
   private final TaskInformationMapper taskInformationMapper;
+  private final Integer batchSize;
 
   public KadaiSystemConnectorImpl(
-      TaskService taskService, TaskInformationMapper taskInformationMapper) {
+      TaskService taskService,
+      TaskInformationMapper taskInformationMapper,
+      @Value("${kadai.adapter.sync.kadai.batchSize:#{64}}") Integer batchSize) {
     this.taskService = taskService;
     this.taskInformationMapper = taskInformationMapper;
+    this.batchSize = batchSize;
   }
-
-  Integer batchSize = AdapterSpringContextProvider.getBean(Integer.class);
 
   public List<ReferencedTask> retrieveFinishedKadaiTasksAsReferencedTasks() {
 

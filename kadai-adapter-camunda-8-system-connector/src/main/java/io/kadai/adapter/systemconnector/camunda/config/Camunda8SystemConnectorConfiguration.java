@@ -2,7 +2,6 @@ package io.kadai.adapter.systemconnector.camunda.config;
 
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,11 +22,5 @@ public class Camunda8SystemConnectorConfiguration {
         .readTimeout(Duration.ofMillis(httpComponentsClientProperties.getReadTimeout()))
         .requestFactory(HttpComponentsClientHttpRequestFactory.class)
         .build();
-  }
-
-  @Bean
-  Integer getFromKadaiToAdapterBatchSize(
-      @Value("${kadai.adapter.sync.kadai.batchSize:#{64}}") final Integer batchSize) {
-    return batchSize;
   }
 }
