@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
+import io.kadai.adapter.monitoring.models.OutboxEventCountRepresentationModel;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Stream;

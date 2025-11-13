@@ -1,6 +1,6 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.models.OutboxEventCountRepresentationModel;
+import io.kadai.adapter.monitoring.models.OutboxEventCountRepresentationModel;
 import java.net.URI;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
