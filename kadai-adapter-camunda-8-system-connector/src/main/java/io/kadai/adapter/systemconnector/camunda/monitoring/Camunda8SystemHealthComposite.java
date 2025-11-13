@@ -1,6 +1,7 @@
 package io.kadai.adapter.systemconnector.camunda.monitoring;
 
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda8HealthConfigurationProperties;
+import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCancellation;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
 import java.util.HashMap;
@@ -18,12 +19,16 @@ public class Camunda8SystemHealthComposite implements CompositeHealthContributor
   public Camunda8SystemHealthComposite(
       Camunda8HealthConfigurationProperties properties,
       UserTaskCompletion userTaskCompletion,
-      UserTaskCreation userTaskCreation) {
+      UserTaskCreation userTaskCreation,
+      UserTaskCancellation userTaskCancellation) {
     if (properties.getJobWorker().getEnabled()) {
       healthContributors.put(
           "jobWorker",
           new Camunda8JobWorkerHealthComposite(
-              properties.getJobWorker(), userTaskCompletion, userTaskCreation));
+              properties.getJobWorker(),
+              userTaskCompletion,
+              userTaskCreation,
+              userTaskCancellation));
     }
   }
 

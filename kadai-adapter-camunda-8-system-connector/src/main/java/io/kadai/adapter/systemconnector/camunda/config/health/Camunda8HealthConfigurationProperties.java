@@ -27,6 +27,8 @@ public class Camunda8HealthConfigurationProperties
         new CompositeHealthContributorConfigurationProperties();
     private CompositeHealthContributorConfigurationProperties create =
         new CompositeHealthContributorConfigurationProperties();
+    private CompositeHealthContributorConfigurationProperties cancel =
+        new CompositeHealthContributorConfigurationProperties();
 
     public CompositeHealthContributorConfigurationProperties getComplete() {
       return complete;
@@ -53,6 +55,20 @@ public class Camunda8HealthConfigurationProperties
     public JobWorkerHealthConfigurationProperties withCreate(
         CompositeHealthContributorConfigurationProperties create) {
       this.create = create;
+      return this;
+    }
+
+    public CompositeHealthContributorConfigurationProperties getCancel() {
+      return cancel;
+    }
+
+    public void setCancel(CompositeHealthContributorConfigurationProperties cancel) {
+      this.cancel = cancel;
+    }
+
+    public JobWorkerHealthConfigurationProperties withCancel(
+        CompositeHealthContributorConfigurationProperties cancel) {
+      this.cancel = cancel;
       return this;
     }
   }

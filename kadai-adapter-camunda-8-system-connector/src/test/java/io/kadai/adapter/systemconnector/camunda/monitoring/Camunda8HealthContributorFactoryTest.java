@@ -13,7 +13,7 @@ class Camunda8HealthContributorFactoryTest {
         new Camunda8HealthConfigurationProperties();
     final Camunda8HealthContributorFactory camunda8HealthContributorFactory =
         new Camunda8HealthContributorFactory(
-            camunda8HealthConfigurationProperties, null, null);
+            camunda8HealthConfigurationProperties, null, null, null);
 
     assertThat(camunda8HealthContributorFactory.newInstance()).isPresent();
   }
