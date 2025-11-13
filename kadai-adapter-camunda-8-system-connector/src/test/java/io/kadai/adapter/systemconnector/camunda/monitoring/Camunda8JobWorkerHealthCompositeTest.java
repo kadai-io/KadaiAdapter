@@ -79,4 +79,34 @@ class Camunda8JobWorkerHealthCompositeTest {
 
     assertThat(camunda8JobWorkerHealthComposite.getContributor("create")).isNull();
   }
+
+  @Test
+  void should_EnableCancelListener_WhenEnabled() {
+    final JobWorkerHealthConfigurationProperties jobWorkerHealthConfigurationProperties =
+        new JobWorkerHealthConfigurationProperties();
+    final CompositeHealthContributorConfigurationProperties listenerProperties =
+        new CompositeHealthContributorConfigurationProperties();
+    listenerProperties.setEnabled(true);
+    jobWorkerHealthConfigurationProperties.setCancel(listenerProperties);
+    final Camunda8JobWorkerHealthComposite camunda8JobWorkerHealthComposite =
+        new Camunda8JobWorkerHealthComposite(
+            jobWorkerHealthConfigurationProperties, null, null, null);
+
+    assertThat(camunda8JobWorkerHealthComposite.getContributor("cancel")).isNotNull();
+  }
+
+  @Test
+  void should_DisableCancelListener_WhenDisabled() {
+    final JobWorkerHealthConfigurationProperties jobWorkerHealthConfigurationProperties =
+        new JobWorkerHealthConfigurationProperties();
+    final CompositeHealthContributorConfigurationProperties listenerProperties =
+        new CompositeHealthContributorConfigurationProperties();
+    listenerProperties.setEnabled(false);
+    jobWorkerHealthConfigurationProperties.setCancel(listenerProperties);
+    final Camunda8JobWorkerHealthComposite camunda8JobWorkerHealthComposite =
+        new Camunda8JobWorkerHealthComposite(
+            jobWorkerHealthConfigurationProperties, null, null, null);
+
+    assertThat(camunda8JobWorkerHealthComposite.getContributor("cancel")).isNull();
+  }
 }
