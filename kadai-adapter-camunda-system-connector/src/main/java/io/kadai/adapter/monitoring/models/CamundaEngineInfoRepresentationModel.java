@@ -1,4 +1,4 @@
-package io.kadai.adapter.models;
+package io.kadai.adapter.monitoring.models;
 
 public class CamundaEngineInfoRepresentationModel {
 

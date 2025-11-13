@@ -1,6 +1,6 @@
 package io.kadai.adapter.monitoring;
 
-import io.kadai.adapter.models.CamundaEngineInfoRepresentationModel;
+import io.kadai.adapter.monitoring.models.CamundaEngineInfoRepresentationModel;
 import java.net.URI;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;

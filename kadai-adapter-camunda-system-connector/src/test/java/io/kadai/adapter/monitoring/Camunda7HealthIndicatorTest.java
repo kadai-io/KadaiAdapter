@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.kadai.adapter.models.CamundaEngineInfoRepresentationModel;
+import io.kadai.adapter.monitoring.models.CamundaEngineInfoRepresentationModel;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Stream;
