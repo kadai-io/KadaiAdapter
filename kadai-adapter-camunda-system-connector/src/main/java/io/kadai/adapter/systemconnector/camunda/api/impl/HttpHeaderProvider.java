@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class HttpHeaderProvider {
 
-  private static String undefined = "undefined";
+  private static final String UNDEFINED = "undefined";
 
   @Value("${kadai-system-connector-camunda-rest-api-user-name:undefined}")
   private String camundaRestApiUserName;
@@ -46,7 +46,7 @@ public class HttpHeaderProvider {
   private String xsrfToken;
 
   public HttpHeaders camundaRestApiHeaders() {
-    if (undefined.equals(camundaRestApiUserName)) {
+    if (UNDEFINED.equals(camundaRestApiUserName)) {
       return new HttpHeaders();
     } else {
       String plainCreds = camundaRestApiUserName + ":" + camundaRestApiUserPassword;
@@ -55,7 +55,7 @@ public class HttpHeaderProvider {
   }
 
   public HttpHeaders outboxRestApiHeaders() {
-    if (undefined.equals(outboxRestApiUserName)) {
+    if (UNDEFINED.equals(outboxRestApiUserName)) {
       return new HttpHeaders();
     } else {
       String plainCreds = outboxRestApiUserName + ":" + outboxRestApiUserPassword;

@@ -29,7 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 /** Claims tasks in camunda through the camunda REST-API that have been claimed in KADAI. */
@@ -40,18 +40,19 @@ public class CamundaTaskClaimer {
   private final HttpHeaderProvider httpHeaderProvider;
   private final RestClient restClient;
 
-  public CamundaTaskClaimer(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
-    this.httpHeaderProvider = httpHeaderProvider;
-    this.restClient = restClient;
-  }
-
   @Value("${kadai.adapter.camunda.claiming.enabled:false}")
   private boolean claimingEnabled;
 
   private boolean claimConfigLogged = false;
 
+  public CamundaTaskClaimer(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
+    this.httpHeaderProvider = httpHeaderProvider;
+    this.restClient = restClient;
+  }
+
   public SystemResponse claimCamundaTask(
-      CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {
+      CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask)
+      throws HttpStatusCodeException {
 
     if (!claimConfigLogged) {
       LOGGER.info("Synchronizing claim of tasks in KADAI to Camunda is set to {}", claimingEnabled);
@@ -95,10 +96,6 @@ public class CamundaTaskClaimer {
             httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
         }
-        LOGGER.warn("HTTP client error while claiming Camunda task: {}", e.getStatusCode(), e);
-        throw e;
-      } catch (HttpServerErrorException e) {
-        LOGGER.error("HTTP server error while claiming Camunda task: {}", e.getStatusCode(), e);
         throw e;
       }
     }

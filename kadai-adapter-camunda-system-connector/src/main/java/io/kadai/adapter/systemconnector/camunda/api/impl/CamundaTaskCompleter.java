@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 /** Completes Camunda Tasks via the Camunda REST Api. */
@@ -46,7 +47,8 @@ public class CamundaTaskCompleter {
   }
 
   public SystemResponse completeCamundaTask(
-      CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask) {
+      CamundaSystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask)
+      throws HttpStatusCodeException {
 
     StringBuilder requestUrlBuilder = new StringBuilder();
     try {
@@ -61,10 +63,6 @@ public class CamundaTaskCompleter {
           httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
         return new SystemResponse(HttpStatus.OK, null);
       }
-      LOGGER.warn("Client error while completing Camunda task: {}", e.getStatusCode(), e);
-      throw e;
-    } catch (HttpServerErrorException e) {
-      LOGGER.error("Server error while completing Camunda task: {}", e.getStatusCode(), e);
       throw e;
     }
   }
