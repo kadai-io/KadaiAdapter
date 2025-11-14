@@ -7,7 +7,7 @@
   <artifactId>camunda-outbox-example-boot</artifactId>
 
   <name>${project.groupId}:${project.artifactId}</name>
-  w
+
   <parent>
     <groupId>io.kadai</groupId>
     <artifactId>kadai-adapter-camunda7-parent</artifactId>
