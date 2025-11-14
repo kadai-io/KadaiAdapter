@@ -4,7 +4,6 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>kadai-adapter-camunda-listener</artifactId>
 
-
   <name>${project.groupId}:${project.artifactId}</name>
 
   <parent>
