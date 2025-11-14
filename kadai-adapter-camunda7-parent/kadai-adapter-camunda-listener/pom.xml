@@ -4,14 +4,16 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>kadai-adapter-camunda-listener</artifactId>
 
+
   <name>${project.groupId}:${project.artifactId}</name>
 
   <parent>
     <groupId>io.kadai</groupId>
-    <artifactId>kadai-adapter-parent</artifactId>
+    <artifactId>kadai-adapter-camunda7-parent</artifactId>
     <version>11.1.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
+
   <dependencies>
     <dependency>
       <groupId>org.camunda.bpm</groupId>
