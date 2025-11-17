@@ -61,12 +61,23 @@ function main() {
 
     #commit all poms
     git checkout "$branch"
+    NEXT1=$(increment_version "${BASH_REMATCH[1]}")
+    NEXT2=$(increment_version "${BASH_REMATCH[2]}")
+    PR_BRANCH="auto/version-bump-${NEXT1}-$(date +%s)"
+
+    git checkout -b "$PR_BRANCH"
     git add "./*pom.xml"
     for file in "$@"; do
       [[ -n "$file" ]] && git add "$file"
     done
-    git commit -m "Updated poms to version $(increment_version "${BASH_REMATCH[@]:1:1}")-SNAPSHOT/$(increment_version "${BASH_REMATCH[@]:2:2}")-SNAPSHOT"
-    git push
+    git commit -m "Updated poms to version ${NEXT1}-SNAPSHOT/${NEXT2}-SNAPSHOT"
+    git push origin "$PR_BRANCH"
+
+    gh pr create \
+          --title "Version bump after release ${BASH_REMATCH[1]}/${BASH_REMATCH[2]}" \
+          --body "Automated version bump after release tag ${GITHUB_REF#refs/tags/}." \
+          --base "$branch" \
+          --head "$PR_BRANCH"
   else
     echo "Nothing to push - this is not a release!"
   fi
