@@ -16,6 +16,11 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.camunda>7.23.0</version.camunda>
+    <version.camunda.spin>1.23.0</version.camunda.spin>
+    <version.camunda.template-engines-freemarker>7.24.0
+    </version.camunda.template-engines-freemarker>
+    <version.camunda.template-engines-velocity>2.1.0</version.camunda.template-engines-velocity>
   </properties>
 
   <modules>
@@ -29,4 +34,23 @@
     <module>kadai-adapter-camunda-system-connector</module>
   </modules>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.camunda.bpm</groupId>
+        <artifactId>camunda-bom</artifactId>
+        <version>${version.camunda}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <repositories>
+    <repository>
+      <id>camunda-bpm-nexus</id>
+      <name>Camunda Maven Repository</name>
+      <url>https://artifacts.camunda.com/artifactory/public/</url>
+    </repository>
+  </repositories>
 </project>
