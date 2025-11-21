@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Git checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v5
         with:
@@ -70,7 +70,7 @@ jobs:
       GPG_TTY: $(tty)
     steps:
       - name: Git checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # necessary for push back
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -161,7 +161,7 @@ jobs:
     needs: [ compile_and_test ]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Set up JDK ${{ env.JAVA_VERSION }}
