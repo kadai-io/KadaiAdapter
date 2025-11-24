@@ -23,12 +23,4 @@
     <module>kadai-adapter-camunda-8-system-connector</module>
     <module>kadai-adapter-camunda-8-spring-boot-example</module>
   </modules>
-
-  <repositories>
-    <repository>
-      <id>camunda-bpm-nexus</id>
-      <name>Camunda Maven Repository</name>
-      <url>https://artifacts.camunda.com/artifactory/public/</url>
-    </repository>
-  </repositories>
 </project>
