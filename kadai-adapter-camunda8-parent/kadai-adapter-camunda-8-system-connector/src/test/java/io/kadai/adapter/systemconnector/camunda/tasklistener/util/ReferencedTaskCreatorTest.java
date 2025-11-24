@@ -1,12 +1,28 @@
 package io.kadai.adapter.systemconnector.camunda.tasklistener.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import io.camunda.client.api.response.ActivatedJob;
+import io.camunda.client.api.response.UserTaskProperties;
+import io.kadai.adapter.systemconnector.api.ReferencedTask;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
+import io.kadai.common.api.exceptions.SystemException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class ReferencedTaskCreatorTest {
 
@@ -17,6 +33,83 @@ class ReferencedTaskCreatorTest {
         ReferencedTaskCreator.splitVariableNames(concatenatedVariableNames, ',');
 
     assertThat(actual).isEqualTo(expected);
+  }
+
+  @Test
+  void should_SetPlannedToNowAndDueToNull_When_NeitherFollowUpNorDueAreSet() {
+    Camunda8System camunda8System = createMockCamunda8System();
+    ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
+    ActivatedJob job = createMockActivatedJob(null, null);
+
+    ReferencedTask referencedTask = creator.createReferencedTaskFromJob(job);
+
+    assertThat(referencedTask.getPlanned()).isNotNull();
+    assertThat(referencedTask.getDue()).isNull();
+  }
+
+  @Test
+  void should_SetPlannedToFollowUpAndDueToNull_When_OnlyFollowUpIsSet() {
+    Camunda8System camunda8System = createMockCamunda8System();
+    ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
+    OffsetDateTime followUpDate = OffsetDateTime.now().plus(1, ChronoUnit.DAYS);
+    ActivatedJob job = createMockActivatedJob(followUpDate, null);
+
+    ReferencedTask referencedTask = creator.createReferencedTaskFromJob(job);
+
+    assertThat(referencedTask.getPlanned()).isNotNull();
+    assertThat(referencedTask.getDue()).isNull();
+
+    assertInstantsClose(followUpDate.toInstant(), toInstant(referencedTask.getPlanned()));
+  }
+
+  @Test
+  void should_SetPlannedToNullAndDueToDate_When_OnlyDueIsSet() {
+    Camunda8System camunda8System = createMockCamunda8System();
+    ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
+    OffsetDateTime dueDate = OffsetDateTime.now().plus(2, ChronoUnit.DAYS);
+    ActivatedJob job = createMockActivatedJob(null, dueDate);
+
+    ReferencedTask referencedTask = creator.createReferencedTaskFromJob(job);
+
+    assertThat(referencedTask.getPlanned()).isNull();
+    assertThat(referencedTask.getDue()).isNotNull();
+
+    assertInstantsClose(dueDate.toInstant(), toInstant(referencedTask.getDue()));
+  }
+
+  @Test
+  void should_SetBothPlannedAndDue_When_BothAreSetAndEnforcementIsFalse() {
+    Camunda8System camunda8System = createMockCamunda8System();
+    ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
+    ReflectionTestUtils.setField(creator, "enforceServiceLevelValidation", false);
+
+    OffsetDateTime followUpDate = OffsetDateTime.now().plus(1, ChronoUnit.DAYS);
+    OffsetDateTime dueDate = OffsetDateTime.now().plus(2, ChronoUnit.DAYS);
+    ActivatedJob job = createMockActivatedJob(followUpDate, dueDate);
+
+    ReferencedTask referencedTask = creator.createReferencedTaskFromJob(job);
+
+    assertThat(referencedTask.getPlanned()).isNotNull();
+    assertThat(referencedTask.getDue()).isNotNull();
+
+    assertInstantsClose(followUpDate.toInstant(), toInstant(referencedTask.getPlanned()));
+    assertInstantsClose(dueDate.toInstant(), toInstant(referencedTask.getDue()));
+  }
+
+  @Test
+  void should_ThrowSystemException_When_BothAreSetAndEnforcementIsTrue() {
+    Camunda8System camunda8System = createMockCamunda8System();
+    ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
+    ReflectionTestUtils.setField(creator, "enforceServiceLevelValidation", true);
+
+    OffsetDateTime followUpDate = OffsetDateTime.now().plus(1, ChronoUnit.DAYS);
+    OffsetDateTime dueDate = OffsetDateTime.now().plus(2, ChronoUnit.DAYS);
+    ActivatedJob job = createMockActivatedJob(followUpDate, dueDate);
+
+    assertThatThrownBy(() -> creator.createReferencedTaskFromJob(job))
+        .isInstanceOf(SystemException.class)
+        .hasMessageContaining("Both followUp and due dates are set")
+        .hasMessageContaining("kadai.servicelevel.validation.enforce");
   }
 
   private static Stream<Arguments> splitVariableNamesProvider() {
@@ -30,5 +123,66 @@ class ReferencedTaskCreatorTest {
         Arguments.of(" foo, bar, baz, bat ", List.of("foo", "bar", "baz", "bat")),
         Arguments.of("", List.of()),
         Arguments.of(" ", List.of()));
+  }
+
+  private Camunda8System createMockCamunda8System() {
+    Camunda8System camunda8System = mock(Camunda8System.class);
+    when(camunda8System.getIdentifier()).thenReturn(1);
+    when(camunda8System.getSystemUrl()).thenReturn("http://localhost:8080");
+    return camunda8System;
+  }
+
+  private ActivatedJob createMockActivatedJob(OffsetDateTime followUpDate, OffsetDateTime dueDate) {
+    ActivatedJob job = mock(ActivatedJob.class);
+    UserTaskProperties userTaskProperties = mock(UserTaskProperties.class);
+
+    when(job.getUserTask()).thenReturn(userTaskProperties);
+    when(userTaskProperties.getUserTaskKey()).thenReturn(12345L);
+    when(userTaskProperties.getFollowUpDate()).thenReturn(followUpDate);
+    when(userTaskProperties.getDueDate()).thenReturn(dueDate);
+    when(userTaskProperties.getAssignee()).thenReturn("testUser");
+
+    when(job.getElementId()).thenReturn("testTaskId");
+    when(job.getBpmnProcessId()).thenReturn("testProcessId");
+    when(job.getVariablesAsMap()).thenReturn(Collections.emptyMap());
+
+    return job;
+  }
+
+  // helper: convert possible Temporal types to Instant
+  private static Instant toInstant(Object temporal) {
+    if (temporal == null) {
+      return null;
+    }
+    // We expect getPlanned()/getDue() to return strings -> only handle CharSequence
+    if (!(temporal instanceof CharSequence)) {
+      throw new IllegalArgumentException(
+          "Expected temporal as CharSequence (String) but was: " + temporal.getClass());
+    }
+
+    String s = temporal.toString();
+
+    // normalize timezone offset without colon (e.g. +0100 -> +01:00)
+    if (s.matches(".+[+-]\\d{4}$")) {
+      s = s.substring(0, s.length() - 2) + ":" + s.substring(s.length() - 2);
+    }
+
+    // try OffsetDateTime (e.g. 2025-11-26T17:07:07.078+01:00)
+    try {
+      return OffsetDateTime.parse(s).toInstant();
+    } catch (DateTimeParseException e) {
+      throw new IllegalArgumentException(
+          "Cannot parse temporal string: " + s + " : " + e.getMessage(), e);
+    }
+  }
+
+  // helper: assert instants are within 1 second
+  private static void assertInstantsClose(Instant expected, Instant actual) {
+    assertThat(actual).isNotNull();
+    long diffMillis = Math.abs(Duration.between(expected, actual).toMillis());
+    assertThat(diffMillis)
+        .withFailMessage(
+            "Expected instants to be within 1000ms but difference was %d ms", diffMillis)
+        .isLessThanOrEqualTo(1000);
   }
 }

@@ -43,6 +43,8 @@ public class CamundaListenerConfiguration {
       "kadai.adapter.outbox.datasource.password";
   private static final String KADAI_ADAPTER_OUTBOX_INITIAL_NUMBER_OF_TASK_CREATION_RETRIES =
       "kadai.adapter.outbox.initial.number.of.task.creation.retries";
+  private static final String KADAI_SERVICELEVEL_VALIDATION_ENFORCE =
+      "kadai.servicelevel.validation.enforce";
   private static final String OUTBOX_SYSTEM_PROPERTY = "kadai.outbox.properties";
   private static final String OUTBOX_SCHEMA_DEFAULT = "kadai_tables";
   private static final String EXCEPTION_FOR_FAULTY_PROCESS_VARIABLES =
@@ -157,6 +159,11 @@ public class CamundaListenerConfiguration {
     }
 
     return initialNumberOfTaskCreationRetries;
+  }
+
+  public static boolean shouldEnforceServiceLevelValidation() {
+    return Boolean.parseBoolean(
+        getInstance().outboxProperties.getProperty(KADAI_SERVICELEVEL_VALIDATION_ENFORCE));
   }
 
   private void readPropertiesFromClasspath() {

@@ -206,14 +206,22 @@ public class TaskInformationMapper {
     Instant created = convertStringToInstant(camundaTask.getCreated(), now);
     kadaiTask.setCreated(created);
 
+    // Set due date without defaulting - if it's null/empty, pass null to KADAI
     String due = camundaTask.getDue();
     if (due == null || due.isEmpty() || "null".equals(due)) {
-      kadaiTask.setPlanned(now);
+      kadaiTask.setDue(null);
     } else {
-      kadaiTask.setDue(convertStringToInstant(camundaTask.getDue(), now));
+      kadaiTask.setDue(convertStringToInstant(due, null));
     }
-    Instant planned = convertStringToInstant(camundaTask.getPlanned(), now);
-    kadaiTask.setPlanned(planned);
+
+    // Set planned date without defaulting - if it's null/empty, pass null to KADAI
+    // This allows KADAI to calculate planned from due and ServiceLevel when needed
+    String planned = camundaTask.getPlanned();
+    if (planned == null || planned.isEmpty() || "null".equals(planned)) {
+      kadaiTask.setPlanned(null);
+    } else {
+      kadaiTask.setPlanned(convertStringToInstant(planned, null));
+    }
   }
 
   private Instant convertStringToInstant(String strTimestamp, Instant defaultTimestamp) {

@@ -6,6 +6,7 @@ import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
+import io.kadai.common.api.exceptions.SystemException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,6 +25,9 @@ public class ReferencedTaskCreator {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private final Camunda8System camunda8System;
+
+  @Value("${kadai.servicelevel.validation.enforce:false}")
+  private boolean enforceServiceLevelValidation;
 
   @Autowired
   public ReferencedTaskCreator(Camunda8System camunda8System) {
@@ -35,6 +40,8 @@ public class ReferencedTaskCreator {
    *
    * @param job The ActivatedJob containing the task information.
    * @return A ReferencedTask object populated with data from the job.
+   * @throws SystemException if both follow-up and due dates are set and service level validation is
+   *     enforced.
    */
   public ReferencedTask createReferencedTaskFromJob(ActivatedJob job) {
     ReferencedTask referencedTask = new ReferencedTask();
@@ -42,8 +49,38 @@ public class ReferencedTaskCreator {
     referencedTask.setId(resolveTaskId(job, camunda8System));
     referencedTask.setManualPriority(getVariable(job, "kadai_manual_priority"));
     referencedTask.setAssignee(userTaskProperties.getAssignee());
-    referencedTask.setDue(formatIso8601OffsetDateTime(userTaskProperties.getDueDate()));
-    referencedTask.setPlanned(formatIso8601OffsetDateTime(userTaskProperties.getFollowUpDate()));
+
+    // Implement date logic based on which Camunda dates are set
+    OffsetDateTime followUpDate = userTaskProperties.getFollowUpDate();
+    OffsetDateTime dueDate = userTaskProperties.getDueDate();
+
+    if (followUpDate == null && dueDate == null) {
+      // Default: neither set -> planned = now(), due = null
+      referencedTask.setPlanned(formatIso8601OffsetDateTime(OffsetDateTime.now()));
+      referencedTask.setDue(null);
+    } else if (followUpDate != null && dueDate == null) {
+      // Follow-up set only -> planned = followUp, due = null
+      referencedTask.setPlanned(formatIso8601OffsetDateTime(followUpDate));
+      referencedTask.setDue(null);
+    } else if (followUpDate == null && dueDate != null) {
+      // Due set only -> planned = null (KADAI calculates), due = due
+      referencedTask.setPlanned(null);
+      referencedTask.setDue(formatIso8601OffsetDateTime(dueDate));
+    } else {
+      // Both set -> check enforcement flag from configuration
+      if (enforceServiceLevelValidation) {
+        throw new SystemException(
+            "Both followUp and due dates are set for task "
+                + referencedTask.getId()
+                + ". "
+                + "This is not allowed when kadai.servicelevel.validation.enforce is true.");
+      } else {
+        // Pass both dates to KADAI
+        referencedTask.setPlanned(formatIso8601OffsetDateTime(followUpDate));
+        referencedTask.setDue(formatIso8601OffsetDateTime(dueDate));
+      }
+    }
+
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
