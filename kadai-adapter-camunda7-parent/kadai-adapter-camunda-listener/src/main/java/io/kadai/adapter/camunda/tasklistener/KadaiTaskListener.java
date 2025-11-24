@@ -232,8 +232,42 @@ public class KadaiTaskListener implements TaskListener {
     referencedTask.setPriority(String.valueOf(delegateTask.getPriority()));
     referencedTask.setName(delegateTask.getName());
     referencedTask.setAssignee(delegateTask.getAssignee());
-    referencedTask.setPlanned(formatDate(delegateTask.getFollowUpDate()));
-    referencedTask.setDue(formatDate(delegateTask.getDueDate()));
+
+    // Implement date logic based on which Camunda dates are set
+    Date followUpDate = delegateTask.getFollowUpDate();
+    Date dueDate = delegateTask.getDueDate();
+
+    if (followUpDate == null && dueDate == null) {
+      // Default: neither set -> planned = now(), due = null
+      referencedTask.setPlanned(formatDate(new Date()));
+      referencedTask.setDue(null);
+    } else if (followUpDate != null && dueDate == null) {
+      // Follow-up set only -> planned = followUp, due = null
+      referencedTask.setPlanned(formatDate(followUpDate));
+      referencedTask.setDue(null);
+    } else if (followUpDate == null && dueDate != null) {
+      // Due set only -> planned = null (KADAI calculates), due = due
+      referencedTask.setPlanned(null);
+      referencedTask.setDue(formatDate(dueDate));
+    } else {
+      // Both set -> check enforcement flag from configuration
+      boolean enforceCheck = CamundaListenerConfiguration.shouldEnforceServiceLevelValidation();
+
+      if (enforceCheck) {
+        throw new SystemException(
+            "Both followUp and due dates are set for task "
+                + delegateTask.getId()
+                + ". "
+                + "This is not allowed when "
+                + "kadai.servicelevel.validation.enforce"
+                + " is true.");
+      } else {
+        // Pass both dates to KADAI#
+        referencedTask.setPlanned(formatDate(followUpDate));
+        referencedTask.setDue(formatDate(dueDate));
+      }
+    }
+
     referencedTask.setDescription(delegateTask.getDescription());
     referencedTask.setOwner(delegateTask.getOwner());
     referencedTask.setTaskDefinitionKey(delegateTask.getTaskDefinitionKey());
