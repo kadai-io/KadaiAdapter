@@ -6,9 +6,9 @@ import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
+import io.kadai.adapter.util.DateTimeUtils;
 import io.kadai.common.api.exceptions.SystemException;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,24 +50,11 @@ public class ReferencedTaskCreator {
     referencedTask.setManualPriority(getVariable(job, "kadai_manual_priority"));
     referencedTask.setAssignee(userTaskProperties.getAssignee());
 
-    // Implement date logic based on which Camunda dates are set
     OffsetDateTime followUpDate = userTaskProperties.getFollowUpDate();
     OffsetDateTime dueDate = userTaskProperties.getDueDate();
 
-    if (followUpDate == null && dueDate == null) {
-      // Default: neither set -> planned = now(), due = null
-      referencedTask.setPlanned(formatIso8601OffsetDateTime(OffsetDateTime.now()));
-      referencedTask.setDue(null);
-    } else if (followUpDate != null && dueDate == null) {
-      // Follow-up set only -> planned = followUp, due = null
-      referencedTask.setPlanned(formatIso8601OffsetDateTime(followUpDate));
-      referencedTask.setDue(null);
-    } else if (followUpDate == null && dueDate != null) {
-      // Due set only -> planned = null (KADAI calculates), due = due
-      referencedTask.setPlanned(null);
-      referencedTask.setDue(formatIso8601OffsetDateTime(dueDate));
-    } else {
-      // Both set -> check enforcement flag from configuration
+    DateTimeUtils.PlannedDue pd = DateTimeUtils.computePlannedDue(followUpDate, dueDate);
+    if (pd.bothSet) {
       if (enforceServiceLevelValidation) {
         throw new SystemException(
             "Both followUp and due dates are set for task "
@@ -75,10 +62,12 @@ public class ReferencedTaskCreator {
                 + ". "
                 + "This is not allowed when kadai.servicelevel.validation.enforce is true.");
       } else {
-        // Pass both dates to KADAI
-        referencedTask.setPlanned(formatIso8601OffsetDateTime(followUpDate));
-        referencedTask.setDue(formatIso8601OffsetDateTime(dueDate));
+        referencedTask.setPlanned(pd.planned);
+        referencedTask.setDue(pd.due);
       }
+    } else {
+      referencedTask.setPlanned(pd.planned);
+      referencedTask.setDue(pd.due);
     }
 
     referencedTask.setTaskDefinitionKey(job.getElementId());
@@ -210,19 +199,5 @@ public class ReferencedTaskCreator {
           e);
     }
     return null;
-  }
-
-  /**
-   * Formats given offset-date-time according to ISO8601.
-   *
-   * <p>Returns null if input is null.
-   *
-   * @param camundaDateTime Camunda-DateTime to format
-   * @return formatted DateTime
-   */
-  private static String formatIso8601OffsetDateTime(OffsetDateTime camundaDateTime) {
-    return camundaDateTime == null
-        ? null
-        : camundaDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
   }
 }

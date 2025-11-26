@@ -35,65 +35,34 @@ class ReferencedTaskCreatorTest {
     assertThat(actual).isEqualTo(expected);
   }
 
-  @Test
-  void should_SetPlannedToNowAndDueToNull_When_NeitherFollowUpNorDueAreSet() {
-    Camunda8System camunda8System = createMockCamunda8System();
-    ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
-    ActivatedJob job = createMockActivatedJob(null, null);
-
-    ReferencedTask referencedTask = creator.createReferencedTaskFromJob(job);
-
-    assertThat(referencedTask.getPlanned()).isNotNull();
-    assertThat(referencedTask.getDue()).isNull();
-  }
-
-  @Test
-  void should_SetPlannedToFollowUpAndDueToNull_When_OnlyFollowUpIsSet() {
-    Camunda8System camunda8System = createMockCamunda8System();
-    ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
-    OffsetDateTime followUpDate = OffsetDateTime.now().plus(1, ChronoUnit.DAYS);
-    ActivatedJob job = createMockActivatedJob(followUpDate, null);
-
-    ReferencedTask referencedTask = creator.createReferencedTaskFromJob(job);
-
-    assertThat(referencedTask.getPlanned()).isNotNull();
-    assertThat(referencedTask.getDue()).isNull();
-
-    assertInstantsClose(followUpDate.toInstant(), toInstant(referencedTask.getPlanned()));
-  }
-
-  @Test
-  void should_SetPlannedToNullAndDueToDate_When_OnlyDueIsSet() {
-    Camunda8System camunda8System = createMockCamunda8System();
-    ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
-    OffsetDateTime dueDate = OffsetDateTime.now().plus(2, ChronoUnit.DAYS);
-    ActivatedJob job = createMockActivatedJob(null, dueDate);
-
-    ReferencedTask referencedTask = creator.createReferencedTaskFromJob(job);
-
-    assertThat(referencedTask.getPlanned()).isNull();
-    assertThat(referencedTask.getDue()).isNotNull();
-
-    assertInstantsClose(dueDate.toInstant(), toInstant(referencedTask.getDue()));
-  }
-
-  @Test
-  void should_SetBothPlannedAndDue_When_BothAreSetAndEnforcementIsFalse() {
+  @MethodSource("nonExceptionCasesProvider")
+  @ParameterizedTest
+  void should_HandlePlannedAndDueNonExceptionCases(OffsetDateTime followUp, OffsetDateTime due) {
     Camunda8System camunda8System = createMockCamunda8System();
     ReferencedTaskCreator creator = new ReferencedTaskCreator(camunda8System);
     ReflectionTestUtils.setField(creator, "enforceServiceLevelValidation", false);
 
-    OffsetDateTime followUpDate = OffsetDateTime.now().plus(1, ChronoUnit.DAYS);
-    OffsetDateTime dueDate = OffsetDateTime.now().plus(2, ChronoUnit.DAYS);
-    ActivatedJob job = createMockActivatedJob(followUpDate, dueDate);
-
+    ActivatedJob job = createMockActivatedJob(followUp, due);
     ReferencedTask referencedTask = creator.createReferencedTaskFromJob(job);
 
-    assertThat(referencedTask.getPlanned()).isNotNull();
-    assertThat(referencedTask.getDue()).isNotNull();
+    if (followUp == null && due == null) {
+      assertThat(referencedTask.getPlanned()).isNotNull();
+      assertThat(referencedTask.getDue()).isNull();
+    } else {
+      if (followUp != null) {
+        assertThat(referencedTask.getPlanned()).isNotNull();
+        assertInstantsClose(followUp.toInstant(), toInstant(referencedTask.getPlanned()));
+      } else {
+        assertThat(referencedTask.getPlanned()).isNull();
+      }
 
-    assertInstantsClose(followUpDate.toInstant(), toInstant(referencedTask.getPlanned()));
-    assertInstantsClose(dueDate.toInstant(), toInstant(referencedTask.getDue()));
+      if (due != null) {
+        assertThat(referencedTask.getDue()).isNotNull();
+        assertInstantsClose(due.toInstant(), toInstant(referencedTask.getDue()));
+      } else {
+        assertThat(referencedTask.getDue()).isNull();
+      }
+    }
   }
 
   @Test
@@ -125,6 +94,16 @@ class ReferencedTaskCreatorTest {
         Arguments.of(" ", List.of()));
   }
 
+  private static Stream<Arguments> nonExceptionCasesProvider() {
+    return Stream.of(
+        Arguments.of(null, null),
+        Arguments.of(OffsetDateTime.now().plus(1, ChronoUnit.DAYS), null),
+        Arguments.of(null, OffsetDateTime.now().plus(2, ChronoUnit.DAYS)),
+        Arguments.of(
+            OffsetDateTime.now().plus(1, ChronoUnit.DAYS),
+            OffsetDateTime.now().plus(2, ChronoUnit.DAYS)));
+  }
+
   private Camunda8System createMockCamunda8System() {
     Camunda8System camunda8System = mock(Camunda8System.class);
     when(camunda8System.getIdentifier()).thenReturn(1);
@@ -149,12 +128,10 @@ class ReferencedTaskCreatorTest {
     return job;
   }
 
-  // helper: convert possible Temporal types to Instant
   private static Instant toInstant(Object temporal) {
     if (temporal == null) {
       return null;
     }
-    // We expect getPlanned()/getDue() to return strings -> only handle CharSequence
     if (!(temporal instanceof CharSequence)) {
       throw new IllegalArgumentException(
           "Expected temporal as CharSequence (String) but was: " + temporal.getClass());
@@ -162,12 +139,10 @@ class ReferencedTaskCreatorTest {
 
     String s = temporal.toString();
 
-    // normalize timezone offset without colon (e.g. +0100 -> +01:00)
     if (s.matches(".+[+-]\\d{4}$")) {
       s = s.substring(0, s.length() - 2) + ":" + s.substring(s.length() - 2);
     }
 
-    // try OffsetDateTime (e.g. 2025-11-26T17:07:07.078+01:00)
     try {
       return OffsetDateTime.parse(s).toInstant();
     } catch (DateTimeParseException e) {
@@ -176,7 +151,6 @@ class ReferencedTaskCreatorTest {
     }
   }
 
-  // helper: assert instants are within 1 second
   private static void assertInstantsClose(Instant expected, Instant actual) {
     assertThat(actual).isNotNull();
     long diffMillis = Math.abs(Duration.between(expected, actual).toMillis());
