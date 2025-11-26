@@ -25,14 +25,13 @@ import io.kadai.adapter.camunda.dto.ReferencedTask;
 import io.kadai.adapter.camunda.dto.VariableValueDto;
 import io.kadai.adapter.camunda.exceptions.SystemException;
 import io.kadai.adapter.camunda.mapper.JacksonConfigurator;
+import io.kadai.adapter.util.DateTimeUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -228,31 +227,17 @@ public class KadaiTaskListener implements TaskListener {
     ReferencedTask referencedTask = new ReferencedTask();
 
     referencedTask.setId(delegateTask.getId());
-    referencedTask.setCreated(formatDate(delegateTask.getCreateTime()));
+    referencedTask.setCreated(DateTimeUtils.formatDate(delegateTask.getCreateTime()));
     referencedTask.setPriority(String.valueOf(delegateTask.getPriority()));
     referencedTask.setName(delegateTask.getName());
     referencedTask.setAssignee(delegateTask.getAssignee());
 
-    // Implement date logic based on which Camunda dates are set
     Date followUpDate = delegateTask.getFollowUpDate();
     Date dueDate = delegateTask.getDueDate();
 
-    if (followUpDate == null && dueDate == null) {
-      // Default: neither set -> planned = now(), due = null
-      referencedTask.setPlanned(formatDate(new Date()));
-      referencedTask.setDue(null);
-    } else if (followUpDate != null && dueDate == null) {
-      // Follow-up set only -> planned = followUp, due = null
-      referencedTask.setPlanned(formatDate(followUpDate));
-      referencedTask.setDue(null);
-    } else if (followUpDate == null && dueDate != null) {
-      // Due set only -> planned = null (KADAI calculates), due = due
-      referencedTask.setPlanned(null);
-      referencedTask.setDue(formatDate(dueDate));
-    } else {
-      // Both set -> check enforcement flag from configuration
+    DateTimeUtils.PlannedDue pd = DateTimeUtils.computePlannedDue(followUpDate, dueDate);
+    if (pd.bothSet) {
       boolean enforceCheck = CamundaListenerConfiguration.shouldEnforceServiceLevelValidation();
-
       if (enforceCheck) {
         throw new SystemException(
             "Both followUp and due dates are set for task "
@@ -262,10 +247,12 @@ public class KadaiTaskListener implements TaskListener {
                 + "kadai.servicelevel.validation.enforce"
                 + " is true.");
       } else {
-        // Pass both dates to KADAI#
-        referencedTask.setPlanned(formatDate(followUpDate));
-        referencedTask.setDue(formatDate(dueDate));
+        referencedTask.setPlanned(pd.planned);
+        referencedTask.setDue(pd.due);
       }
+    } else {
+      referencedTask.setPlanned(pd.planned);
+      referencedTask.setDue(pd.due);
     }
 
     referencedTask.setDescription(delegateTask.getDescription());
@@ -509,15 +496,5 @@ public class KadaiTaskListener implements TaskListener {
       }
     }
     return null;
-  }
-
-  private String formatDate(Date date) {
-    if (date == null) {
-      return null;
-    } else {
-      return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-          .withZone(ZoneId.systemDefault())
-          .format(date.toInstant());
-    }
   }
 }

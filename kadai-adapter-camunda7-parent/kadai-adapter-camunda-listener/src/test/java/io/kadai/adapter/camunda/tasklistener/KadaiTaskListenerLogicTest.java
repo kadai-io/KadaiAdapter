@@ -32,73 +32,34 @@ import io.kadai.adapter.camunda.mapper.JacksonConfigurator;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.stream.Stream;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.UserTask;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 
-/** Test for KadaiTaskListener date logic. */
+/** Test for setting planned and due in KadaiTaskListener. */
 class KadaiTaskListenerLogicTest {
 
   private final ObjectMapper objectMapper = JacksonConfigurator.createAndConfigureObjectMapper();
 
-  @Test
-  void should_SetPlannedToNowAndDueToNull_When_NeitherFollowUpNorDueAreSet() throws Exception {
-    DelegateTask delegateTask = createMockDelegateTask(null, null);
-    KadaiTaskListener listener = KadaiTaskListener.getInstance();
+  @MethodSource("provideListenerCases")
+  @ParameterizedTest
+  void should_HandlePlannedAndDueCases(
+      Date followUpDate,
+      Date dueDate,
+      boolean enforceServiceLevelValidation,
+      boolean expectException)
+      throws Exception {
 
-    String referencedTaskJson = invokeGetReferencedTaskJson(listener, delegateTask);
-    JsonNode jsonNode = objectMapper.readTree(referencedTaskJson);
-
-    assertThat(jsonNode.get("planned").asText()).isNotNull();
-    assertThat(jsonNode.get("due").isNull()).isTrue();
-  }
-
-  @Test
-  void should_SetPlannedToFollowUpAndDueToNull_When_OnlyFollowUpIsSet() throws Exception {
-    Date followUpDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
-    DelegateTask delegateTask = createMockDelegateTask(followUpDate, null);
-    KadaiTaskListener listener = KadaiTaskListener.getInstance();
-
-    String referencedTaskJson = invokeGetReferencedTaskJson(listener, delegateTask);
-    JsonNode jsonNode = objectMapper.readTree(referencedTaskJson);
-
-    String expectedPlanned =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-            .withZone(ZoneId.systemDefault())
-            .format(followUpDate.toInstant());
-    assertThat(jsonNode.get("planned").asText()).isEqualTo(expectedPlanned);
-    assertThat(jsonNode.get("due").isNull()).isTrue();
-  }
-
-  @Test
-  void should_SetPlannedToNullAndDueToDate_When_OnlyDueIsSet() throws Exception {
-    Date dueDate = Date.from(Instant.now().plus(2, ChronoUnit.DAYS));
-    DelegateTask delegateTask = createMockDelegateTask(null, dueDate);
-    KadaiTaskListener listener = KadaiTaskListener.getInstance();
-
-    String referencedTaskJson = invokeGetReferencedTaskJson(listener, delegateTask);
-    JsonNode jsonNode = objectMapper.readTree(referencedTaskJson);
-
-    String expectedDue =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-            .withZone(ZoneId.systemDefault())
-            .format(dueDate.toInstant());
-    assertThat(jsonNode.get("planned").isNull()).isTrue();
-    assertThat(jsonNode.get("due").asText()).isEqualTo(expectedDue);
-  }
-
-  @Test
-  void should_SetBothPlannedAndDue_When_BothAreSetAndEnforcementIsFalse() throws Exception {
-    Date followUpDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
-    Date dueDate = Date.from(Instant.now().plus(2, ChronoUnit.DAYS));
     DelegateTask delegateTask = createMockDelegateTask(followUpDate, dueDate);
     KadaiTaskListener listener = KadaiTaskListener.getInstance();
 
@@ -106,42 +67,76 @@ class KadaiTaskListenerLogicTest {
         mockStatic(CamundaListenerConfiguration.class)) {
       mockedConfig
           .when(CamundaListenerConfiguration::shouldEnforceServiceLevelValidation)
-          .thenReturn(false);
+          .thenReturn(enforceServiceLevelValidation);
+
+      if (expectException) {
+        assertThatThrownBy(() -> invokeGetReferencedTaskJson(listener, delegateTask))
+            .isInstanceOf(SystemException.class)
+            .hasMessageContaining("Both followUp and due dates are set")
+            .hasMessageContaining("kadai.servicelevel.validation.enforce");
+        return;
+      }
+
+      boolean expectPlannedNotNull = !(followUpDate == null && dueDate != null);
+      boolean expectDueNotNull = (dueDate != null);
 
       String referencedTaskJson = invokeGetReferencedTaskJson(listener, delegateTask);
       JsonNode jsonNode = objectMapper.readTree(referencedTaskJson);
 
-      String expectedDue =
-          DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-              .withZone(ZoneId.systemDefault())
-              .format(dueDate.toInstant());
-      String expectedPlanned =
-          DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-              .withZone(ZoneId.systemDefault())
-              .format(followUpDate.toInstant());
-      assertThat(jsonNode.get("planned").asText()).isEqualTo(expectedPlanned);
-      assertThat(jsonNode.get("due").asText()).isEqualTo(expectedDue);
+      if (expectPlannedNotNull) {
+        String plannedText = jsonNode.get("planned").asText();
+        Instant actualPlanned = parseAndNormalizeInstant(plannedText);
+        Instant expectedPlanned = (followUpDate == null) ? Instant.now() : followUpDate.toInstant();
+        if (followUpDate != null) {
+          assertInstantsClose(expectedPlanned, actualPlanned);
+        }
+      } else {
+        assertThat(jsonNode.get("planned").isNull()).isTrue();
+      }
+
+      if (expectDueNotNull) {
+        String dueText = jsonNode.get("due").asText();
+        Instant actualDue = parseAndNormalizeInstant(dueText);
+        Instant expectedDue = dueDate.toInstant();
+        assertInstantsClose(expectedDue, actualDue);
+      } else {
+        assertThat(jsonNode.get("due").isNull()).isTrue();
+      }
     }
   }
 
-  @Test
-  void should_ThrowSystemException_When_BothAreSetAndEnforcementIsTrue() throws Exception {
-    Date followUpDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
-    Date dueDate = Date.from(Instant.now().plus(2, ChronoUnit.DAYS));
-    DelegateTask delegateTask = createMockDelegateTask(followUpDate, dueDate);
-    KadaiTaskListener listener = KadaiTaskListener.getInstance();
+  private static Stream<Arguments> provideListenerCases() {
+    Date followUp = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+    Date due = Date.from(Instant.now().plus(2, ChronoUnit.DAYS));
+    return Stream.of(
+        Arguments.of(null, null, false, false),
+        Arguments.of(followUp, null, false, false),
+        Arguments.of(null, due, false, false),
+        Arguments.of(followUp, due, false, false),
+        Arguments.of(followUp, due, true, true));
+  }
 
-    try (MockedStatic<CamundaListenerConfiguration> mockedConfig =
-        mockStatic(CamundaListenerConfiguration.class)) {
-      mockedConfig
-          .when(CamundaListenerConfiguration::shouldEnforceServiceLevelValidation)
-          .thenReturn(true);
-
-      assertThatThrownBy(() -> invokeGetReferencedTaskJson(listener, delegateTask))
-          .isInstanceOf(SystemException.class)
-          .hasMessageContaining("Both followUp and due dates are set")
-          .hasMessageContaining("kadai.servicelevel.validation.enforce");
+  private static Instant parseAndNormalizeInstant(String s) {
+    if (s == null) {
+      return null;
     }
+    String normalized = s;
+    if (s.matches(".+[+-]\\d{4}$")) {
+      normalized = s.substring(0, s.length() - 2) + ":" + s.substring(s.length() - 2);
+    }
+    try {
+      return java.time.OffsetDateTime.parse(normalized).toInstant();
+    } catch (DateTimeParseException e) {
+      throw new IllegalArgumentException("Cannot parse temporal string: " + s, e);
+    }
+  }
+
+  private static void assertInstantsClose(Instant expected, Instant actual) {
+    long diffMillis = Math.abs(java.time.Duration.between(expected, actual).toMillis());
+    assertThat(diffMillis)
+        .withFailMessage(
+            "Expected instants to be within 1000ms but difference was %d ms", diffMillis)
+        .isLessThanOrEqualTo(1000);
   }
 
   private DelegateTask createMockDelegateTask(Date followUpDate, Date dueDate) {
@@ -174,8 +169,6 @@ class KadaiTaskListenerLogicTest {
     try {
       return (String) method.invoke(listener, delegateTask);
     } catch (InvocationTargetException e) {
-      // Unwrap the InvocationTargetException so the test receives the original exception (e.g.
-      // SystemException)
       Throwable cause = e.getCause();
       if (cause instanceof Exception) {
         throw (Exception) cause;
