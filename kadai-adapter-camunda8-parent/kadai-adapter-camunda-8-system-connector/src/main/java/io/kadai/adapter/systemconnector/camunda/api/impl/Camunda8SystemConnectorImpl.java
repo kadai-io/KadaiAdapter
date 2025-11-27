@@ -51,7 +51,7 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   @Override
   public String getSystemUrl() {
-    return camunda8System.getSystemUrl();
+    return camunda8System.getRestAddress();
   }
 
   @Override

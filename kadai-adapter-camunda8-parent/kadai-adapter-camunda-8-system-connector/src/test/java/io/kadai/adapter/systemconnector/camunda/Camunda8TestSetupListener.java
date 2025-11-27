@@ -18,7 +18,7 @@ public class Camunda8TestSetupListener implements TestExecutionListener {
         testContext.getApplicationContext().getBean(Camunda8System.class);
 
     if (client.getConfiguration().getRestAddress() != null) {
-      camunda8System.setClusterApiUrl(client.getConfiguration().getRestAddress().toString());
+      camunda8System.setRestAddress(client.getConfiguration().getRestAddress().toString());
     }
   }
 }

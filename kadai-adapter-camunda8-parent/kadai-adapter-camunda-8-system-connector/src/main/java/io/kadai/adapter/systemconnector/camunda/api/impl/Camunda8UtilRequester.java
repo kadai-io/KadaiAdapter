@@ -24,7 +24,7 @@ public class Camunda8UtilRequester {
       String userTaskKey) {
 
     String requestUrl =
-        camunda8System.getClusterApiUrl()
+        camunda8System.getRestAddress()
             + Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS
             + userTaskKey;
 
