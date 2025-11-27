@@ -1,9 +1,9 @@
 package io.kadai.adapter.systemconnector.camunda.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-@Configuration
+@Component
 public class Camunda8System {
 
   @Value("${camunda.client.rest-address}")
