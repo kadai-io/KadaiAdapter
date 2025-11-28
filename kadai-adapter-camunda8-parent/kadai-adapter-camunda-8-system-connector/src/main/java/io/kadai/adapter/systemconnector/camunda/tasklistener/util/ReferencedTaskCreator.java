@@ -4,9 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
+import io.kadai.adapter.model.PlannedDue;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
-import io.kadai.adapter.util.DateTimeUtils;
+import io.kadai.adapter.util.PlannedDueComputerOffsetDate;
 import io.kadai.common.api.exceptions.SystemException;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ public class ReferencedTaskCreator {
 
   private final Camunda8System camunda8System;
 
+  // read property directly instead of injecting CamundaListenerConfiguration
   @Value("${kadai.servicelevel.validation.enforce:false}")
   private boolean enforceServiceLevelValidation;
 
@@ -53,22 +55,11 @@ public class ReferencedTaskCreator {
     OffsetDateTime followUpDate = userTaskProperties.getFollowUpDate();
     OffsetDateTime dueDate = userTaskProperties.getDueDate();
 
-    DateTimeUtils.PlannedDue pd = DateTimeUtils.computePlannedDue(followUpDate, dueDate);
-    if (pd.bothSet) {
-      if (enforceServiceLevelValidation) {
-        throw new SystemException(
-            "Both followUp and due dates are set for task "
-                + referencedTask.getId()
-                + ". "
-                + "This is not allowed when kadai.servicelevel.validation.enforce is true.");
-      } else {
-        referencedTask.setPlanned(pd.planned);
-        referencedTask.setDue(pd.due);
-      }
-    } else {
-      referencedTask.setPlanned(pd.planned);
-      referencedTask.setDue(pd.due);
-    }
+    PlannedDue pd =
+        new PlannedDueComputerOffsetDate()
+            .computePlannedDue(followUpDate, dueDate, enforceServiceLevelValidation);
+    referencedTask.setPlanned(pd.planned());
+    referencedTask.setDue(pd.due());
 
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
