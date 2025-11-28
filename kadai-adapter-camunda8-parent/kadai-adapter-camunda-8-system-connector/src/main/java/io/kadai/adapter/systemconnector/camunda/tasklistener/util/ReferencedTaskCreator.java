@@ -69,7 +69,7 @@ public class ReferencedTaskCreator {
     referencedTask.setCustomInt8(getVariable(job, "kadai_custom_int_8"));
 
     referencedTask.setVariables(getKadaiProcessVariables(job));
-    referencedTask.setSystemUrl(camunda8System.getSystemUrl());
+    referencedTask.setSystemUrl(camunda8System.getRestAddress());
 
     LOGGER.debug("Creating ReferencedTask from job: {}", referencedTask);
 

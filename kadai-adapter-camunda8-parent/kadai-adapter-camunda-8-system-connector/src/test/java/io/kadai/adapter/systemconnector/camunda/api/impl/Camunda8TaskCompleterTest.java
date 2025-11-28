@@ -60,6 +60,7 @@ class Camunda8TaskCompleterTest {
     final Task completedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(completedKadaiTask.getState()).isEqualTo(TaskState.COMPLETED);
     String externalId = kadaiTask.getExternalId();
+
     long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
     camunda8TestUtil.waitUntil(
         () -> "COMPLETED".equals(camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey)));

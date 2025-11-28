@@ -1,29 +1,20 @@
 package io.kadai.adapter.systemconnector.camunda.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-@Configuration
-@ConfigurationProperties(prefix = "kadai.adapter.plugin.camunda8")
+@Component
 public class Camunda8System {
 
-  private String systemUrl;
-  private String clusterApiUrl;
+  @Value("${camunda.client.rest-address}")
+  private String restAddress;
 
-  public String getSystemUrl() {
-    return systemUrl;
+  public String getRestAddress() {
+    return restAddress;
   }
 
-  public void setSystemUrl(String systemUrl) {
-    this.systemUrl = systemUrl;
-  }
-
-  public String getClusterApiUrl() {
-    return clusterApiUrl;
-  }
-
-  public void setClusterApiUrl(String clusterApiUrl) {
-    this.clusterApiUrl = clusterApiUrl;
+  public void setRestAddress(String restAddress) {
+    this.restAddress = restAddress;
   }
 
   // Hard-coded now until multiple C8-Systems are supported, configured OR derived then
