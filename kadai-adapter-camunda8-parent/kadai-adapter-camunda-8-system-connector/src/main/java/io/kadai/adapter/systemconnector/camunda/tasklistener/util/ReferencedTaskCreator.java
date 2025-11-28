@@ -4,15 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
+import io.kadai.adapter.model.PlannedDue;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
+import io.kadai.adapter.util.PlannedDueComputerOffsetDate;
+import io.kadai.common.api.exceptions.SystemException;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,6 +26,10 @@ public class ReferencedTaskCreator {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private final Camunda8System camunda8System;
+
+  // read property directly instead of injecting CamundaListenerConfiguration
+  @Value("${kadai.servicelevel.validation.enforce:false}")
+  private boolean enforceServiceLevelValidation;
 
   @Autowired
   public ReferencedTaskCreator(Camunda8System camunda8System) {
@@ -35,6 +42,8 @@ public class ReferencedTaskCreator {
    *
    * @param job The ActivatedJob containing the task information.
    * @return A ReferencedTask object populated with data from the job.
+   * @throws SystemException if both follow-up and due dates are set and service level validation is
+   *     enforced.
    */
   public ReferencedTask createReferencedTaskFromJob(ActivatedJob job) {
     ReferencedTask referencedTask = new ReferencedTask();
@@ -42,8 +51,16 @@ public class ReferencedTaskCreator {
     referencedTask.setId(resolveTaskId(job, camunda8System));
     referencedTask.setManualPriority(getVariable(job, "kadai_manual_priority"));
     referencedTask.setAssignee(userTaskProperties.getAssignee());
-    referencedTask.setDue(formatIso8601OffsetDateTime(userTaskProperties.getDueDate()));
-    referencedTask.setPlanned(formatIso8601OffsetDateTime(userTaskProperties.getFollowUpDate()));
+
+    OffsetDateTime followUpDate = userTaskProperties.getFollowUpDate();
+    OffsetDateTime dueDate = userTaskProperties.getDueDate();
+
+    PlannedDue pd =
+        new PlannedDueComputerOffsetDate()
+            .computePlannedDue(followUpDate, dueDate, enforceServiceLevelValidation);
+    referencedTask.setPlanned(pd.planned());
+    referencedTask.setDue(pd.due());
+
     referencedTask.setTaskDefinitionKey(job.getElementId());
     referencedTask.setBusinessProcessId(job.getBpmnProcessId());
 
@@ -173,19 +190,5 @@ public class ReferencedTaskCreator {
           e);
     }
     return null;
-  }
-
-  /**
-   * Formats given offset-date-time according to ISO8601.
-   *
-   * <p>Returns null if input is null.
-   *
-   * @param camundaDateTime Camunda-DateTime to format
-   * @return formatted DateTime
-   */
-  private static String formatIso8601OffsetDateTime(OffsetDateTime camundaDateTime) {
-    return camundaDateTime == null
-        ? null
-        : camundaDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
   }
 }

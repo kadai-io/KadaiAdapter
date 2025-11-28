@@ -208,12 +208,17 @@ public class TaskInformationMapper {
 
     String due = camundaTask.getDue();
     if (due == null || due.isEmpty() || "null".equals(due)) {
-      kadaiTask.setPlanned(now);
+      kadaiTask.setDue(null);
     } else {
-      kadaiTask.setDue(convertStringToInstant(camundaTask.getDue(), now));
+      kadaiTask.setDue(convertStringToInstant(due, null));
     }
-    Instant planned = convertStringToInstant(camundaTask.getPlanned(), now);
-    kadaiTask.setPlanned(planned);
+
+    String planned = camundaTask.getPlanned();
+    if (planned == null || planned.isEmpty() || "null".equals(planned)) {
+      kadaiTask.setPlanned(null);
+    } else {
+      kadaiTask.setPlanned(convertStringToInstant(planned, null));
+    }
   }
 
   private Instant convertStringToInstant(String strTimestamp, Instant defaultTimestamp) {

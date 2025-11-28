@@ -23,16 +23,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.camunda.CamundaListenerConfiguration;
 import io.kadai.adapter.camunda.dto.ReferencedTask;
 import io.kadai.adapter.camunda.dto.VariableValueDto;
-import io.kadai.adapter.camunda.exceptions.SystemException;
 import io.kadai.adapter.camunda.mapper.JacksonConfigurator;
+import io.kadai.adapter.model.PlannedDue;
+import io.kadai.adapter.util.DateFormatter;
+import io.kadai.adapter.util.PlannedDueComputerDate;
+import io.kadai.common.api.exceptions.SystemException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -228,12 +229,23 @@ public class KadaiTaskListener implements TaskListener {
     ReferencedTask referencedTask = new ReferencedTask();
 
     referencedTask.setId(delegateTask.getId());
-    referencedTask.setCreated(formatDate(delegateTask.getCreateTime()));
+    referencedTask.setCreated(new DateFormatter().format(delegateTask.getCreateTime()));
     referencedTask.setPriority(String.valueOf(delegateTask.getPriority()));
     referencedTask.setName(delegateTask.getName());
     referencedTask.setAssignee(delegateTask.getAssignee());
-    referencedTask.setPlanned(formatDate(delegateTask.getFollowUpDate()));
-    referencedTask.setDue(formatDate(delegateTask.getDueDate()));
+
+    Date followUpDate = delegateTask.getFollowUpDate();
+    Date dueDate = delegateTask.getDueDate();
+
+    PlannedDue pd =
+        new PlannedDueComputerDate()
+            .computePlannedDue(
+                followUpDate,
+                dueDate,
+                CamundaListenerConfiguration.shouldEnforceServiceLevelValidation());
+    referencedTask.setPlanned(pd.planned());
+    referencedTask.setDue(pd.due());
+
     referencedTask.setDescription(delegateTask.getDescription());
     referencedTask.setOwner(delegateTask.getOwner());
     referencedTask.setTaskDefinitionKey(delegateTask.getTaskDefinitionKey());
@@ -475,15 +487,5 @@ public class KadaiTaskListener implements TaskListener {
       }
     }
     return null;
-  }
-
-  private String formatDate(Date date) {
-    if (date == null) {
-      return null;
-    } else {
-      return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-          .withZone(ZoneId.systemDefault())
-          .format(date.toInstant());
-    }
   }
 }
