@@ -16,11 +16,11 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.camunda8>8.8.4</version.camunda8>
   </properties>
 
   <modules>
     <module>kadai-adapter-camunda-8-system-connector</module>
     <module>kadai-adapter-camunda-8-spring-boot-example</module>
   </modules>
-
 </project>

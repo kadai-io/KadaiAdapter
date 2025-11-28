@@ -8,7 +8,7 @@
   <packaging>pom</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
-  <description>This pom is parent to all kadai-camunda-adapter modules and serves the common build.
+  <description>This pom is parent to all kadai-adapter modules and serves the common build.
   </description>
   <url>http://kadai.io</url>
 
@@ -65,13 +65,6 @@
     <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
     <version.spring.boot>3.5.7</version.spring.boot>
 
-    <version.camunda8>8.8.5</version.camunda8>
-    <version.camunda>7.23.0</version.camunda>
-    <version.camunda.spin>1.23.0</version.camunda.spin>
-    <version.camunda.template-engines-freemarker>7.24.0
-    </version.camunda.template-engines-freemarker>
-    <version.camunda.template-engines-velocity>2.1.0</version.camunda.template-engines-velocity>
-
     <version.jakarta.annotation>3.0.0</version.jakarta.annotation>
     <version.jakarta-ws-rs-api>3.0.0</version.jakarta-ws-rs-api>
 
@@ -109,13 +102,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-bom</artifactId>
-        <version>${version.camunda}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
@@ -340,11 +326,6 @@
   </build>
 
   <repositories>
-    <repository>
-      <id>camunda-bpm-nexus</id>
-      <name>Camunda Maven Repository</name>
-      <url>https://artifacts.camunda.com/artifactory/public/</url>
-    </repository>
     <repository>
       <id>jboss-public-repository</id>
       <name>JBoss Repository</name>
