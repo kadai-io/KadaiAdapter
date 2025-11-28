@@ -48,7 +48,7 @@ public class Camunda8TaskClaimer {
     if (claimingEnabled) {
       StringBuilder requestUrlBuilder = new StringBuilder();
       requestUrlBuilder
-          .append(camunda8System.getClusterApiUrl())
+          .append(camunda8System.getRestAddress())
           .append(Camunda8SystemConnectorImpl.URL_GET_CAMUNDA8_USER_TASKS)
           .append(getUserTaskKeyFromReferencedTask(referencedTask))
           .append(Camunda8SystemConnectorImpl.URL_CAMUNDA8_ASSIGNMENT);

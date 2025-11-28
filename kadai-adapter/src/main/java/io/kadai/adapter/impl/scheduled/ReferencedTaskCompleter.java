@@ -128,7 +128,7 @@ public class ReferencedTaskCompleter implements MonitoredScheduledComponent {
         success = true;
       } else {
         throw new SystemException(
-            "couldnt find a connector for systemUrl " + referencedTask.getSystemUrl());
+            "couldn't find a connector for systemUrl " + referencedTask.getSystemUrl());
       }
     } catch (Exception ex) {
       LOGGER.error(
