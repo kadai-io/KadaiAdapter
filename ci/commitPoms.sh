@@ -62,6 +62,7 @@ function main() {
     git checkout "$branch"
     NEXT1=$(increment_version "${BASH_REMATCH[1]}")
     NEXT2=$(increment_version "${BASH_REMATCH[2]}")
+    NEW_VERSION="${NEXT1}-SNAPSHOT/${NEXT2}-SNAPSHOT"
     PR_BRANCH="auto/version-bump-${NEXT1}-$(date +%s)"
 
     git checkout -b "$PR_BRANCH"
@@ -69,13 +70,14 @@ function main() {
     for file in "$@"; do
       [[ -n "$file" ]] && git add "$file"
     done
-    git commit -m "Updated poms to version ${NEXT1}-SNAPSHOT/${NEXT2}-SNAPSHOT"
+    git commit -m "Updated poms to version ${NEW_VERSION}"
     git push origin "$PR_BRANCH"
 
     gh pr create \
-          --title "Version bump after release ${BASH_REMATCH[1]}/${BASH_REMATCH[2]}" \
-          --body "Automated version bump after release tag ${GITHUB_REF#refs/tags/}." \
-          --base "$branch"
+          --base "$branch" \
+          --title "chore: version bump to ${NEW_VERSION}" \
+          --body "Automated version update after release. All tests have passed in the release workflow." \
+          --label "dependencies"
   else
     echo "Nothing to push - this is not a release!"
   fi
