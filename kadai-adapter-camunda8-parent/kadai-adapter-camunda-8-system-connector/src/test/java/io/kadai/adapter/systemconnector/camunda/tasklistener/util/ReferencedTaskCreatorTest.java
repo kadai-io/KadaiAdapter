@@ -107,7 +107,7 @@ class ReferencedTaskCreatorTest {
   private Camunda8System createMockCamunda8System() {
     Camunda8System camunda8System = mock(Camunda8System.class);
     when(camunda8System.getIdentifier()).thenReturn(1);
-    when(camunda8System.getSystemUrl()).thenReturn("http://localhost:8080");
+    when(camunda8System.getRestAddress()).thenReturn("http://localhost:8080");
     return camunda8System;
   }
 
