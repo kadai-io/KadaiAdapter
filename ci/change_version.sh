@@ -92,6 +92,11 @@ function main() {
     helpAndExit 1
   fi
 
+  if [[ -n "$GITHUB_REF_OVERRIDE" ]]; then
+    echo "GITHUB_REF_OVERRIDE detected -> overriding GITHUB_REF with: $GITHUB_REF_OVERRIDE"
+    export GITHUB_REF="$GITHUB_REF_OVERRIDE"
+  fi
+
   if [[ "$GITHUB_REF" =~ ^refs/tags/([0-9]+\.[0-9]+\.[0-9]+)/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
     version=$([[ -n "$INCREMENT" ]] && echo $(increment_version "${BASH_REMATCH[@]:1:1}")-SNAPSHOT || echo "${BASH_REMATCH[@]:1:1}")
     prop_version=$([[ -n "$INCREMENT" ]] && echo $(increment_version "${BASH_REMATCH[@]:2:2}")-SNAPSHOT || echo "${BASH_REMATCH[@]:2:2}")
