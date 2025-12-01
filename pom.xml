@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.kadai</groupId>
   <artifactId>kadai-adapter-parent</artifactId>
-  <version>11.1.1-SNAPSHOT</version>
+  <version>4.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
@@ -41,7 +41,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <version.kadai>11.1.1-SNAPSHOT</version.kadai>
+    <version.kadai>4.0.2-SNAPSHOT</version.kadai>
 
     <!-- build dependencies -->
     <version.checkstyle>12.2.0</version.checkstyle>
