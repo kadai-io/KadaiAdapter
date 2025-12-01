@@ -5,8 +5,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Concrete formatter for java.time.OffsetDateTime. Implements Formatter<OffsetDateTime> and
- * delegates formatting to DateTimeUtils.
+ * Concrete formatter for {@link java.time.OffsetDateTime}. Implements {@code
+ * Formatter<OffsetDateTime>} and delegates formatting to DateTimeUtils.
  */
 public class OffsetDateTimeFormatter implements Formatter<OffsetDateTime> {
   private static final DateTimeFormatter FORMATTER =

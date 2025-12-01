@@ -5,8 +5,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
- * Concrete formatter for java.util.Date. Implements Formatter<Date> and delegates formatting to
- * DateTimeUtils.
+ * Concrete formatter for {@link java.util.Date}. Implements {@code Formatter<Date>} and delegates
+ * formatting to DateTimeUtils.
  */
 public class DateFormatter implements Formatter<Date> {
   private static final DateTimeFormatter FORMATTER =
