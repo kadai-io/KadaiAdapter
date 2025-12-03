@@ -122,6 +122,9 @@ jobs:
     runs-on: ubuntu-22.04
     name: Release artifacts to Sonatype-Central
     if: github.repository == 'kadai-io/KadaiAdapter' && ( startsWith(github.ref, 'refs/tags') || github.ref == 'refs/heads/master' ) && github.head_ref == ''
+    permissions:
+      contents: write
+      pull-requests: write
     needs: [ test ]
     # as documented in the gpg manual (https://www.gnupg.org/documentation/manuals/gnupg/Invoking-GPG_002dAGENT.html)
     # we should execute this command before interacting with gpg (otherwise gpg won't work)
@@ -195,13 +198,12 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-      - name: Update version to next snapshot and push back
+      - name: Update version to next snapshot and create PR
         run: |
           ci/change_version.sh -i -m .
           ci/commitPoms.sh
         env:
-          GH_EMAIL: ${{ secrets.GH_EMAIL }}
-          GH_USERNAME: ${{ secrets.GH_USERNAME }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Remove kadai artifacts from cache
         run: rm -rf ~/.m2/repository/io/kadai
       - name: Cancel workflow
