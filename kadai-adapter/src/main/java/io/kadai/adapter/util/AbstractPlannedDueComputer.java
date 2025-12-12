@@ -3,7 +3,12 @@ package io.kadai.adapter.util;
 import io.kadai.adapter.model.PlannedDue;
 import io.kadai.common.api.exceptions.SystemException;
 
-/** Generic base class that centralises the planned/due decision logic. */
+/**
+ * Generic base class that centralises the planned/due decision logic.
+ *
+ * @param <T> the temporal type used for followUp/due and for the "now" reference. Typical concrete
+ *     types are {@link java.util.Date} or {@link java.time.OffsetDateTime}.
+ */
 public abstract class AbstractPlannedDueComputer<T> implements PlannedDueComputer<T> {
 
   protected final Formatter<T> formatter;

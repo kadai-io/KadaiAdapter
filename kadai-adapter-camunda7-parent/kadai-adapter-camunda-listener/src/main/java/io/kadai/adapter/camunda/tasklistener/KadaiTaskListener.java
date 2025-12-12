@@ -68,6 +68,8 @@ public class KadaiTaskListener implements TaskListener {
   private static final String[] PREFIXES = {"kadai.", "kadai-", "taskana.", "taskana-"};
 
   private final ObjectMapper objectMapper = JacksonConfigurator.createAndConfigureObjectMapper();
+  private final PlannedDueComputerDate plannedDueComputerDate = new PlannedDueComputerDate();
+  private final DateFormatter dateFormatter = new DateFormatter();
   private boolean gotActivated = false;
   private String outboxSchemaName = null;
 
@@ -229,7 +231,7 @@ public class KadaiTaskListener implements TaskListener {
     ReferencedTask referencedTask = new ReferencedTask();
 
     referencedTask.setId(delegateTask.getId());
-    referencedTask.setCreated(new DateFormatter().format(delegateTask.getCreateTime()));
+    referencedTask.setCreated(dateFormatter.format(delegateTask.getCreateTime()));
     referencedTask.setPriority(String.valueOf(delegateTask.getPriority()));
     referencedTask.setName(delegateTask.getName());
     referencedTask.setAssignee(delegateTask.getAssignee());
@@ -238,11 +240,10 @@ public class KadaiTaskListener implements TaskListener {
     Date dueDate = delegateTask.getDueDate();
 
     PlannedDue pd =
-        new PlannedDueComputerDate()
-            .computePlannedDue(
-                followUpDate,
-                dueDate,
-                CamundaListenerConfiguration.shouldEnforceServiceLevelValidation());
+        plannedDueComputerDate.computePlannedDue(
+            followUpDate,
+            dueDate,
+            CamundaListenerConfiguration.shouldEnforceServiceLevelValidation());
     referencedTask.setPlanned(pd.planned());
     referencedTask.setDue(pd.due());
 

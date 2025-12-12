@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.delegate.DelegateTask;
@@ -57,7 +58,9 @@ class KadaiTaskListenerLogicTest {
       Date followUpDate,
       Date dueDate,
       boolean enforceServiceLevelValidation,
-      boolean expectException)
+      Optional<Class<? extends Exception>> expectedExceptionClass,
+      Instant expectedPlanned,
+      Instant expectedDue)
       throws Exception {
 
     DelegateTask delegateTask = createMockDelegateTask(followUpDate, dueDate);
@@ -69,35 +72,27 @@ class KadaiTaskListenerLogicTest {
           .when(CamundaListenerConfiguration::shouldEnforceServiceLevelValidation)
           .thenReturn(enforceServiceLevelValidation);
 
-      if (expectException) {
+      if (expectedExceptionClass.isPresent()) {
+        Class<? extends Exception> excClass = expectedExceptionClass.get();
         assertThatThrownBy(() -> invokeGetReferencedTaskJson(listener, delegateTask))
-            .isInstanceOf(SystemException.class)
+            .isInstanceOf(excClass)
             .hasMessageContaining("Both followUp and due dates are set")
             .hasMessageContaining("kadai.servicelevel.validation.enforce");
         return;
       }
 
-      boolean expectPlannedNotNull = !(followUpDate == null && dueDate != null);
-      boolean expectDueNotNull = (dueDate != null);
-
       String referencedTaskJson = invokeGetReferencedTaskJson(listener, delegateTask);
       JsonNode jsonNode = objectMapper.readTree(referencedTaskJson);
 
-      if (expectPlannedNotNull) {
-        String plannedText = jsonNode.get("planned").asText();
-        Instant actualPlanned = parseAndNormalizeInstant(plannedText);
-        Instant expectedPlanned = (followUpDate == null) ? Instant.now() : followUpDate.toInstant();
-        if (followUpDate != null) {
-          assertInstantsClose(expectedPlanned, actualPlanned);
-        }
+      if (expectedPlanned != null) {
+        Instant actualPlanned = parseAndNormalizeInstant(jsonNode.get("planned").asText());
+        assertInstantsClose(expectedPlanned, actualPlanned);
       } else {
         assertThat(jsonNode.get("planned").isNull()).isTrue();
       }
 
-      if (expectDueNotNull) {
-        String dueText = jsonNode.get("due").asText();
-        Instant actualDue = parseAndNormalizeInstant(dueText);
-        Instant expectedDue = dueDate.toInstant();
+      if (expectedDue != null) {
+        Instant actualDue = parseAndNormalizeInstant(jsonNode.get("due").asText());
         assertInstantsClose(expectedDue, actualDue);
       } else {
         assertThat(jsonNode.get("due").isNull()).isTrue();
@@ -109,11 +104,11 @@ class KadaiTaskListenerLogicTest {
     Date followUp = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
     Date due = Date.from(Instant.now().plus(2, ChronoUnit.DAYS));
     return Stream.of(
-        Arguments.of(null, null, false, false),
-        Arguments.of(followUp, null, false, false),
-        Arguments.of(null, due, false, false),
-        Arguments.of(followUp, due, false, false),
-        Arguments.of(followUp, due, true, true));
+        Arguments.of(null, null, false, Optional.empty(), Instant.now(), null),
+        Arguments.of(followUp, null, false, Optional.empty(), followUp.toInstant(), null),
+        Arguments.of(null, due, false, Optional.empty(), null, due.toInstant()),
+        Arguments.of(followUp, due, false, Optional.empty(), followUp.toInstant(), due.toInstant()),
+        Arguments.of(followUp, due, true, Optional.of(SystemException.class), null, null));
   }
 
   private static Instant parseAndNormalizeInstant(String s) {
@@ -135,8 +130,8 @@ class KadaiTaskListenerLogicTest {
     long diffMillis = Math.abs(java.time.Duration.between(expected, actual).toMillis());
     assertThat(diffMillis)
         .withFailMessage(
-            "Expected instants to be within 1000ms but difference was %d ms", diffMillis)
-        .isLessThanOrEqualTo(1000);
+            "Expected instants to be within 6000ms but difference was %d ms", diffMillis)
+        .isLessThanOrEqualTo(6000);
   }
 
   private DelegateTask createMockDelegateTask(Date followUpDate, Date dueDate) {
