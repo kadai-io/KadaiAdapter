@@ -203,17 +203,9 @@ public class TaskInformationMapper {
 
   private void setTimestampsInKadaiTask(TaskImpl kadaiTask, ReferencedTask camundaTask) {
     Instant now = Instant.now();
-    Instant created = convertStringToInstant(camundaTask.getCreated(), now);
-    kadaiTask.setCreated(created);
-
-    String due = camundaTask.getDue();
-    if (due == null || due.isEmpty() || "null".equals(due)) {
-      kadaiTask.setPlanned(now);
-    } else {
-      kadaiTask.setDue(convertStringToInstant(camundaTask.getDue(), now));
-    }
-    Instant planned = convertStringToInstant(camundaTask.getPlanned(), now);
-    kadaiTask.setPlanned(planned);
+    kadaiTask.setCreated(convertStringToInstant(camundaTask.getCreated(), now));
+    kadaiTask.setDue(convertStringToInstant(camundaTask.getDue(), null));
+    kadaiTask.setPlanned(convertStringToInstant(camundaTask.getPlanned(), null));
   }
 
   private Instant convertStringToInstant(String strTimestamp, Instant defaultTimestamp) {
