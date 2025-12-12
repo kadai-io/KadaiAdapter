@@ -27,7 +27,6 @@ public class ReferencedTaskCreator {
 
   private final Camunda8System camunda8System;
 
-  // read property directly instead of injecting CamundaListenerConfiguration
   @Value("${kadai.servicelevel.validation.enforce:false}")
   private boolean enforceServiceLevelValidation;
 

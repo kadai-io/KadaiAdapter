@@ -92,13 +92,13 @@ class ReferencedTaskCreatorTest {
   }
 
   private static Stream<Arguments> nonExceptionCasesProvider() {
-    OffsetDateTime f1 = OffsetDateTime.now().plusDays(1);
-    OffsetDateTime d1 = OffsetDateTime.now().plusDays(2);
+    OffsetDateTime followUp = OffsetDateTime.now().plusDays(1);
+    OffsetDateTime due = OffsetDateTime.now().plusDays(2);
     return Stream.of(
         Arguments.of(null, null, Instant.now(), null),
-        Arguments.of(f1, null, f1.toInstant(), null),
-        Arguments.of(null, d1, null, d1.toInstant()),
-        Arguments.of(f1, d1, f1.toInstant(), d1.toInstant()));
+        Arguments.of(followUp, null, followUp.toInstant(), null),
+        Arguments.of(null, due, null, due.toInstant()),
+        Arguments.of(followUp, due, followUp.toInstant(), due.toInstant()));
   }
 
   private Camunda8System createMockCamunda8System() {
