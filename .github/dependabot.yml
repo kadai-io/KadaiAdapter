@@ -8,22 +8,6 @@ updates:
       timezone: Europe/Berlin
     open-pull-requests-limit: 99
 
-  - package-ecosystem: maven
-    directory: "/kadai-adapter-camunda7-parent"
-    schedule:
-      interval: daily
-      time: "06:00"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 99
-
-  - package-ecosystem: maven
-    directory: "/kadai-adapter-camunda8-parent"
-    schedule:
-      interval: daily
-      time: "06:00"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 99
-
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
