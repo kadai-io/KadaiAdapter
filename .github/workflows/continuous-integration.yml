@@ -187,7 +187,7 @@ jobs:
           fi
           ./mvnw -B deploy -P $PROFILE \
           --settings ci/mvnsettings.xml -DskipTests -Dcheckstyle.skip -Djacoco.skip \
-          -pl :kadai-adapter-parent, :kadai-adapter-camunda7-parent, :kadai-adapter-camunda8-parent\
+          -pl :kadai-adapter-parent,:kadai-adapter-camunda7-parent,:kadai-adapter-camunda8-parent,\
           :kadai-adapter,:kadai-adapter-camunda-system-connector,:kadai-adapter-kadai-connector,\
           :kadai-adapter-camunda-listener,:kadai-adapter-camunda-outbox-rest,\
           :kadai-adapter-camunda-outbox-rest-spring-boot-starter,\
