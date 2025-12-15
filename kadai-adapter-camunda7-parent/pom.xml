@@ -8,29 +8,6 @@
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>This pom is parent to all KadaiAdapter Camunda7-Plugin modules and serves the common build.</description>
-  <url>http://kadai.io</url>
-
-  <developers>
-    <developer>
-      <name>Holger Hagen</name>
-      <email>holger.hagen@envite.de</email>
-      <organization>envite consulting GmbH</organization>
-      <organizationUrl>https://envite.de/</organizationUrl>
-    </developer>
-  </developers>
-
-  <scm>
-    <url>http://github.com/kadai-io/kadaiadapter/tree/master</url>
-    <connection>scm:git:git://github.com/kadai-io/kadaiadapter.git</connection>
-    <developerConnection>scm:git:ssh://github.com:kadai-io/kadaiadapter.git</developerConnection>
-  </scm>
-
-  <licenses>
-    <license>
-      <name>The Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
-  </licenses>
 
   <parent>
     <groupId>io.kadai</groupId>
@@ -69,16 +46,6 @@
         <version>${version.camunda}</version>
         <scope>import</scope>
         <type>pom</type>
-      </dependency>
-      <dependency>
-        <groupId>org.camunda.spin</groupId>
-        <artifactId>camunda-spin-core</artifactId>
-        <version>${version.camunda.spin}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.camunda.spin</groupId>
-        <artifactId>camunda-spin-dataformat-all</artifactId>
-        <version>${version.camunda.spin}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
