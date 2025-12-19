@@ -86,7 +86,7 @@ public class ReferencedTaskClaimCanceler implements MonitoredScheduledComponent 
         monitoredRun.succeed();
       } catch (Exception ex) {
         monitoredRun.fail();
-        LOGGER.debug("Caught exception while trying to cancel claim referenced tasks", ex);
+        LOGGER.error("Caught exception while trying to cancel claim referenced tasks", ex);
       } finally {
         runDurationLowerMedian.add(monitoredRun.getDuration());
       }

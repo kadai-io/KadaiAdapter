@@ -87,7 +87,7 @@ public class ReferencedTaskCompleter implements MonitoredScheduledComponent {
         monitoredRun.succeed();
       } catch (Exception ex) {
         monitoredRun.fail();
-        LOGGER.debug("Caught exception while trying to complete referenced tasks", ex);
+        LOGGER.error("Caught exception while trying to complete referenced tasks", ex);
       } finally {
         runDurationLowerMedian.add(monitoredRun.getDuration());
       }
