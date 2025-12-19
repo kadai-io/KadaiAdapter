@@ -91,7 +91,7 @@ public class KadaiTaskCompletionOrchestrator implements MonitoredScheduledCompon
         monitoredRun.succeed();
       } catch (Exception e) {
         monitoredRun.fail();
-        LOGGER.warn(
+        LOGGER.error(
             "caught exception while trying to retrieve "
                 + "finished referenced tasks and terminate corresponding kadai tasks",
             e);
@@ -121,7 +121,7 @@ public class KadaiTaskCompletionOrchestrator implements MonitoredScheduledCompon
               ex);
           systemConnector.unlockEvent(referencedTask.getOutboxEventId());
         } catch (Exception e) {
-          LOGGER.warn(
+          LOGGER.error(
               "caught unexpected Exception when attempting to terminate KadaiTask "
                   + "for referencedTask {}",
               referencedTask,

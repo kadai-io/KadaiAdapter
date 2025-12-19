@@ -84,7 +84,7 @@ public class ReferencedTaskClaimer implements MonitoredScheduledComponent {
         monitoredRun.succeed();
       } catch (Exception ex) {
         monitoredRun.fail();
-        LOGGER.debug("Caught exception while trying to claim referenced tasks", ex);
+        LOGGER.error("Caught exception while trying to claim referenced tasks", ex);
       } finally {
         runDurationLowerMedian.add(monitoredRun.getDuration());
       }

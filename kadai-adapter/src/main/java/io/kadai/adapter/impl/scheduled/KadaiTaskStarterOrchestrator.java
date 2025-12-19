@@ -158,7 +158,7 @@ public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent
       ReferencedTask referencedTask,
       Exception exception,
       String message) {
-    LOGGER.warn(message, referencedTask, exception);
+    LOGGER.error(message, referencedTask, exception);
     systemConnector.kadaiTaskFailedToBeCreatedForNewReferencedTask(referencedTask, exception);
     systemConnector.unlockEvent(referencedTask.getOutboxEventId());
   }
