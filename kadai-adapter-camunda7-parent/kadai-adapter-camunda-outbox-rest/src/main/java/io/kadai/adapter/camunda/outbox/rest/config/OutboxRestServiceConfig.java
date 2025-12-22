@@ -18,8 +18,8 @@
 
 package io.kadai.adapter.camunda.outbox.rest.config;
 
-import io.kadai.adapter.camunda.outbox.rest.controller.CamundaTaskEventsController;
-import io.kadai.adapter.camunda.outbox.rest.exception.CamundaTaskEventNotFoundExceptionMapper;
+import io.kadai.adapter.camunda.outbox.rest.controller.Camunda7TaskEventsController;
+import io.kadai.adapter.camunda.outbox.rest.exception.Camunda7TaskEventNotFoundExceptionMapper;
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentExceptionMapper;
 import io.kadai.adapter.camunda.outbox.rest.exception.JsonParseExceptionMapper;
 import io.kadai.adapter.camunda.outbox.rest.exception.MismatchedInputExceptionMapper;
@@ -35,9 +35,9 @@ public class OutboxRestServiceConfig extends Application {
   @Override
   public Set<Class<?>> getClasses() {
     Set<Class<?>> classesToBeScanned = new HashSet<>();
-    classesToBeScanned.add(CamundaTaskEventsController.class);
+    classesToBeScanned.add(Camunda7TaskEventsController.class);
     classesToBeScanned.add(InvalidArgumentExceptionMapper.class);
-    classesToBeScanned.add(CamundaTaskEventNotFoundExceptionMapper.class);
+    classesToBeScanned.add(Camunda7TaskEventNotFoundExceptionMapper.class);
     classesToBeScanned.add(JsonParseExceptionMapper.class);
     classesToBeScanned.add(MismatchedInputExceptionMapper.class);
     return classesToBeScanned;

@@ -20,7 +20,7 @@ public class Camunda7HealthContributorFactory implements PluginHealthContributor
   public Camunda7HealthContributorFactory(
       RestClient restClient,
       Camunda7HealthConfigurationProperties properties,
-      @Value("${kadai-system-connector-camundaSystemURLs}") List<String> camundaSystemUrls) {
+      @Value("${kadai-system-connector-camunda7SystemURLs}") List<String> camundaSystemUrls) {
     this.restClient = restClient;
     this.properties = properties;
     this.camundaSystemUrls = camundaSystemUrls;

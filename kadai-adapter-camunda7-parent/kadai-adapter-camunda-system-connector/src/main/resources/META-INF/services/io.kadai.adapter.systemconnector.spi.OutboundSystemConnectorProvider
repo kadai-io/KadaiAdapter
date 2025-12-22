@@ -1,2 +1,2 @@
-io.kadai.adapter.systemconnector.camunda.spi.impl.OutboundSystemConnectorCamundaProviderImpl
+io.kadai.adapter.systemconnector.camunda.spi.impl.OutboundSystemConnectorCamunda7ProviderImpl
 

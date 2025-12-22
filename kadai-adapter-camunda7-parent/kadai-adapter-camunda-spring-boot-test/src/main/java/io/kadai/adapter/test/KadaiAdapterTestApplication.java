@@ -19,7 +19,7 @@
 package io.kadai.adapter.test;
 
 import io.kadai.adapter.configuration.AdapterConfiguration;
-import io.kadai.adapter.test.configuration.CamundaConfiguration;
+import io.kadai.adapter.test.configuration.Camunda7Configuration;
 import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /** Application to test the integration of Camunda BPM with REST API with the KADAI Adapter. */
 @EnableScheduling
 @ComponentScan("io.kadai.adapter")
-@Import({AdapterConfiguration.class, CamundaConfiguration.class})
+@Import({AdapterConfiguration.class, Camunda7Configuration.class})
 @SpringBootApplication
 @EnableProcessApplication
 @EnableTransactionManagement

@@ -25,12 +25,12 @@ public class Camunda7SystemsHealthComposite implements CompositeHealthContributo
       for (String camundaSystemUrl : camundaSystemUrls) {
         StringTokenizer systemConfigParts = new StringTokenizer(camundaSystemUrl, "|");
 
-        String camundaUrl = systemConfigParts.nextToken().trim();
+        String camunda7Url = systemConfigParts.nextToken().trim();
         String outboxUrl = systemConfigParts.nextToken().trim();
 
         healthContributors.put(
             "camundaSystem" + ++i,
-            new Camunda7OutboxHealthComposite(restClient, camundaUrl, outboxUrl, properties));
+            new Camunda7OutboxHealthComposite(restClient, camunda7Url, outboxUrl, properties));
       }
     }
   }

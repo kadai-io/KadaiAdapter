@@ -24,8 +24,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
-import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaSystemConnectorImpl;
-import io.kadai.adapter.systemconnector.camunda.config.CamundaSystemUrls;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7SystemConnectorImpl;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemUrls;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.internal.util.Pair;
 import io.kadai.common.test.security.JaasExtension;
@@ -77,7 +77,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
   @Autowired AdapterManager adapterManager;
   @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
 
-  @Value("${kadai-system-connector-camundaSystemURLs}")
+  @Value("${kadai-system-connector-camunda7SystemURLs}")
   private String configuredSystemConnectorUrls;
 
   @WithAccessId(
@@ -879,12 +879,12 @@ class TestTaskAcquisition extends AbsIntegrationTest {
   private void setSystemConnector(String systemEngineIdentifier) {
 
     StringTokenizer systemConfigParts = new StringTokenizer(configuredSystemConnectorUrls, "|");
-    CamundaSystemUrls.SystemUrlInfo systemUrlInfo = new CamundaSystemUrls.SystemUrlInfo();
-    systemUrlInfo.setCamundaEngineIdentifier(systemEngineIdentifier);
+    Camunda7SystemUrls.SystemUrlInfo systemUrlInfo = new Camunda7SystemUrls.SystemUrlInfo();
+    systemUrlInfo.setCamunda7EngineIdentifier(systemEngineIdentifier);
     systemUrlInfo.setSystemRestUrl(systemConfigParts.nextToken().trim());
     systemUrlInfo.setSystemTaskEventUrl(systemConfigParts.nextToken().trim());
 
-    InboundSystemConnector systemConnector = new CamundaSystemConnectorImpl(systemUrlInfo);
+    InboundSystemConnector systemConnector = new Camunda7SystemConnectorImpl(systemUrlInfo);
 
     Map<String, InboundSystemConnector> systemConnectors =
         adapterManager.getInboundSystemConnectors();

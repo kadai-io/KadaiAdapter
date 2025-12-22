@@ -21,7 +21,7 @@ package io.kadai.camunda.camundasystemconnector.acceptance;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskRetriever;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import java.util.List;
 import okhttp3.mockwebserver.MockResponse;
@@ -43,7 +43,7 @@ import org.springframework.test.context.ContextConfiguration;
 @SpringBootTest
 class RetrieveCamundaTaskAccTest {
 
-  @Autowired CamundaTaskRetriever taskRetriever;
+  @Autowired Camunda7TaskRetriever taskRetriever;
 
   private MockWebServer mockWebServer;
 
@@ -132,7 +132,7 @@ class RetrieveCamundaTaskAccTest {
     List<ReferencedTask> actualResult = null;
     try {
       actualResult =
-          taskRetriever.retrieveNewStartedCamundaTasks(
+          taskRetriever.retrieveNewStartedCamunda7Tasks(
               camundaSystemUrl, systemEngineIdentifier, null);
     } catch (Exception e) {
       e.printStackTrace();
@@ -168,7 +168,7 @@ class RetrieveCamundaTaskAccTest {
             .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .setBody(expectedReplyBody));
     List<ReferencedTask> actualResult =
-        taskRetriever.retrieveFinishedCamundaTasks(
+        taskRetriever.retrieveFinishedCamunda7Tasks(
             camundaSystemUrl, camundaSystemEngineIdentifier, null);
     assertThat(actualResult).isNotEmpty();
     assertThat(actualResult.get(0)).isEqualTo(expectedTask);
