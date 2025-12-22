@@ -38,7 +38,6 @@ class Camunda7SystemHealthCompositeTest {
 
   @Test
   void should_IterateOverAllHealthContributors() {
-    RestClient restTemplate = mock(RestClient.class);
     final Camunda7System camunda7System1 = new Camunda7System();
     camunda7System1.setSystemRestUrl("http://localhost:8080/engine");
     camunda7System1.setSystemTaskEventUrl("http://localhost:8080/outbox");
@@ -50,6 +49,7 @@ class Camunda7SystemHealthCompositeTest {
 
     Camunda7HealthConfigurationProperties properties = new Camunda7HealthConfigurationProperties();
 
+    RestClient restTemplate = mock(RestClient.class);
     Camunda7SystemsHealthComposite composite =
         new Camunda7SystemsHealthComposite(restTemplate, urls, properties);
 
