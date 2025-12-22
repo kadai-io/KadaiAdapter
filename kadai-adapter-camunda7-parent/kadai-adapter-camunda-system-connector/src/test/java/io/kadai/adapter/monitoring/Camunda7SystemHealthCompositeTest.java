@@ -3,6 +3,7 @@ package io.kadai.adapter.monitoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,12 +19,18 @@ class Camunda7SystemHealthCompositeTest {
   @ValueSource(strings = {"camundaSystem1", "camundaSystem2"})
   void should_CreateAllContributingHealthIndicatorsByDefaultAndNameThemAccordingToJson(
       String contributorName) {
+    final Camunda7System camunda7System1 = new Camunda7System();
+    camunda7System1.setSystemRestUrl("http://localhost:8080/engine");
+    camunda7System1.setSystemTaskEventUrl("http://localhost:8080/outbox");
+
+    final Camunda7System camunda7System2 = new Camunda7System();
+    camunda7System2.setSystemRestUrl("http://localhost:8081/engine");
+    camunda7System2.setSystemTaskEventUrl("http://localhost:8081/outbox");
+
     final Camunda7SystemsHealthComposite camundaSystemsHealthComposite =
         new Camunda7SystemsHealthComposite(
             mock(),
-            List.of(
-                "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest",
-                "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest"),
+            List.of(camunda7System1, camunda7System2),
             new Camunda7HealthConfigurationProperties());
 
     assertThat(camundaSystemsHealthComposite.getContributor(contributorName)).isNotNull();
@@ -32,10 +39,15 @@ class Camunda7SystemHealthCompositeTest {
   @Test
   void should_IterateOverAllHealthContributors() {
     RestClient restTemplate = mock(RestClient.class);
-    List<String> urls =
-        List.of(
-            "http://localhost:8080/engine|http://localhost:8080/outbox",
-            "http://localhost:8081/engine|http://localhost:8081/outbox");
+    final Camunda7System camunda7System1 = new Camunda7System();
+    camunda7System1.setSystemRestUrl("http://localhost:8080/engine");
+    camunda7System1.setSystemTaskEventUrl("http://localhost:8080/outbox");
+
+    final Camunda7System camunda7System2 = new Camunda7System();
+    camunda7System2.setSystemRestUrl("http://localhost:8081/engine");
+    camunda7System2.setSystemTaskEventUrl("http://localhost:8081/outbox");
+    List<Camunda7System> urls = List.of(camunda7System1, camunda7System2);
+
     Camunda7HealthConfigurationProperties properties = new Camunda7HealthConfigurationProperties();
 
     Camunda7SystemsHealthComposite composite =

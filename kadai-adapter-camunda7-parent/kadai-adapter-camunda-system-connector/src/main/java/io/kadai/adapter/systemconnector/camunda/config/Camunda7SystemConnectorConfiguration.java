@@ -27,7 +27,9 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -36,8 +38,19 @@ import org.springframework.web.client.RestClient;
 
 /** Configures the camunda system connector. */
 @Configuration
+@ConfigurationProperties("kadai-adapter.plugin.camunda7")
 @DependsOn(value = {"adapterSpringContextProvider"})
 public class Camunda7SystemConnectorConfiguration {
+
+  private List<Camunda7System> systems;
+
+  public List<Camunda7System> getSystems() {
+    return systems;
+  }
+
+  public void setSystems(List<Camunda7System> systems) {
+    this.systems = systems;
+  }
 
   @Bean
   RestClient restClient(HttpComponentsClientProperties httpComponentsClientProperties) {
@@ -57,9 +70,8 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   @Bean
-  Camunda7SystemUrls camunda7SystemUrls(
-      @Value("${kadai-system-connector-camunda7SystemURLs}") final String strUrls) {
-    return new Camunda7SystemUrls(strUrls);
+  List<Camunda7System> camunda7Systems() {
+    return this.getSystems();
   }
 
   @Bean

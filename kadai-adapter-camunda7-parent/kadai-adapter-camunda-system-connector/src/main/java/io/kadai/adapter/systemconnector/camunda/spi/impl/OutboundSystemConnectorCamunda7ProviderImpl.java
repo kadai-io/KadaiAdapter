@@ -21,7 +21,8 @@ package io.kadai.adapter.systemconnector.camunda.spi.impl;
 import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7SystemConnectorImpl;
-import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
 import io.kadai.adapter.systemconnector.spi.OutboundSystemConnectorProvider;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,13 +47,13 @@ public class OutboundSystemConnectorCamunda7ProviderImpl
     // @DependsOn(value= {"adapterSpringContextProvider"}) annotation of
     // Camunda7SystemConnectorConfiguration
 
-    Camunda7SystemUrls camunda7SystemUrls =
-        AdapterSpringContextProvider.getBean(Camunda7SystemUrls.class);
+    Camunda7SystemConnectorConfiguration camunda7SystemConfigurationProperties =
+        AdapterSpringContextProvider.getBean(Camunda7SystemConnectorConfiguration.class);
 
     List<OutboundSystemConnector> result = new ArrayList<>();
-    for (Camunda7SystemUrls.SystemUrlInfo camundaSystemUrlInfo : camunda7SystemUrls.getUrls()) {
+    for (Camunda7System camunda7System : camunda7SystemConfigurationProperties.getSystems()) {
       Camunda7SystemConnectorImpl camundaSystemConnector =
-          new Camunda7SystemConnectorImpl(camundaSystemUrlInfo);
+          new Camunda7SystemConnectorImpl(camunda7System);
       result.add(camundaSystemConnector);
     }
     return result;

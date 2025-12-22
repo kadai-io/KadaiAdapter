@@ -36,7 +36,8 @@ kadai.adapter.scheduler.run.interval.for.check.finished.referenced.tasks.in.mill
 # Set URLs of Camunda REST API and associated Camunda task events. The format is
 # <camundaSystem1-RestURL> | <camundaSystem1-TaskEventsURL> , ..., <camundaSystemN-RestURL> | <camundaSystemN-TaskEventsURL>
 
-kadai-system-connector-camunda7SystemURLs=http://localhost:${server.port}/engine-rest/engine/default | http://localhost:${server.port}/
+kadai-adapter.plugin.camunda7.systems[0].system-rest-url=http://localhost:${server.port}/engine-rest/engine/default
+kadai-adapter.plugin.camunda7.systems[0].system-task-event-url=http://localhost:${server.port}/
 ####################################################################################
 # Kadai-connector properties
 ####################################################################################

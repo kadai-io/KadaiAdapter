@@ -20,7 +20,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
-import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,8 +54,7 @@ public class Camunda7TaskClaimCanceler {
   }
 
   public SystemResponse cancelClaimOfCamunda7Task(
-      Camunda7SystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask)
-      throws HttpStatusCodeException {
+      Camunda7System camunda7System, ReferencedTask referencedTask) throws HttpStatusCodeException {
 
     if (!cancelClaimConfigLogged) {
       LOGGER.info(
@@ -68,7 +67,7 @@ public class Camunda7TaskClaimCanceler {
       StringBuilder requestUrlBuilder = new StringBuilder();
 
       requestUrlBuilder
-          .append(camundaSystemUrlInfo.getSystemRestUrl())
+          .append(camunda7System.getSystemRestUrl())
           .append(Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_TASKS)
           .append(referencedTask.getId())
           .append(Camunda7SystemConnectorImpl.UNCLAIM_TASK);
@@ -92,7 +91,7 @@ public class Camunda7TaskClaimCanceler {
         return new SystemResponse(response.getStatusCode(), null);
       } catch (HttpClientErrorException e) {
         if (Camunda7UtilRequester.isTaskNotExisting(
-            httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
+            httpHeaderProvider, restClient, camunda7System, referencedTask.getId())) {
           return new SystemResponse(HttpStatus.OK, null);
         }
         throw e;

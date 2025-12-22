@@ -18,7 +18,7 @@
 
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
-import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -30,18 +30,18 @@ import org.springframework.web.client.RestClient;
 /** Util class for camunda requests used in multiple components of Camunda7SystemConnectorImpl. */
 public class Camunda7UtilRequester {
 
-  private Camunda7UtilRequester() {}
-
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda7UtilRequester.class);
+
+  private Camunda7UtilRequester() {}
 
   public static boolean isTaskNotExisting(
       HttpHeaderProvider httpHeaderProvider,
       RestClient restClient,
-      Camunda7SystemUrls.SystemUrlInfo camundaSystemUrlInfo,
+      Camunda7System camunda7System,
       String camundaTaskId) {
 
     String requestUrl =
-        camundaSystemUrlInfo.getSystemRestUrl()
+        camunda7System.getSystemRestUrl()
             + Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_TASKS
             + camundaTaskId;
 

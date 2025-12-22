@@ -23,7 +23,7 @@ import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
-import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import java.time.Duration;
 import java.util.List;
 
@@ -48,7 +48,7 @@ public class Camunda7SystemConnectorImpl
   static final String BODY_SET_ASSIGNEE = "{\"userId\":";
   static final String UNCLAIM_TASK = "/unclaim";
 
-  private final Camunda7SystemUrls.SystemUrlInfo camundaSystemUrl;
+  private final Camunda7System camundaSystemUrl;
 
   private final Camunda7TaskRetriever taskRetriever;
 
@@ -64,7 +64,7 @@ public class Camunda7SystemConnectorImpl
 
   private final Duration lockDuration;
 
-  public Camunda7SystemConnectorImpl(Camunda7SystemUrls.SystemUrlInfo camundaSystemUrl) {
+  public Camunda7SystemConnectorImpl(Camunda7System camundaSystemUrl) {
     this.camundaSystemUrl = camundaSystemUrl;
     taskRetriever = AdapterSpringContextProvider.getBean(Camunda7TaskRetriever.class);
     taskCompleter = AdapterSpringContextProvider.getBean(Camunda7TaskCompleter.class);

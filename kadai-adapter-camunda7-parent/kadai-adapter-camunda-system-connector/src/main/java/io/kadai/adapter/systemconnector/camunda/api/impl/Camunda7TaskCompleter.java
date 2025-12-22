@@ -20,7 +20,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
-import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemUrls;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import io.kadai.common.api.exceptions.SystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,20 +47,18 @@ public class Camunda7TaskCompleter {
   }
 
   public SystemResponse completeCamunda7Task(
-      Camunda7SystemUrls.SystemUrlInfo camundaSystemUrlInfo, ReferencedTask referencedTask)
-      throws HttpStatusCodeException {
+      Camunda7System camunda7System, ReferencedTask referencedTask) throws HttpStatusCodeException {
 
     StringBuilder requestUrlBuilder = new StringBuilder();
     try {
-      setAssigneeToOwnerOfReferencedTask(camundaSystemUrlInfo, referencedTask, requestUrlBuilder);
-      setCompletionByKadaiAdapterAsLocalVariable(
-          camundaSystemUrlInfo, referencedTask, requestUrlBuilder);
+      setAssigneeToOwnerOfReferencedTask(camunda7System, referencedTask, requestUrlBuilder);
+      setCompletionByKadaiAdapterAsLocalVariable(camunda7System, referencedTask, requestUrlBuilder);
 
-      return performCompletion(camundaSystemUrlInfo, referencedTask, requestUrlBuilder);
+      return performCompletion(camunda7System, referencedTask, requestUrlBuilder);
 
     } catch (HttpClientErrorException e) {
       if (Camunda7UtilRequester.isTaskNotExisting(
-          httpHeaderProvider, restClient, camundaSystemUrlInfo, referencedTask.getId())) {
+          httpHeaderProvider, restClient, camunda7System, referencedTask.getId())) {
         return new SystemResponse(HttpStatus.OK, null);
       }
       throw e;
@@ -68,12 +66,12 @@ public class Camunda7TaskCompleter {
   }
 
   private void setAssigneeToOwnerOfReferencedTask(
-      Camunda7SystemUrls.SystemUrlInfo camundaSystemUrlInfo,
+      Camunda7System camunda7System,
       ReferencedTask referencedTask,
       StringBuilder requestUrlBuilder) {
 
     requestUrlBuilder
-        .append(camundaSystemUrlInfo.getSystemRestUrl())
+        .append(camunda7System.getSystemRestUrl())
         .append(Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_TASKS)
         .append(referencedTask.getId())
         .append(Camunda7SystemConnectorImpl.SET_ASSIGNEE);
@@ -97,14 +95,14 @@ public class Camunda7TaskCompleter {
   }
 
   private void setCompletionByKadaiAdapterAsLocalVariable(
-      Camunda7SystemUrls.SystemUrlInfo camundaSystemUrlInfo,
+      Camunda7System camunda7System,
       ReferencedTask referencedTask,
       StringBuilder requestUrlBuilder) {
 
     requestUrlBuilder.setLength(0);
 
     requestUrlBuilder
-        .append(camundaSystemUrlInfo.getSystemRestUrl())
+        .append(camunda7System.getSystemRestUrl())
         .append(Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_TASKS)
         .append(referencedTask.getId())
         .append(Camunda7SystemConnectorImpl.LOCAL_VARIABLE_PATH)
@@ -130,13 +128,11 @@ public class Camunda7TaskCompleter {
   }
 
   private SystemResponse performCompletion(
-      Camunda7SystemUrls.SystemUrlInfo camundaSystemUrlInfo,
-      ReferencedTask camundaTask,
-      StringBuilder requestUrlBuilder) {
+      Camunda7System camunda7System, ReferencedTask camundaTask, StringBuilder requestUrlBuilder) {
 
     requestUrlBuilder.setLength(0);
     requestUrlBuilder
-        .append(camundaSystemUrlInfo.getSystemRestUrl())
+        .append(camunda7System.getSystemRestUrl())
         .append(Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_TASKS)
         .append(camundaTask.getId())
         .append(Camunda7SystemConnectorImpl.COMPLETE_TASK);
