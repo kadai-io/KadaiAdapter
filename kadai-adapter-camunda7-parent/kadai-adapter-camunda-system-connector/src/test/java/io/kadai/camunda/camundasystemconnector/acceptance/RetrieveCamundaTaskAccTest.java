@@ -93,7 +93,7 @@ class RetrieveCamundaTaskAccTest {
     String expectedReplyBody =
         "{"
             + "\n"
-            + "\"camundaTaskEvents\":"
+            + "\"camunda7TaskEvents\":"
             + "[\n "
             + " {\n"
             + "   \"id\": 1,\n"
@@ -150,7 +150,7 @@ class RetrieveCamundaTaskAccTest {
     String expectedReplyBody =
         "{"
             + "\n"
-            + "\"camundaTaskEvents\":"
+            + "\"camunda7TaskEvents\":"
             + "[\n"
             + "    {\n"
             + "        \"id\": 16,\n"
