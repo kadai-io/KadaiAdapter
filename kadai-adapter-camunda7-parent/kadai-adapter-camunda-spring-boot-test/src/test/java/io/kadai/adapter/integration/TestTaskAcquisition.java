@@ -873,15 +873,18 @@ class TestTaskAcquisition extends AbsIntegrationTest {
   }
 
   private void setSystemConnector(String systemEngineIdentifier) {
-    Camunda7System camunda7System = camunda7Systems.get(0);
-    camunda7System.setCamunda7EngineIdentifier(systemEngineIdentifier);
+    Camunda7System existingCamunda7System = camunda7Systems.get(0);
+    Camunda7System newCamunda7System = new Camunda7System();
+    newCamunda7System.setSystemRestUrl(existingCamunda7System.getSystemRestUrl());
+    newCamunda7System.setSystemTaskEventUrl(existingCamunda7System.getSystemTaskEventUrl());
+    newCamunda7System.setCamunda7EngineIdentifier(systemEngineIdentifier);
 
-    InboundSystemConnector systemConnector = new Camunda7SystemConnectorImpl(camunda7System);
+    InboundSystemConnector systemConnector = new Camunda7SystemConnectorImpl(newCamunda7System);
     Map<String, InboundSystemConnector> systemConnectors =
         adapterManager.getInboundSystemConnectors();
     systemConnectors.clear();
 
-    systemConnectors.put(camunda7System.getSystemRestUrl(), systemConnector);
+    systemConnectors.put(newCamunda7System.getSystemRestUrl(), systemConnector);
   }
 
   private Map<String, String> retrieveCustomAttributesFromNewKadaiTask(String camundaTaskId) {
