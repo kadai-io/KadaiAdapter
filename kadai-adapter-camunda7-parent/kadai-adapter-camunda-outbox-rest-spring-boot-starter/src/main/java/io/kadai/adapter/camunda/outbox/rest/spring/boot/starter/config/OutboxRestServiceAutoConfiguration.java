@@ -19,7 +19,7 @@
 package io.kadai.adapter.camunda.outbox.rest.spring.boot.starter.config;
 
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxRestServiceConfig;
-import io.kadai.adapter.camunda.outbox.rest.controller.CamundaTaskEventsController;
+import io.kadai.adapter.camunda.outbox.rest.controller.Camunda7TaskEventsController;
 import io.kadai.adapter.camunda.parselistener.KadaiParseListenerProcessEnginePlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 
 /** Configuration for the outbox REST service. */
 @Configuration
-@ConditionalOnClass(CamundaTaskEventsController.class)
+@ConditionalOnClass(Camunda7TaskEventsController.class)
 public class OutboxRestServiceAutoConfiguration {
 
   @Bean
@@ -39,8 +39,8 @@ public class OutboxRestServiceAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  public CamundaTaskEventsController camundaTaskEventsController() {
-    return new CamundaTaskEventsController();
+  public Camunda7TaskEventsController camunda7TaskEventsController() {
+    return new Camunda7TaskEventsController();
   }
 
   @Bean

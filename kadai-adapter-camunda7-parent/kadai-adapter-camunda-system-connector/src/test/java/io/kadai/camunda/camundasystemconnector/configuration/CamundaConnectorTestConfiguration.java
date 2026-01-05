@@ -19,8 +19,8 @@
 package io.kadai.camunda.camundasystemconnector.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskCompleter;
-import io.kadai.adapter.systemconnector.camunda.api.impl.CamundaTaskRetriever;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskCompleter;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
@@ -62,16 +62,16 @@ public class CamundaConnectorTestConfiguration {
   }
 
   @Bean
-  CamundaTaskRetriever camundaTaskRetriever(
+  Camunda7TaskRetriever camundaTaskRetriever(
       final HttpHeaderProvider httpHeaderProvider,
       final ObjectMapper objectMapper,
       final RestClient restClient) {
-    return new CamundaTaskRetriever(httpHeaderProvider, objectMapper, restClient);
+    return new Camunda7TaskRetriever(httpHeaderProvider, objectMapper, restClient);
   }
 
   @Bean
-  CamundaTaskCompleter camundaTaskCompleter(
+  Camunda7TaskCompleter camundaTaskCompleter(
       final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new CamundaTaskCompleter(httpHeaderProvider, restClient);
+    return new Camunda7TaskCompleter(httpHeaderProvider, restClient);
   }
 }

@@ -30,11 +30,11 @@ public class HttpHeaderProvider {
 
   private static final String UNDEFINED = "undefined";
 
-  @Value("${kadai-system-connector-camunda-rest-api-user-name:undefined}")
-  private String camundaRestApiUserName;
+  @Value("${kadai-system-connector-camunda7-rest-api-user-name:undefined}")
+  private String camunda7RestApiUserName;
 
-  @Value("${kadai-system-connector-camunda-rest-api-user-password:undefined}")
-  private String camundaRestApiUserPassword;
+  @Value("${kadai-system-connector-camunda7-rest-api-user-password:undefined}")
+  private String camunda7RestApiUserPassword;
 
   @Value("${kadai-system-connector-outbox-rest-api-user-name:undefined}")
   private String outboxRestApiUserName;
@@ -45,11 +45,11 @@ public class HttpHeaderProvider {
   @Value("${kadai.adapter.xsrf.token:}")
   private String xsrfToken;
 
-  public HttpHeaders camundaRestApiHeaders() {
-    if (UNDEFINED.equals(camundaRestApiUserName)) {
+  public HttpHeaders camunda7RestApiHeaders() {
+    if (UNDEFINED.equals(camunda7RestApiUserName)) {
       return new HttpHeaders();
     } else {
-      String plainCreds = camundaRestApiUserName + ":" + camundaRestApiUserPassword;
+      String plainCreds = camunda7RestApiUserName + ":" + camunda7RestApiUserPassword;
       return encodeHttpHeaders(plainCreds);
     }
   }
@@ -63,8 +63,8 @@ public class HttpHeaderProvider {
     }
   }
 
-  public HttpHeaders getHttpHeadersForCamundaRestApi() {
-    HttpHeaders headers = camundaRestApiHeaders();
+  public HttpHeaders getHttpHeadersForCamunda7RestApi() {
+    HttpHeaders headers = camunda7RestApiHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     return headers;
   }

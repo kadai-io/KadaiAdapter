@@ -18,7 +18,7 @@
 
 package io.kadai.adapter.camunda.parselistener;
 
-import io.kadai.adapter.camunda.CamundaListenerConfiguration;
+import io.kadai.adapter.camunda.Camunda7ListenerConfiguration;
 import io.kadai.adapter.camunda.exceptions.SystemException;
 import io.kadai.adapter.camunda.schemacreator.DB;
 import io.kadai.adapter.camunda.schemacreator.KadaiOutboxSchemaCreator;
@@ -97,7 +97,7 @@ public class KadaiParseListenerProcessEnginePlugin extends AbstractProcessEngine
 
     boolean isSchemaPreexisting = schemaCreator.isSchemaPreexisting();
 
-    boolean shouldSchemaBeCreated = CamundaListenerConfiguration.getCreateOutboxSchema();
+    boolean shouldSchemaBeCreated = Camunda7ListenerConfiguration.getCreateOutboxSchema();
 
     if (!isSchemaPreexisting) {
       if (shouldSchemaBeCreated) {
@@ -132,7 +132,7 @@ public class KadaiParseListenerProcessEnginePlugin extends AbstractProcessEngine
 
   private String initSchemaName(DataSource dataSource) {
 
-    String outboxSchema = CamundaListenerConfiguration.getOutboxSchema();
+    String outboxSchema = Camunda7ListenerConfiguration.getOutboxSchema();
 
     try (Connection connection = dataSource.getConnection()) {
       String databaseProductName = connection.getMetaData().getDatabaseProductName();
@@ -176,7 +176,7 @@ public class KadaiParseListenerProcessEnginePlugin extends AbstractProcessEngine
   private DataSource getDataSourceFromPropertiesFile() {
     DataSource dataSource = null;
     try {
-      String jndiLookup = CamundaListenerConfiguration.getOutboxDatasourceJndi();
+      String jndiLookup = Camunda7ListenerConfiguration.getOutboxDatasourceJndi();
 
       if (jndiLookup != null) {
         dataSource = (DataSource) new InitialContext().lookup(jndiLookup);
@@ -186,10 +186,10 @@ public class KadaiParseListenerProcessEnginePlugin extends AbstractProcessEngine
           LOGGER.info("jndi lookup {} didn't return a Datasource.", jndiLookup);
         }
       } else {
-        String driver = CamundaListenerConfiguration.getOutboxDatasourceDriver();
-        String jdbcUrl = CamundaListenerConfiguration.getOutboxDatasourceUrl();
-        String userName = CamundaListenerConfiguration.getOutboxDatasourceUsername();
-        String password = CamundaListenerConfiguration.getOutboxDatasourcePassword();
+        String driver = Camunda7ListenerConfiguration.getOutboxDatasourceDriver();
+        String jdbcUrl = Camunda7ListenerConfiguration.getOutboxDatasourceUrl();
+        String userName = Camunda7ListenerConfiguration.getOutboxDatasourceUsername();
+        String password = Camunda7ListenerConfiguration.getOutboxDatasourcePassword();
         dataSource = createDatasource(driver, jdbcUrl, userName, password);
         LOGGER.info("created Datasource from properties {}, ...", jdbcUrl);
       }
