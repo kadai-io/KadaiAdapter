@@ -43,7 +43,7 @@ public class UserTaskCompletion implements MonitoredComponent {
         job.getProcessInstanceKey());
 
     if (job.getVariables().contains(TASK_COMPLETED_BY_KADAI_KV_PAIR)) {
-      LOGGER.debug("Completion was initiated by Kadai. Skipping cancel to avoid circle.");
+      LOGGER.debug("Completion was initiated by Kadai. Skipping completion to avoid circle.");
       monitoredRun.succeed();
       return;
     }
