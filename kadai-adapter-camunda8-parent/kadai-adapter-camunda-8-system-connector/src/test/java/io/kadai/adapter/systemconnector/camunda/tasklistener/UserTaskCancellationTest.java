@@ -25,7 +25,7 @@ class UserTaskCancellationTest {
 
   @Test
   @WithAccessId(user = "admin")
-  void should_CancelKadaiTask_When_CamundaTaskIsCompleted() throws Exception {
+  void should_CancelKadaiTask_When_CamundaTaskIsCancelled() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
 
