@@ -65,4 +65,44 @@ class Camunda8TaskCompleterTest {
     camunda8TestUtil.waitUntil(
         () -> "COMPLETED".equals(camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey)));
   }
+
+  @Test
+  @WithAccessId(user = "admin")
+  void should_CancelCamundaTask_When_KadaiTaskIsCancelled() throws Exception {
+    kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
+    kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
+    client
+        .newDeployResourceCommand()
+        .addResourceFromClasspath("processes/sayHello.bpmn")
+        .send()
+        .join();
+
+    final ProcessInstanceEvent processInstance =
+        client
+            .newCreateInstanceCommand()
+            .bpmnProcessId("Test_Process")
+            .latestVersion()
+            .send()
+            .join();
+
+    CamundaAssert.assertThat(processInstance).isActive();
+
+    final List<TaskSummary> tasks = kadaiEngine.getTaskService().createTaskQuery().list();
+    assertThat(tasks).hasSize(1);
+
+    final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
+
+    kadaiEngine.getTaskService().cancelTask(kadaiTask.getId());
+
+    final Task completedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
+    assertThat(completedKadaiTask.getState()).isEqualTo(TaskState.CANCELLED);
+    String externalId = kadaiTask.getExternalId();
+
+    long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+    camunda8TestUtil.waitUntil(
+        () -> {
+          System.out.println("Mooo: " + camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey));
+          return "CANCELED".equals(camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey));
+        });
+  }
 }
