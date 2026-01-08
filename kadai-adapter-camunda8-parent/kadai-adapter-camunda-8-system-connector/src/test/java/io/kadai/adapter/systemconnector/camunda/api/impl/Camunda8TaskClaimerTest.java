@@ -63,6 +63,8 @@ class Camunda8TaskClaimerTest {
     long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
     camunda8TestUtil.waitUntil(
         () -> "admin".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
+
+    CamundaAssert.assertThat(processInstance).isActive();
   }
 
   @Test
@@ -107,6 +109,8 @@ class Camunda8TaskClaimerTest {
 
     camunda8TestUtil.waitUntil(
         () -> "admin".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
+
+    CamundaAssert.assertThat(processInstance).isActive();
   }
 
   @Test
@@ -151,6 +155,8 @@ class Camunda8TaskClaimerTest {
     assertThat(cancelClaimedKadaiTask.getState()).isEqualTo(io.kadai.task.api.TaskState.READY);
     camunda8TestUtil.waitUntil(
         () -> camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey) == null);
+
+    CamundaAssert.assertThat(processInstance).isActive();
   }
 
   @Test
@@ -196,5 +202,7 @@ class Camunda8TaskClaimerTest {
 
     camunda8TestUtil.waitUntil(
         () -> "admin".equals(camunda8TestUtil.getCamundaTaskAssignee(camundaTaskKey)));
+
+    CamundaAssert.assertThat(processInstance).isActive();
   }
 }

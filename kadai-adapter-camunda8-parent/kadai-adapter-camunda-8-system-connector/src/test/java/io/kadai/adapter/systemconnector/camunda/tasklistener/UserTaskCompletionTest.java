@@ -58,6 +58,8 @@ class UserTaskCompletionTest {
 
     final Task completedTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(completedTask.getState()).isEqualTo(TaskState.COMPLETED);
+
+    CamundaAssert.assertThat(processInstance).isCompleted();
   }
 
   @Test
@@ -95,10 +97,14 @@ class UserTaskCompletionTest {
     Task afterFirstCompletion = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(afterFirstCompletion.getState()).isEqualTo(TaskState.COMPLETED);
 
+    CamundaAssert.assertThat(processInstance).isCompleted();
+
     assertThatThrownBy(() -> completeUserTask(userTaskKey)).isInstanceOf(ProblemException.class);
 
     Task afterSecondAttempt = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(afterSecondAttempt.getState()).isEqualTo(TaskState.COMPLETED);
+
+    CamundaAssert.assertThat(processInstance).isCompleted();
   }
 
   private void completeUserTask(long userTaskKey) {
