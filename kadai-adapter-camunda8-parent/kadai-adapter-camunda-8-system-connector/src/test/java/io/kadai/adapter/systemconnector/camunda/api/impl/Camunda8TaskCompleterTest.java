@@ -100,9 +100,6 @@ class Camunda8TaskCompleterTest {
 
     long camundaTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
     camunda8TestUtil.waitUntil(
-        () -> {
-          System.out.println("Mooo: " + camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey));
-          return "CANCELED".equals(camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey));
-        });
+        () -> "CANCELED".equals(camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey)));
   }
 }
