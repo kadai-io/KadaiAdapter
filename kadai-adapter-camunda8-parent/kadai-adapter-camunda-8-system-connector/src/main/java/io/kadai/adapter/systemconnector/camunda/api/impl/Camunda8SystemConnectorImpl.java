@@ -15,7 +15,7 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   static final String BODY_CAMUNDA8_ASSIGN =
       "{\"assignee\": \"%s\", " + "\"allowOverride\": true, " + "\"action\": \"assign\"}";
-  static final String BODY_CAMUNDA8_COMPLETE = "{\"variables\": {}, \"action\": \"complete\"}";
+  static final String BODY_CAMUNDA8_COMPLETE = "{\"variables\": {%s}, \"action\": \"complete\"}";
   static final String BODY_EMPTY_REQUEST = "{}";
 
   private final Camunda8System camunda8System;

@@ -57,5 +57,7 @@ class UserTaskCancellationTest {
 
     final Task canceledTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(canceledTask.getState()).isEqualTo(TaskState.CANCELLED);
+
+    CamundaAssert.assertThat(processInstance).isTerminated();
   }
 }

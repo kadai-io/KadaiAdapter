@@ -1,5 +1,7 @@
 package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
+import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TaskCompleter.TASK_COMPLETED_BY_KADAI_KV_PAIR;
+
 import io.camunda.client.annotation.JobWorker;
 import io.camunda.client.api.response.ActivatedJob;
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
@@ -39,6 +41,12 @@ public class UserTaskCancellation implements MonitoredComponent {
         "UserTaskListener kadai-receive-task-cancelled-event has been called, "
             + "connected to process instance '{}'",
         job.getProcessInstanceKey());
+
+    if (job.getVariables().contains(TASK_COMPLETED_BY_KADAI_KV_PAIR)) {
+      LOGGER.debug("Cancellation was initiated by Kadai. Skipping cancel to avoid circle.");
+      monitoredRun.succeed();
+      return;
+    }
 
     try {
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);

@@ -20,20 +20,21 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class Camunda8TaskCompleter {
 
+  public static final String TASK_COMPLETED_BY_KADAI_KV_PAIR = "\"completedByKadai\":true";
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda8TaskCompleter.class);
   private final Camunda8HttpHeaderProvider httpHeaderProvider;
   private final RestTemplate restTemplate;
+
+  @Value("${kadai.adapter.camunda8.completing.enabled:true}")
+  private boolean completingEnabled;
+
+  private boolean completeConfigLogged = false;
 
   public Camunda8TaskCompleter(
       Camunda8HttpHeaderProvider httpHeaderProvider, RestTemplate restTemplate) {
     this.httpHeaderProvider = httpHeaderProvider;
     this.restTemplate = restTemplate;
   }
-
-  @Value("${kadai.adapter.camunda8.completing.enabled:true}")
-  private boolean completingEnabled;
-
-  private boolean completeConfigLogged = false;
 
   public SystemResponse completeCamunda8Task(
       Camunda8System camunda8System, ReferencedTask referencedTask) {
@@ -91,7 +92,8 @@ public class Camunda8TaskCompleter {
       requestBody = Camunda8SystemConnectorImpl.BODY_EMPTY_REQUEST;
     } else {
       requestBody =
-          Camunda8SystemConnectorImpl.BODY_CAMUNDA8_COMPLETE + camundaTask.getVariables() + "}}";
+          String.format(
+              Camunda8SystemConnectorImpl.BODY_CAMUNDA8_COMPLETE, TASK_COMPLETED_BY_KADAI_KV_PAIR);
     }
     return requestBody;
   }
