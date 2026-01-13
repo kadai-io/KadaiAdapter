@@ -7,17 +7,6 @@ import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
 
 /** Implementation of OutboundSystemConnector for Camunda 8. */
 public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
-
-  static final String URL_GET_CAMUNDA8_USER_TASKS = "/v2/user-tasks/";
-  static final String URL_CAMUNDA8_ASSIGNMENT = "/assignment";
-  static final String URL_CAMUNDA8_COMPLETION = "/completion";
-  static final String URL_CAMUNDA8_UNCLAIM = "/assignee";
-
-  static final String BODY_CAMUNDA8_ASSIGN =
-      "{\"assignee\": \"%s\", " + "\"allowOverride\": true, " + "\"action\": \"assign\"}";
-  static final String BODY_CAMUNDA8_COMPLETE = "{\"variables\": {}, \"action\": \"complete\"}";
-  static final String BODY_EMPTY_REQUEST = "{}";
-
   private final Camunda8System camunda8System;
   private final Camunda8TaskClaimer taskClaimer;
   private final Camunda8TaskCompleter taskCompleter;
@@ -36,17 +25,17 @@ public class Camunda8SystemConnectorImpl implements OutboundSystemConnector {
 
   @Override
   public SystemResponse completeReferencedTask(ReferencedTask camundaTask) {
-    return taskCompleter.completeCamunda8Task(camunda8System, camundaTask);
+    return taskCompleter.completeCamunda8Task(camundaTask);
   }
 
   @Override
   public SystemResponse claimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimer.claimCamunda8Task(camunda8System, camundaTask);
+    return taskClaimer.claimCamunda8Task(camundaTask);
   }
 
   @Override
   public SystemResponse cancelClaimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimCanceler.cancelClaimOfCamunda8Task(camunda8System, camundaTask);
+    return taskClaimCanceler.cancelClaimOfCamunda8Task(camundaTask);
   }
 
   @Override

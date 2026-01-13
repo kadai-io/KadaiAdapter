@@ -3,19 +3,13 @@ package io.kadai.adapter.systemconnector.camunda;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.camunda.client.CamundaClient;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8HttpHeaderProvider;
+import io.camunda.client.api.search.response.UserTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Utility class for Camunda 8 test operations. Similar to KadaiAdapterTestUtil but for Camunda 8
@@ -25,14 +19,12 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 public class Camunda8TestUtil {
 
   private final ObjectMapper mapper = new ObjectMapper();
-  @Autowired private CamundaClient client;
-  @Autowired private Camunda8HttpHeaderProvider httpHeaderProvider;
-  @Autowired private RestTemplate restTemplate;
+  @Autowired private CamundaClient camundaClient;
 
   public String getCamundaTaskAssignee(long taskKey) {
     try {
-      String jsonResponse = getCamundaTaskJson(taskKey);
-      return extractAssigneeFromJson(jsonResponse);
+      UserTask task = getCamundaTask(taskKey);
+      return task.getAssignee();
     } catch (Exception e) {
       return null;
     }
@@ -40,8 +32,8 @@ public class Camunda8TestUtil {
 
   public String getCamundaTaskStatus(long taskKey) {
     try {
-      String jsonResponse = getCamundaTaskJson(taskKey);
-      return extractStateFromJson(jsonResponse);
+      UserTask task = getCamundaTask(taskKey);
+      return task.getState().name();
     } catch (Exception e) {
       return null;
     }
@@ -49,23 +41,7 @@ public class Camunda8TestUtil {
 
   public void assignCamundaTask(long taskKey, String assignee) {
     try {
-      String requestUrl =
-          client.getConfiguration().getRestAddress() + "/v2/user-tasks/" + taskKey + "/assignment";
-
-      HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda8TasklistApi();
-
-      ObjectNode assignmentRequest = mapper.createObjectNode();
-      assignmentRequest.put("assignee", assignee);
-
-      String requestBody = mapper.writeValueAsString(assignmentRequest);
-      HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
-
-      ResponseEntity<String> response =
-          restTemplate.exchange(requestUrl, HttpMethod.POST, requestEntity, String.class);
-
-      if (!response.getStatusCode().is2xxSuccessful()) {
-        throw new RuntimeException("Failed to assign task: " + response.getStatusCode());
-      }
+      camundaClient.newAssignUserTaskCommand(taskKey).assignee(assignee).send().join();
     } catch (Exception e) {
       throw new RuntimeException("Failed to assign Camunda task", e);
     }
@@ -84,15 +60,12 @@ public class Camunda8TestUtil {
     await().atMost(15, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).until(condition);
   }
 
-  private String getCamundaTaskJson(long taskKey) {
-    String requestUrl = client.getConfiguration().getRestAddress() + "/v2/user-tasks/" + taskKey;
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda8TasklistApi();
-    HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-
-    ResponseEntity<String> response =
-        restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, String.class);
-
-    return response.getBody();
+  private UserTask getCamundaTask(long taskKey) {
+    try {
+      return camundaClient.newUserTaskGetRequest(taskKey).send().join();
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to assign Camunda task", e);
+    }
   }
 
   private String extractAssigneeFromJson(String jsonResponse) {
