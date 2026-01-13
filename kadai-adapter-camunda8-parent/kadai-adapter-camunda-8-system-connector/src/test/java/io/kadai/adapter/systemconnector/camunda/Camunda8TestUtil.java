@@ -64,7 +64,7 @@ public class Camunda8TestUtil {
     try {
       return camundaClient.newUserTaskGetRequest(taskKey).send().join();
     } catch (Exception e) {
-      throw new RuntimeException("Failed to assign Camunda task", e);
+      throw new RuntimeException("Failed to get Camunda task", e);
     }
   }
 
