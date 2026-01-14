@@ -3,7 +3,6 @@ package io.kadai.adapter.systemconnector.camunda;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.camunda.client.CamundaClient;
-import io.camunda.client.api.command.ProblemException;
 import io.camunda.client.api.search.response.UserTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
