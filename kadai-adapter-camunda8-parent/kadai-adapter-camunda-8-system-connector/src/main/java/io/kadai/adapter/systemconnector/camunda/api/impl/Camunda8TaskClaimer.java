@@ -3,7 +3,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8UtilRequester.getUserTaskKeyFromReferencedTask;
 
 import io.camunda.client.CamundaClient;
-import io.camunda.client.api.command.ProblemException;
+import io.camunda.client.api.command.ClientException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class Camunda8TaskClaimer {
             .send()
             .join();
         return new SystemResponse(HttpStatus.NO_CONTENT, null);
-      } catch (ProblemException e) {
+      } catch (ClientException e) {
         LOGGER.warn("Caught Exception when trying to claim camunda 8 task", e);
         throw e;
       }

@@ -1,6 +1,7 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ClientException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ public class Camunda8UtilRequester {
     try {
       camundaClient.newUserTaskGetRequest(userTaskKey).send().join();
       return true;
-    } catch (Exception e) {
+    } catch (ClientException e) {
       LOGGER.debug("Camunda 8 Task {} was not found. Returning silently", userTaskKey);
       return false;
     }
