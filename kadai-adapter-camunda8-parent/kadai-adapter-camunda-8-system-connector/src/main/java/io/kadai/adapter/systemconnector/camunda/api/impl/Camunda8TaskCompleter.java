@@ -43,13 +43,17 @@ public class Camunda8TaskCompleter {
       try {
         camundaClient
             .newCompleteUserTaskCommand(getUserTaskKeyFromReferencedTask(referencedTask))
-            .variables(referencedTask.getVariables())
+            .variables("{" + referencedTask.getVariables() + "}")
             .send()
             .join();
         return new SystemResponse(HttpStatus.NO_CONTENT, null);
       } catch (ClientException e) {
         if (Camunda8UtilRequester.isTaskExisting(
             camundaClient, getUserTaskKeyFromReferencedTask(referencedTask))) {
+          LOGGER.warn(
+              "Completion of Task {} encountered problems: {}",
+              referencedTask.getId(),
+              e.getMessage());
           return new SystemResponse(HttpStatus.OK, null);
         } else {
           LOGGER.warn("Caught Exception when trying to complete camunda task", e);
