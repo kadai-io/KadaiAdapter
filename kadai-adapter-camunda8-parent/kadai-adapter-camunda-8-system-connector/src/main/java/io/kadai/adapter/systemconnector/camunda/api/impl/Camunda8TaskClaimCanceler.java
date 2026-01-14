@@ -3,6 +3,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8UtilRequester.getUserTaskKeyFromReferencedTask;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ProblemException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import org.slf4j.Logger;
@@ -23,7 +24,8 @@ public class Camunda8TaskClaimCanceler {
 
   private boolean cancelClaimConfigLogged = false;
 
-  public Camunda8TaskClaimCanceler(@Autowired CamundaClient camundaClient) {
+  @Autowired
+  public Camunda8TaskClaimCanceler(CamundaClient camundaClient) {
     this.camundaClient = camundaClient;
   }
 
@@ -41,7 +43,7 @@ public class Camunda8TaskClaimCanceler {
             .send()
             .join();
         return new SystemResponse(HttpStatus.NO_CONTENT, null);
-      } catch (Exception e) {
+      } catch (ProblemException e) {
         LOGGER.warn(
             "Failed to cancel claim for Camunda 8 task: {}. Error: {}",
             referencedTask.getId(),

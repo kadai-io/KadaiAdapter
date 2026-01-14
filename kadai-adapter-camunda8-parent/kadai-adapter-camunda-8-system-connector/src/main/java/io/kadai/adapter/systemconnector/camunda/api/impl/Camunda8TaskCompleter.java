@@ -3,6 +3,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8UtilRequester.getUserTaskKeyFromReferencedTask;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ProblemException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import org.slf4j.Logger;
@@ -24,7 +25,8 @@ public class Camunda8TaskCompleter {
 
   private boolean completeConfigLogged = false;
 
-  public Camunda8TaskCompleter(@Autowired CamundaClient camundaClient) {
+  @Autowired
+  public Camunda8TaskCompleter(CamundaClient camundaClient) {
     this.camundaClient = camundaClient;
   }
 
@@ -41,10 +43,11 @@ public class Camunda8TaskCompleter {
       try {
         camundaClient
             .newCompleteUserTaskCommand(getUserTaskKeyFromReferencedTask(referencedTask))
+            .variables(referencedTask.getVariables())
             .send()
             .join();
         return new SystemResponse(HttpStatus.NO_CONTENT, null);
-      } catch (Exception e) {
+      } catch (ProblemException e) {
         if (Camunda8UtilRequester.isTaskExisting(
             camundaClient, getUserTaskKeyFromReferencedTask(referencedTask))) {
           return new SystemResponse(HttpStatus.OK, null);
