@@ -42,9 +42,12 @@ public class Camunda8TaskCompleter {
 
     if (completingEnabled) {
       try {
+        final String variables =
+            String.format(
+                "{%s, %s}", referencedTask.getVariables(), TASK_COMPLETED_BY_KADAI_KV_PAIR);
         camundaClient
             .newCompleteUserTaskCommand(getUserTaskKeyFromReferencedTask(referencedTask))
-            .variables("{" + referencedTask.getVariables() + "}")
+            .variables(variables)
             .send()
             .join();
         return new SystemResponse(HttpStatus.NO_CONTENT, null);
