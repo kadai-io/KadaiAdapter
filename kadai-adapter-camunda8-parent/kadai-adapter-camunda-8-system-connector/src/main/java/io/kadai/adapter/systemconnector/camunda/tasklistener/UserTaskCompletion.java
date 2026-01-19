@@ -36,6 +36,8 @@ public class UserTaskCompletion implements MonitoredComponent {
   @JobWorker(type = "kadai-receive-task-completed-event")
   public void receiveTaskCompletedEvent(final ActivatedJob job)
       throws TaskTerminationFailedException {
+    System.out.println("Foo:" + job.getVariables());
+
     monitoredRun.start();
     LOGGER.info(
         "UserTaskListener kadai-receive-task-completed-event has been called, "

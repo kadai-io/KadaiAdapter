@@ -8,6 +8,7 @@ import io.camunda.client.api.command.ProblemException;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.process.test.api.CamundaAssert;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
+import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
 import io.kadai.common.api.KadaiEngine;
 import io.kadai.common.test.security.WithAccessId;
@@ -52,7 +53,7 @@ class UserTaskCompletionTest {
 
     final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
     final String externalId = kadaiTask.getExternalId();
-    final long userTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+    final long userTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
 
     client.newCompleteUserTaskCommand(userTaskKey).send().join();
 
@@ -90,7 +91,8 @@ class UserTaskCompletionTest {
 
     final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
     final String externalId = kadaiTask.getExternalId();
-    final long userTaskKey = Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+    ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
+    final long userTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
 
     client.newCompleteUserTaskCommand(userTaskKey).send().join();
 

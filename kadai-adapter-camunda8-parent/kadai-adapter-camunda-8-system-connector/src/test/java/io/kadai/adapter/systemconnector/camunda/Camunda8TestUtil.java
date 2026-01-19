@@ -4,6 +4,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.search.response.UserTask;
+import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class Camunda8TestUtil {
   }
 
   public long extractCamundaTaskKeyFromExternalId(String externalId) {
-    return Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+    return ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
   }
 
   public long extractCamundaTaskKey(io.kadai.task.api.models.Task kadaiTask) {

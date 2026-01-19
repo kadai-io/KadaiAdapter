@@ -76,6 +76,42 @@ public class ReferencedTaskCreator {
     return referencedTask;
   }
 
+  public static String resolveTaskId(ActivatedJob activatedJob, Camunda8System camunda8System) {
+    return String.format(
+        "c8sysid-%d-utk-%d-eik-%d",
+        camunda8System.getIdentifier(),
+        activatedJob.getUserTask().getUserTaskKey(),
+        activatedJob.getElementInstanceKey());
+  }
+
+  public static Long extractUserTaskKeyFromTaskId(String taskId) {
+    if (taskId == null) {
+      throw new IllegalArgumentException("taskId must not be null");
+    }
+
+    String[] parts = taskId.split("-");
+    // Expected: [c8sysid, <id>, utk, <userTaskKey>, eik, <elementInstanceKey>]
+    if (parts.length != 6 || !"utk".equals(parts[2])) {
+      throw new IllegalArgumentException("Invalid taskId format: " + taskId);
+    }
+
+    return Long.parseLong(parts[3]);
+  }
+
+  public static Long extractElementInstanceKeyFromTaskId(String taskId) {
+    if (taskId == null) {
+      throw new IllegalArgumentException("taskId must not be null");
+    }
+
+    String[] parts = taskId.split("-");
+    // Expected: [c8sysid, <id>, utk, <userTaskKey>, eik, <elementInstanceKey>]
+    if (parts.length != 6 || !"eik".equals(parts[4])) {
+      throw new IllegalArgumentException("Invalid taskId format: " + taskId);
+    }
+
+    return Long.parseLong(parts[5]);
+  }
+
   @SuppressWarnings("SameParameterValue")
   static List<String> splitVariableNames(String variableNamesConcatenated, char delimiter) {
     List<String> result = new LinkedList<>();
@@ -97,12 +133,6 @@ public class ReferencedTaskCreator {
     }
 
     return result;
-  }
-
-  private static String resolveTaskId(ActivatedJob activatedJob, Camunda8System camunda8System) {
-    return String.format(
-        "c8sysid-%d-utk-%d",
-        camunda8System.getIdentifier(), activatedJob.getUserTask().getUserTaskKey());
   }
 
   /**
