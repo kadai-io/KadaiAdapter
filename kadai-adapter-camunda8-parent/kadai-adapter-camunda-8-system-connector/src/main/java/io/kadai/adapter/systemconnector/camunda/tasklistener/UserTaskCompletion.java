@@ -1,6 +1,6 @@
 package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
-import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TaskCompleter.TASK_COMPLETED_BY_KADAI_KV_PAIR;
+import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TaskCompleter.USER_TASK_COMPLETED_BY_KADAI_ACTION;
 
 import io.camunda.client.annotation.JobWorker;
 import io.camunda.client.api.response.ActivatedJob;
@@ -12,6 +12,7 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import io.kadai.adapter.util.LowerMedian;
 import java.time.Duration;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -36,16 +37,15 @@ public class UserTaskCompletion implements MonitoredComponent {
   @JobWorker(type = "kadai-receive-task-completed-event")
   public void receiveTaskCompletedEvent(final ActivatedJob job)
       throws TaskTerminationFailedException {
-    System.out.println("Foo:" + job.getVariables());
-
     monitoredRun.start();
     LOGGER.info(
         "UserTaskListener kadai-receive-task-completed-event has been called, "
             + "connected to process instance '{}'",
         job.getProcessInstanceKey());
 
-    if (job.getVariables().contains(TASK_COMPLETED_BY_KADAI_KV_PAIR)) {
-      LOGGER.debug("Completion was initiated by Kadai. Skipping completion to avoid circle.");
+    final String userTaskAction = Objects.toString(job.getUserTask().getAction(), "null");
+    if (userTaskAction.equals(USER_TASK_COMPLETED_BY_KADAI_ACTION)) {
+      LOGGER.debug("Completion was initiated by Kadai. Skipping complete to avoid circle.");
       monitoredRun.succeed();
       return;
     }

@@ -1,6 +1,5 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
-import static io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator.extractElementInstanceKeyFromTaskId;
 import static io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator.extractUserTaskKeyFromTaskId;
 
 import io.camunda.client.CamundaClient;
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Camunda8TaskCompleter {
 
-  public static final String TASK_COMPLETED_BY_KADAI_KV_PAIR = "\"completedByKadai\":true";
+  public static final String USER_TASK_COMPLETED_BY_KADAI_ACTION = "completed-by-kadai";
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda8TaskCompleter.class);
   private final CamundaClient camundaClient;
 
@@ -44,19 +43,10 @@ public class Camunda8TaskCompleter {
     if (completingEnabled) {
       final Long userTaskKey = extractUserTaskKeyFromTaskId(referencedTask.getId());
       try {
-        // camunda enforces this order: first set local var, then complete
-        // this isn't ideal as we may first set the var successfully
-        // but then fail completion
-        // leaving behind a dirty state
-        camundaClient
-            .newSetVariablesCommand(extractElementInstanceKeyFromTaskId(referencedTask.getId()))
-            .variable("completedByKadai", true)
-            .local(true)
-            .send()
-            .join();
         camundaClient
             .newCompleteUserTaskCommand(userTaskKey)
             .variables(String.format("{%s}", referencedTask.getVariables()))
+            .action(USER_TASK_COMPLETED_BY_KADAI_ACTION)
             .send()
             .join();
         return new SystemResponse(HttpStatus.NO_CONTENT, null);
@@ -66,13 +56,6 @@ public class Camunda8TaskCompleter {
               "Completion of Task {} encountered problems: {}",
               referencedTask.getId(),
               e.getMessage());
-          // last-resort attempt to avoid dirty state
-          camundaClient
-              .newSetVariablesCommand(extractElementInstanceKeyFromTaskId(referencedTask.getId()))
-              .variable("completedByKadai", false)
-              .local(true)
-              .send()
-              .join();
           return new SystemResponse(HttpStatus.OK, null);
         } else {
           LOGGER.warn("Caught Exception when trying to complete Camunda-Task", e);
