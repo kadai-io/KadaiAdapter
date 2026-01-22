@@ -1,5 +1,7 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
+import static io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCancellation.USER_TASK_CANCELLED_JOB_WORKER_TYPE;
+import static io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion.USER_TASK_COMPLETED_JOB_WORKER_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
@@ -84,7 +86,7 @@ class Camunda8TaskCompleterTest {
     try (final JobWorker worker =
         client
             .newWorker()
-            .jobType("kadai-receive-task-completed-event")
+            .jobType(USER_TASK_COMPLETED_JOB_WORKER_TYPE)
             .handler(verificationHandler)
             .open()) {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
@@ -173,7 +175,7 @@ class Camunda8TaskCompleterTest {
     try (final JobWorker worker =
         client
             .newWorker()
-            .jobType("kadai-receive-task-cancelled-event")
+            .jobType(USER_TASK_CANCELLED_JOB_WORKER_TYPE)
             .handler(verificationHandler)
             .open()) {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");

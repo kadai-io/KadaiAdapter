@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserTaskCreation implements MonitoredComponent {
 
+  public static final String USER_TASK_CREATED_JOB_WORKER_TYPE = "kadai-receive-task-created-event";
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCreation.class);
 
   private final KadaiTaskStarterService taskStarter;
@@ -30,7 +31,7 @@ public class UserTaskCreation implements MonitoredComponent {
     this.referencedTaskCreator = referencedTaskCreator;
   }
 
-  @JobWorker(type = "kadai-receive-task-created-event")
+  @JobWorker(type = USER_TASK_CREATED_JOB_WORKER_TYPE)
   public void receiveTaskCreatedEvent(final ActivatedJob job) throws TaskCreationFailedException {
     monitoredRun.start();
     LOGGER.info(

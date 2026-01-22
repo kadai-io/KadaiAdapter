@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserTaskCompletion implements MonitoredComponent {
 
+  public static final String USER_TASK_COMPLETED_JOB_WORKER_TYPE =
+      "kadai-receive-task-completed-event";
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCompletion.class);
   private static final String TASK_STATE_COMPLETED = "COMPLETED";
 
@@ -34,7 +36,7 @@ public class UserTaskCompletion implements MonitoredComponent {
     this.referencedTaskCreator = referencedTaskCreator;
   }
 
-  @JobWorker(type = "kadai-receive-task-completed-event")
+  @JobWorker(type = USER_TASK_COMPLETED_JOB_WORKER_TYPE)
   public void receiveTaskCompletedEvent(final ActivatedJob job)
       throws TaskTerminationFailedException {
     monitoredRun.start();

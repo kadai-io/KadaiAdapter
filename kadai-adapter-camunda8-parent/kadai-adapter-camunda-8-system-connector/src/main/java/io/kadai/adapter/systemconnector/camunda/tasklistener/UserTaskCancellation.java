@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserTaskCancellation implements MonitoredComponent {
 
+  public static final String USER_TASK_CANCELLED_JOB_WORKER_TYPE =
+      "kadai-receive-task-cancelled-event";
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCancellation.class);
   private static final String TASK_STATE_CANCELLED = "CANCELLED";
 
@@ -34,7 +36,7 @@ public class UserTaskCancellation implements MonitoredComponent {
     this.referencedTaskCreator = referencedTaskCreator;
   }
 
-  @JobWorker(type = "kadai-receive-task-cancelled-event")
+  @JobWorker(type = USER_TASK_CANCELLED_JOB_WORKER_TYPE)
   public void receiveTaskCancelledEvent(final ActivatedJob job)
       throws TaskTerminationFailedException {
     monitoredRun.start();
