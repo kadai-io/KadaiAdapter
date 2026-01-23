@@ -45,7 +45,7 @@ public class ReferencedTaskCreator {
     referencedTask.setDue(formatIso8601OffsetDateTime(userTaskProperties.getDueDate()));
     referencedTask.setPlanned(formatIso8601OffsetDateTime(userTaskProperties.getFollowUpDate()));
     referencedTask.setTaskDefinitionKey(job.getElementId());
-    referencedTask.setBusinessProcessId(job.getBpmnProcessId());
+    referencedTask.setBusinessProcessId(String.valueOf(job.getProcessInstanceKey()));
 
     referencedTask.setWorkbasketKey(getVariable(job, "kadai_workbasket_key"));
     referencedTask.setClassificationKey(getVariable(job, "kadai_classification_key"));
