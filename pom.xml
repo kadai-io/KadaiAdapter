@@ -66,7 +66,7 @@
     <version.spring.boot>3.5.9</version.spring.boot>
 
     <version.jakarta.annotation>3.0.0</version.jakarta.annotation>
-    <version.jakarta-ws-rs-api>3.0.0</version.jakarta-ws-rs-api>
+    <version.jakarta-ws-rs-api>4.0.0</version.jakarta-ws-rs-api>
 
     <version.resteasy.spring.boot>6.3.0.Final</version.resteasy.spring.boot>
     <version.org.webjars.bootstrap>5.3.8</version.org.webjars.bootstrap>
