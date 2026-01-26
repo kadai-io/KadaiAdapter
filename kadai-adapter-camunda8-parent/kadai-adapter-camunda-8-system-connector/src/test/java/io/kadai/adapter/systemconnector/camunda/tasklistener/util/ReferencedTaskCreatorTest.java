@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -22,13 +23,45 @@ import org.mockito.Mockito;
 
 class ReferencedTaskCreatorTest {
 
+  @CsvSource(
+      delimiter = ',',
+      value = {
+        "c8sysid-alpha-utk-54187487447-eik-4281741874, 54187487447",
+        "c8sysid-beta-utk-54187487447-eik-5427894827, 54187487447",
+        "c8sysid-451507417441-utk-54187487447-eik-45414714785142, 54187487447",
+        "c8sysid-0-utk-54187487447-eik-54771478745, 54187487447",
+        "c8sysid-1-utk-54187487447-eik-1238745125, 54187487447",
+      })
+  @ParameterizedTest
+  void should_ExtractUserTaskKeyFromTaskId(String taskId, Long expectedUserTaskKey) {
+    final Long actual = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(taskId);
+
+    assertThat(actual).isEqualTo(expectedUserTaskKey);
+  }
+
+  @CsvSource(
+      delimiter = ',',
+      value = {
+        "c8sysid-alpha-utk-54187487447-eik-4281741874, 4281741874",
+        "c8sysid-beta-utk-54187487447-eik-5427894827, 5427894827",
+        "c8sysid-451507417441-utk-54187487447-eik-45414714785142, 45414714785142",
+        "c8sysid-0-utk-54187487447-eik-54771478745, 54771478745",
+        "c8sysid-1-utk-54187487447-eik-1238745125, 1238745125",
+      })
+  @ParameterizedTest
+  void should_ExtractElementInstanceKeyFromTaskId(String taskId, Long expectedElementInstanceKey) {
+    final Long actual = ReferencedTaskCreator.extractElementInstanceKeyFromTaskId(taskId);
+
+    assertThat(actual).isEqualTo(expectedElementInstanceKey);
+  }
+
   @Test
   void should_CreateReferencedTaskFromActivatedJob_WhenNameIsGiven() {
     final Camunda8System camunda8System = new Camunda8System();
     camunda8System.setRestAddress("https://foo.bar.baz/bat");
 
     final ReferencedTask expected = new ReferencedTask();
-    expected.setId("c8sysid-0-utk-123456789");
+    expected.setId("c8sysid-0-utk-123456789-eik-111111111");
     expected.setAssignee("Holger");
     expected.setDue("2000-01-01T00:00:00.000+0000");
     expected.setPlanned("2001-01-01T00:00:00.000+0000");
@@ -62,6 +95,7 @@ class ReferencedTaskCreatorTest {
     when(activatedJob.getUserTask()).thenReturn(userTaskProperties);
     when(activatedJob.getElementId()).thenReturn("abcdefgh");
     when(activatedJob.getProcessInstanceKey()).thenReturn(987654321L);
+    when(activatedJob.getElementInstanceKey()).thenReturn(111111111L);
     final HashMap<String, Object> variables = new HashMap<>();
     variables.put("kadai_manual_priority", 42);
     variables.put("kadai_workbasket_key", "foo");
@@ -97,7 +131,7 @@ class ReferencedTaskCreatorTest {
     camunda8System.setRestAddress("https://foo.bar.baz/bat");
 
     final ReferencedTask expected = new ReferencedTask();
-    expected.setId("c8sysid-0-utk-123456789");
+    expected.setId("c8sysid-0-utk-123456789-eik-111111111");
     expected.setAssignee("Holger");
     expected.setDue("2000-01-01T00:00:00.000+0000");
     expected.setPlanned("2001-01-01T00:00:00.000+0000");
@@ -131,6 +165,7 @@ class ReferencedTaskCreatorTest {
     when(activatedJob.getUserTask()).thenReturn(userTaskProperties);
     when(activatedJob.getElementId()).thenReturn("abcdefgh");
     when(activatedJob.getProcessInstanceKey()).thenReturn(987654321L);
+    when(activatedJob.getElementInstanceKey()).thenReturn(111111111L);
     final HashMap<String, Object> variables = new HashMap<>();
     variables.put("kadai_manual_priority", 42);
     variables.put("kadai_workbasket_key", "foo");

@@ -1,6 +1,6 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
-import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8UtilRequester.getUserTaskKeyFromReferencedTask;
+import static io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator.extractUserTaskKeyFromTaskId;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ClientException;
@@ -42,7 +42,7 @@ public class Camunda8TaskClaimer {
     if (claimingEnabled) {
       try {
         camundaClient
-            .newAssignUserTaskCommand(getUserTaskKeyFromReferencedTask(referencedTask))
+            .newAssignUserTaskCommand(extractUserTaskKeyFromTaskId(referencedTask.getId()))
             .assignee(referencedTask.getAssignee())
             .send()
             .join();
