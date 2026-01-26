@@ -61,7 +61,7 @@ class ReferencedTaskCreatorTest {
     camunda8System.setRestAddress("https://foo.bar.baz/bat");
 
     final ReferencedTask expected = new ReferencedTask();
-    expected.setId("c8sysid-0-utk-123456789");
+    expected.setId("c8sysid-0-utk-123456789-eik-111111111");
     expected.setAssignee("Holger");
     expected.setDue("2000-01-01T00:00:00.000+0000");
     expected.setPlanned("2001-01-01T00:00:00.000+0000");
@@ -95,6 +95,7 @@ class ReferencedTaskCreatorTest {
     when(activatedJob.getUserTask()).thenReturn(userTaskProperties);
     when(activatedJob.getElementId()).thenReturn("abcdefgh");
     when(activatedJob.getProcessInstanceKey()).thenReturn(987654321L);
+    when(activatedJob.getElementInstanceKey()).thenReturn(111111111L);
     final HashMap<String, Object> variables = new HashMap<>();
     variables.put("kadai_manual_priority", 42);
     variables.put("kadai_workbasket_key", "foo");
@@ -130,7 +131,7 @@ class ReferencedTaskCreatorTest {
     camunda8System.setRestAddress("https://foo.bar.baz/bat");
 
     final ReferencedTask expected = new ReferencedTask();
-    expected.setId("c8sysid-0-utk-123456789");
+    expected.setId("c8sysid-0-utk-123456789-eik-111111111");
     expected.setAssignee("Holger");
     expected.setDue("2000-01-01T00:00:00.000+0000");
     expected.setPlanned("2001-01-01T00:00:00.000+0000");
@@ -164,6 +165,7 @@ class ReferencedTaskCreatorTest {
     when(activatedJob.getUserTask()).thenReturn(userTaskProperties);
     when(activatedJob.getElementId()).thenReturn("abcdefgh");
     when(activatedJob.getProcessInstanceKey()).thenReturn(987654321L);
+    when(activatedJob.getElementInstanceKey()).thenReturn(111111111L);
     final HashMap<String, Object> variables = new HashMap<>();
     variables.put("kadai_manual_priority", 42);
     variables.put("kadai_workbasket_key", "foo");
