@@ -11,7 +11,7 @@
     <parent>
         <groupId>io.kadai</groupId>
         <artifactId>kadai-adapter-parent</artifactId>
-        <version>9.3.3</version>
+        <version>9.3.4</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
