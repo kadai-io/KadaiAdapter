@@ -13,6 +13,8 @@ public final class OutboxDataSource {
   private static final Logger LOGGER = LoggerFactory.getLogger(OutboxDataSource.class);
   private static volatile DataSource dataSource;
 
+  private OutboxDataSource() {}
+
   public static DataSource get() {
     DataSource local = dataSource;
     if (local == null) {
