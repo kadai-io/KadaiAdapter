@@ -15,16 +15,21 @@ import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
 import io.kadai.task.api.models.TaskSummary;
 import java.util.List;
+import org.junit.jupiter.api.ClassOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestClassOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 
 @DirtiesContext
+@TestClassOrder(OrderAnnotation.class)
 class UserTaskCompletionTest {
 
   @Nested
+  @Order(1)
   @KadaiAdapterCamunda8SpringBootTest
   class NoMultiTenancyUserTaskCompletionTest {
     @Autowired private CamundaClient client;
@@ -116,6 +121,7 @@ class UserTaskCompletionTest {
   }
 
   @Nested
+  @Order(2)
   @TestPropertySource("classpath:camunda8-mt-test-application.properties")
   @KadaiAdapterCamunda8SpringBootTest
   class MultiTenancyUserTaskCompletionTest {
@@ -130,10 +136,16 @@ class UserTaskCompletionTest {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
       kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
 
+      // create new Tenant and add user to it (user needs access to all tenants)
       final String tenant1 = "tenant1";
       final String allTenantsUser = "demo";
-      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).execute();
-      client.newAssignUserToTenantCommand().username(allTenantsUser).tenantId(tenant1).execute();
+      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).send().join();
+      client
+          .newAssignUserToTenantCommand()
+          .username(allTenantsUser)
+          .tenantId(tenant1)
+          .send()
+          .join();
 
       client
           .newDeployResourceCommand()
@@ -175,16 +187,20 @@ class UserTaskCompletionTest {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
       kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
 
-      final String defaultTenant = "<default>";
+      // create new Tenant and add user to it (user needs access to all tenants)
       final String tenant1 = "tenant1";
       final String allTenantsUser = "demo";
-      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).execute();
-      client.newAssignUserToTenantCommand().username(allTenantsUser).tenantId(tenant1).execute();
+      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).send().join();
+      client
+          .newAssignUserToTenantCommand()
+          .username(allTenantsUser)
+          .tenantId(tenant1)
+          .send()
+          .join();
 
       client
           .newDeployResourceCommand()
           .addResourceFromClasspath("processes/sayHello.bpmn")
-          .tenantId(defaultTenant)
           .send()
           .join();
 
@@ -193,7 +209,6 @@ class UserTaskCompletionTest {
               .newCreateInstanceCommand()
               .bpmnProcessId("Test_Process")
               .latestVersion()
-              .tenantId(defaultTenant)
               .send()
               .join();
 

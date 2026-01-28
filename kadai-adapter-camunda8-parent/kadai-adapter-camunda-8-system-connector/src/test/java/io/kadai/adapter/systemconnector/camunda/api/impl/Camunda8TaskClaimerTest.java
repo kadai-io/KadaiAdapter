@@ -284,6 +284,7 @@ class Camunda8TaskClaimerTest {
       client
           .newDeployResourceCommand()
           .addResourceFromClasspath("processes/sayHello.bpmn")
+          .tenantId(tenant1)
           .send()
           .join();
 
@@ -292,6 +293,7 @@ class Camunda8TaskClaimerTest {
               .newCreateInstanceCommand()
               .bpmnProcessId("Test_Process")
               .latestVersion()
+              .tenantId(tenant1)
               .send()
               .join();
 
