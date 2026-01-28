@@ -13,16 +13,21 @@ import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
 import io.kadai.task.api.models.TaskSummary;
 import java.util.List;
+import org.junit.jupiter.api.ClassOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestClassOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 
 @DirtiesContext
+@TestClassOrder(OrderAnnotation.class)
 class UserTaskCancellationTest {
 
   @Nested
+  @Order(1)
   @KadaiAdapterCamunda8SpringBootTest
   class NoMultiTenancyUserTaskCancellationTest {
     @Autowired private CamundaClient client;
@@ -67,6 +72,7 @@ class UserTaskCancellationTest {
   }
 
   @Nested
+  @Order(2)
   @TestPropertySource("classpath:camunda8-mt-test-application.properties")
   @KadaiAdapterCamunda8SpringBootTest
   class MultiTenancyUserTaskCancellationTest {
