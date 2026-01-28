@@ -1,5 +1,7 @@
 package io.kadai.adapter.systemconnector.camunda.tasklistener;
 
+import static io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TaskCompleter.USER_TASK_COMPLETED_BY_KADAI_ACTION;
+
 import io.camunda.client.annotation.JobWorker;
 import io.camunda.client.api.response.ActivatedJob;
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
@@ -10,6 +12,7 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import io.kadai.adapter.util.LowerMedian;
 import java.time.Duration;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -17,6 +20,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserTaskCancellation implements MonitoredComponent {
 
+  public static final String USER_TASK_CANCELLED_JOB_WORKER_TYPE =
+      "kadai-receive-task-cancelled-event";
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCancellation.class);
   private static final String TASK_STATE_CANCELLED = "CANCELLED";
 
@@ -31,14 +36,21 @@ public class UserTaskCancellation implements MonitoredComponent {
     this.referencedTaskCreator = referencedTaskCreator;
   }
 
-  @JobWorker(type = "kadai-receive-task-cancelled-event")
-  public void receiveTaskCompletedEvent(final ActivatedJob job)
+  @JobWorker(type = USER_TASK_CANCELLED_JOB_WORKER_TYPE)
+  public void receiveTaskCancelledEvent(final ActivatedJob job)
       throws TaskTerminationFailedException {
     monitoredRun.start();
     LOGGER.info(
         "UserTaskListener kadai-receive-task-cancelled-event has been called, "
             + "connected to process instance '{}'",
         job.getProcessInstanceKey());
+
+    final String userTaskAction = Objects.toString(job.getUserTask().getAction(), "null");
+    if (userTaskAction.equals(USER_TASK_COMPLETED_BY_KADAI_ACTION)) {
+      LOGGER.debug("Cancellation was initiated by Kadai. Skipping cancel to avoid circle.");
+      monitoredRun.succeed();
+      return;
+    }
 
     try {
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);

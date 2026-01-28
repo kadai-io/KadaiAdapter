@@ -8,7 +8,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -46,45 +45,16 @@ public class Camunda8TestUtil {
       throw new RuntimeException("Failed to assign Camunda task", e);
     }
   }
-
-  public long extractCamundaTaskKeyFromExternalId(String externalId) {
-    return Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
-  }
-
-  public long extractCamundaTaskKey(io.kadai.task.api.models.Task kadaiTask) {
-    String externalId = kadaiTask.getExternalId();
-    return extractCamundaTaskKeyFromExternalId(externalId);
-  }
-
+  
   public void waitUntil(Callable<Boolean> condition) {
     await().atMost(15, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).until(condition);
   }
 
-  private UserTask getCamundaTask(long taskKey) {
+  public UserTask getCamundaTask(long taskKey) {
     try {
       return camundaClient.newUserTaskGetRequest(taskKey).send().join();
     } catch (Exception e) {
       throw new RuntimeException("Failed to get Camunda task", e);
-    }
-  }
-
-  private String extractAssigneeFromJson(String jsonResponse) {
-    try {
-      JsonNode root = mapper.readTree(jsonResponse);
-      JsonNode assigneeNode = root.get("assignee");
-      return assigneeNode != null && !assigneeNode.isNull() ? assigneeNode.asText() : null;
-    } catch (Exception e) {
-      return null;
-    }
-  }
-
-  private String extractStateFromJson(String jsonResponse) {
-    try {
-      JsonNode root = mapper.readTree(jsonResponse);
-      JsonNode stateNode = root.get("state");
-      return stateNode != null && !stateNode.isNull() ? stateNode.asText() : null;
-    } catch (Exception e) {
-      return null;
     }
   }
 }

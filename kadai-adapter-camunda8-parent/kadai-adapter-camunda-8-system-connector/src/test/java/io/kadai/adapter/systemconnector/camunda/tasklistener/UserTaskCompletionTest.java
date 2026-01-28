@@ -8,6 +8,7 @@ import io.camunda.client.api.command.ProblemException;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.process.test.api.CamundaAssert;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
+import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
 import io.kadai.common.api.KadaiEngine;
 import io.kadai.common.test.security.WithAccessId;
@@ -15,21 +16,16 @@ import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
 import io.kadai.task.api.models.TaskSummary;
 import java.util.List;
-import org.junit.jupiter.api.ClassOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestClassOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 
 @DirtiesContext
-@TestClassOrder(OrderAnnotation.class)
 class UserTaskCompletionTest {
 
   @Nested
-  @Order(1)
   @KadaiAdapterCamunda8SpringBootTest
   class NoMultiTenancyUserTaskCompletionTest {
     @Autowired private CamundaClient client;
@@ -64,13 +60,14 @@ class UserTaskCompletionTest {
 
       final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
       final String externalId = kadaiTask.getExternalId();
-      final long userTaskKey =
-          Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+      final long userTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
 
       client.newCompleteUserTaskCommand(userTaskKey).send().join();
 
       final Task completedTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
       assertThat(completedTask.getState()).isEqualTo(TaskState.COMPLETED);
+
+      CamundaAssert.assertThat(processInstance).isCompleted();
     }
 
     @Test
@@ -101,8 +98,7 @@ class UserTaskCompletionTest {
 
       final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
       final String externalId = kadaiTask.getExternalId();
-      final long userTaskKey =
-          Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+      final long userTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
 
       client.newCompleteUserTaskCommand(userTaskKey).send().join();
 
@@ -113,6 +109,8 @@ class UserTaskCompletionTest {
 
       Task afterSecondAttempt = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
       assertThat(afterSecondAttempt.getState()).isEqualTo(TaskState.COMPLETED);
+
+      CamundaAssert.assertThat(processInstance).isCompleted();
     }
 
     private void completeUserTask(long userTaskKey) {
@@ -121,7 +119,6 @@ class UserTaskCompletionTest {
   }
 
   @Nested
-  @Order(2)
   @TestPropertySource("classpath:camunda8-mt-test-application.properties")
   @KadaiAdapterCamunda8SpringBootTest
   class MultiTenancyUserTaskCompletionTest {
@@ -171,14 +168,15 @@ class UserTaskCompletionTest {
 
       final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
       final String externalId = kadaiTask.getExternalId();
-      final long userTaskKey =
-          Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+      final long userTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
 
       client.newCompleteUserTaskCommand(userTaskKey).send().join();
       assertThat(client.newUserTaskGetRequest(userTaskKey).send().join().getTenantId())
           .isEqualTo(tenant1);
       final Task completedTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
       assertThat(completedTask.getState()).isEqualTo(TaskState.COMPLETED);
+
+      CamundaAssert.assertThat(processInstance).isCompleted();
     }
 
     @Test
@@ -220,18 +218,21 @@ class UserTaskCompletionTest {
 
       final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
       final String externalId = kadaiTask.getExternalId();
-      final long userTaskKey =
-          Long.parseLong(externalId.substring(externalId.lastIndexOf("-") + 1));
+      final long userTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
 
       client.newCompleteUserTaskCommand(userTaskKey).send().join();
 
       Task afterFirstCompletion = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
       assertThat(afterFirstCompletion.getState()).isEqualTo(TaskState.COMPLETED);
 
+      CamundaAssert.assertThat(processInstance).isCompleted();
+
       assertThatThrownBy(() -> completeUserTask(userTaskKey)).isInstanceOf(ProblemException.class);
 
       Task afterSecondAttempt = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
       assertThat(afterSecondAttempt.getState()).isEqualTo(TaskState.COMPLETED);
+
+      CamundaAssert.assertThat(processInstance).isCompleted();
     }
 
     private void completeUserTask(long userTaskKey) {
