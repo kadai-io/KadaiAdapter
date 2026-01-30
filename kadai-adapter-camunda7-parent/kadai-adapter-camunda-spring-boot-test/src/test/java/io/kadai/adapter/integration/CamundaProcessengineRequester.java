@@ -89,7 +89,7 @@ public class CamundaProcessengineRequester {
             + PROCESS_DEFINITION_KEY_PATH
             + processKey
             + PROCESS_DEFINITION_START_PATH;
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda7RestApi();
     String body = "{" + variables + "}";
 
     ResponseEntity<String> answer =
@@ -118,7 +118,7 @@ public class CamundaProcessengineRequester {
     List<String> returnList = new ArrayList<String>();
 
     String url = BASIC_ENGINE_PATH + this.processEngineKey + TASK_PATH;
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda7RestApi();
 
     ResponseEntity<String> answer =
         restClient
@@ -154,7 +154,7 @@ public class CamundaProcessengineRequester {
             + "/"
             + camundaTaskId
             + COMPLETE_TASK_PATH;
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda7RestApi();
     ResponseEntity<String> answer =
         restClient
             .post()
@@ -185,7 +185,7 @@ public class CamundaProcessengineRequester {
    */
   public boolean getTaskFromTaskId(String camundaTaskId) throws JSONException {
     String url = BASIC_ENGINE_PATH + this.processEngineKey + TASK_PATH + "/" + camundaTaskId;
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda7RestApi();
     ResponseEntity<String> response;
     try {
       response =
@@ -221,7 +221,7 @@ public class CamundaProcessengineRequester {
             + TASK_PATH
             + "/?taskId="
             + camundaTaskId;
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda7RestApi();
     ResponseEntity<String> response =
         restClient
             .get()
@@ -249,7 +249,7 @@ public class CamundaProcessengineRequester {
             + TASK_PATH
             + "/?taskId="
             + camundaTaskId;
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda7RestApi();
     ResponseEntity<String> response =
         restClient
             .get()
@@ -283,7 +283,7 @@ public class CamundaProcessengineRequester {
     if (skipCustomListeners) {
       url += "?skipCustomListeners=true";
     }
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda7RestApi();
     ResponseEntity<String> answer;
     try {
       answer =
@@ -319,7 +319,7 @@ public class CamundaProcessengineRequester {
   public boolean isCorrectAssignee(String camundaTaskId, String assigneeValueToVerify) {
 
     String requestUrl = BASIC_ENGINE_PATH + this.processEngineKey + TASK_PATH + "/" + camundaTaskId;
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamundaRestApi();
+    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForCamunda7RestApi();
     ResponseEntity<String> responseEntity =
         restClient
             .get()
