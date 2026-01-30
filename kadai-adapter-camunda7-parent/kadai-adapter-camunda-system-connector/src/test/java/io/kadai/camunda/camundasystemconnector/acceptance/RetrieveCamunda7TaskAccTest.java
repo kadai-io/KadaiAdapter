@@ -41,9 +41,9 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(classes = {CamundaConnectorTestConfiguration.class})
 @SpringBootTest
-class RetrieveCamundaTaskAccTest {
+class RetrieveCamunda7TaskAccTest {
 
-  @Autowired Camunda7TaskRetriever taskRetriever;
+  @Autowired Camunda7TaskRetriever camunda7TaskRetriever;
 
   private MockWebServer mockWebServer;
 
@@ -132,7 +132,7 @@ class RetrieveCamundaTaskAccTest {
     List<ReferencedTask> actualResult = null;
     try {
       actualResult =
-          taskRetriever.retrieveNewStartedCamunda7Tasks(
+          camunda7TaskRetriever.retrieveNewStartedCamunda7Tasks(
               camundaSystemUrl, systemEngineIdentifier, null);
     } catch (Exception e) {
       e.printStackTrace();
@@ -168,7 +168,7 @@ class RetrieveCamundaTaskAccTest {
             .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .setBody(expectedReplyBody));
     List<ReferencedTask> actualResult =
-        taskRetriever.retrieveFinishedCamunda7Tasks(
+        camunda7TaskRetriever.retrieveFinishedCamunda7Tasks(
             camundaSystemUrl, camundaSystemEngineIdentifier, null);
     assertThat(actualResult).isNotEmpty();
     assertThat(actualResult.get(0)).isEqualTo(expectedTask);

@@ -48,7 +48,7 @@ public class Camunda7SystemConnectorImpl
   static final String BODY_SET_ASSIGNEE = "{\"userId\":";
   static final String UNCLAIM_TASK = "/unclaim";
 
-  private final Camunda7System camundaSystemUrl;
+  private final Camunda7System camunda7SystemUrl;
 
   private final Camunda7TaskRetriever taskRetriever;
 
@@ -64,8 +64,8 @@ public class Camunda7SystemConnectorImpl
 
   private final Duration lockDuration;
 
-  public Camunda7SystemConnectorImpl(Camunda7System camundaSystemUrl) {
-    this.camundaSystemUrl = camundaSystemUrl;
+  public Camunda7SystemConnectorImpl(Camunda7System camunda7SystemUrl) {
+    this.camunda7SystemUrl = camunda7SystemUrl;
     taskRetriever = AdapterSpringContextProvider.getBean(Camunda7TaskRetriever.class);
     taskCompleter = AdapterSpringContextProvider.getBean(Camunda7TaskCompleter.class);
     taskClaimer = AdapterSpringContextProvider.getBean(Camunda7TaskClaimer.class);
@@ -79,22 +79,22 @@ public class Camunda7SystemConnectorImpl
   @Override
   public List<ReferencedTask> retrieveNewStartedReferencedTasks() {
     return taskRetriever.retrieveNewStartedCamunda7Tasks(
-        camundaSystemUrl.getSystemTaskEventUrl(),
-        camundaSystemUrl.getCamunda7EngineIdentifier(),
+        camunda7SystemUrl.getSystemTaskEventUrl(),
+        camunda7SystemUrl.getCamunda7EngineIdentifier(),
         lockDuration);
   }
 
   @Override
   public void kadaiTasksHaveBeenCreatedForNewReferencedTasks(List<ReferencedTask> referencedTasks) {
     taskEventCleaner.cleanEventsForReferencedTasks(
-        referencedTasks, camundaSystemUrl.getSystemTaskEventUrl());
+        referencedTasks, camunda7SystemUrl.getSystemTaskEventUrl());
   }
 
   @Override
   public List<ReferencedTask> retrieveFinishedReferencedTasks() {
     return taskRetriever.retrieveFinishedCamunda7Tasks(
-        camundaSystemUrl.getSystemTaskEventUrl(),
-        camundaSystemUrl.getCamunda7EngineIdentifier(),
+        camunda7SystemUrl.getSystemTaskEventUrl(),
+        camunda7SystemUrl.getCamunda7EngineIdentifier(),
         lockDuration);
   }
 
@@ -102,7 +102,7 @@ public class Camunda7SystemConnectorImpl
   public void kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(
       List<ReferencedTask> referencedTasks) {
     taskEventCleaner.cleanEventsForReferencedTasks(
-        referencedTasks, camundaSystemUrl.getSystemTaskEventUrl());
+        referencedTasks, camunda7SystemUrl.getSystemTaskEventUrl());
   }
 
   @Override
@@ -112,38 +112,38 @@ public class Camunda7SystemConnectorImpl
 
   @Override
   public SystemResponse completeReferencedTask(ReferencedTask camundaTask) {
-    return taskCompleter.completeCamunda7Task(camundaSystemUrl, camundaTask);
+    return taskCompleter.completeCamunda7Task(camunda7SystemUrl, camundaTask);
   }
 
   @Override
   public SystemResponse claimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimer.claimCamunda7Task(camundaSystemUrl, camundaTask);
+    return taskClaimer.claimCamunda7Task(camunda7SystemUrl, camundaTask);
   }
 
   @Override
   public SystemResponse cancelClaimReferencedTask(ReferencedTask camundaTask) {
-    return taskClaimCanceler.cancelClaimOfCamunda7Task(camundaSystemUrl, camundaTask);
+    return taskClaimCanceler.cancelClaimOfCamunda7Task(camunda7SystemUrl, camundaTask);
   }
 
   @Override
   public String getSystemUrl() {
-    return camundaSystemUrl.getSystemRestUrl();
+    return camunda7SystemUrl.getSystemRestUrl();
   }
 
   @Override
   public void kadaiTaskFailedToBeCreatedForNewReferencedTask(
       ReferencedTask referencedTask, Exception e) {
     taskEventErrorHandler.decreaseRemainingRetriesAndLogErrorForReferencedTask(
-        referencedTask, e, camundaSystemUrl.getSystemTaskEventUrl());
+        referencedTask, e, camunda7SystemUrl.getSystemTaskEventUrl());
   }
 
   @Override
   public void unlockEvent(String eventId) {
-    taskEventErrorHandler.unlockEvent(eventId, camundaSystemUrl.getSystemTaskEventUrl());
+    taskEventErrorHandler.unlockEvent(eventId, camunda7SystemUrl.getSystemTaskEventUrl());
   }
 
   @Override
   public String toString() {
-    return "Camunda7SystemConnectorImpl [camundaSystemUrl=" + camundaSystemUrl + "]";
+    return "Camunda7SystemConnectorImpl [camundaSystemUrl=" + camunda7SystemUrl + "]";
   }
 }

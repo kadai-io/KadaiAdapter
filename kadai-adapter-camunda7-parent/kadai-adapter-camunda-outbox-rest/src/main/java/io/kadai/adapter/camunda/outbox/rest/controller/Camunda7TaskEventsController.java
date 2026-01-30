@@ -54,7 +54,7 @@ public class Camunda7TaskEventsController {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private static final String REMAINING_RETRIES = "remainingRetries";
 
-  Camunda7TaskEventsService camundaTaskEventService = new Camunda7TaskEventsService();
+  Camunda7TaskEventsService camunda7TaskEventService = new Camunda7TaskEventsService();
   Camunda7TaskEventResourceAssembler camunda7TaskEventResourceAssembler =
       new Camunda7TaskEventResourceAssembler();
   Camunda7TaskEventListResourceAssembler camunda7TaskEventListResourceAssembler =
@@ -68,7 +68,7 @@ public class Camunda7TaskEventsController {
 
     MultivaluedMap<String, String> filterParams = uriInfo.getQueryParameters();
 
-    List<Camunda7TaskEvent> camunda7TaskEvents = camundaTaskEventService.getEvents(filterParams);
+    List<Camunda7TaskEvent> camunda7TaskEvents = camunda7TaskEventService.getEvents(filterParams);
 
     camunda7TaskEventList.setCamunda7TaskEvents(camunda7TaskEvents);
 
@@ -84,7 +84,7 @@ public class Camunda7TaskEventsController {
   public Response getEvent(@PathParam("eventId") final int eventId)
       throws Camunda7TaskEventNotFoundException {
 
-    Camunda7TaskEvent camunda7TaskEvent = camundaTaskEventService.getEvent(eventId);
+    Camunda7TaskEvent camunda7TaskEvent = camunda7TaskEventService.getEvent(eventId);
 
     Camunda7TaskEventResource camunda7TaskEventResource =
         camunda7TaskEventResourceAssembler.toResource(camunda7TaskEvent);
@@ -97,7 +97,7 @@ public class Camunda7TaskEventsController {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response deleteEvents(String idsAsString) {
 
-    camundaTaskEventService.deleteEvents(idsAsString);
+    camunda7TaskEventService.deleteEvents(idsAsString);
 
     return Response.status(204).build();
   }
@@ -108,7 +108,7 @@ public class Camunda7TaskEventsController {
   public Response decreaseRemainingRetriesAndLogError(
       String eventIdOfTaskFailedToStartAndErrorLog) {
 
-    camundaTaskEventService.decreaseRemainingRetriesAndLogError(
+    camunda7TaskEventService.decreaseRemainingRetriesAndLogError(
         eventIdOfTaskFailedToStartAndErrorLog);
 
     return Response.status(204).build();
@@ -119,7 +119,7 @@ public class Camunda7TaskEventsController {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response unlockEvent(@PathParam("eventId") final int eventId) {
 
-    camundaTaskEventService.unlockEventForId(eventId);
+    camunda7TaskEventService.unlockEventForId(eventId);
 
     return Response.status(204).build();
   }
@@ -142,7 +142,7 @@ public class Camunda7TaskEventsController {
     int retriesToSet = patchMap.get(REMAINING_RETRIES);
 
     Camunda7TaskEvent camunda7TaskEvent =
-        camundaTaskEventService.setRemainingRetries(eventId, retriesToSet);
+        camunda7TaskEventService.setRemainingRetries(eventId, retriesToSet);
 
     Camunda7TaskEventResource camunda7TaskEventResource =
         camunda7TaskEventResourceAssembler.toResource(camunda7TaskEvent);
@@ -174,7 +174,7 @@ public class Camunda7TaskEventsController {
     int remainingRetries = Integer.parseInt(retries);
 
     List<Camunda7TaskEvent> camunda7TaskEvents =
-        camundaTaskEventService.setRemainingRetriesForMultipleEvents(
+        camunda7TaskEventService.setRemainingRetriesForMultipleEvents(
             remainingRetries, retriesToSet);
 
     Camunda7TaskEventList camunda7TaskEventList = new Camunda7TaskEventList();
@@ -190,7 +190,7 @@ public class Camunda7TaskEventsController {
   @DELETE
   public Response deleteFailedEvent(@PathParam("eventId") int eventId) {
 
-    camundaTaskEventService.deleteFailedEvent(eventId);
+    camunda7TaskEventService.deleteFailedEvent(eventId);
 
     return Response.status(204).build();
   }
@@ -200,7 +200,7 @@ public class Camunda7TaskEventsController {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response deleteAllFailedEvents() {
 
-    camundaTaskEventService.deleteAllFailedEvents();
+    camunda7TaskEventService.deleteAllFailedEvents();
 
     return Response.status(204).build();
   }
@@ -210,7 +210,7 @@ public class Camunda7TaskEventsController {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getEventsCount(@QueryParam("retries") int remainingRetries) {
 
-    String failedEventsCount = camundaTaskEventService.getEventsCount(remainingRetries);
+    String failedEventsCount = camunda7TaskEventService.getEventsCount(remainingRetries);
 
     return Response.status(200).entity(failedEventsCount).build();
   }
