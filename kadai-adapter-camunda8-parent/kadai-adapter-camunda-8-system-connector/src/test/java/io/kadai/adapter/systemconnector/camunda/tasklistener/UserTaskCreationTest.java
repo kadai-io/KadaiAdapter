@@ -144,6 +144,62 @@ class UserTaskCreationTest {
 
     @Test
     @WithAccessId(user = "admin")
+    void should_CreateKadaiTaskOnlyForTargetTenant() throws Exception {
+      kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
+      kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
+
+      // create new Tenant and add user to it (user needs access to all tenants)
+      final String allTenantsUser = "demo";
+      final String tenant1 = "tenant1";
+      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).send().join();
+      client
+          .newAssignUserToTenantCommand()
+          .username(allTenantsUser)
+          .tenantId(tenant1)
+          .send()
+          .join();
+      client
+          .newDeployResourceCommand()
+          .addResourceFromClasspath("processes/sayHello.bpmn")
+          .tenantId(tenant1)
+          .send()
+          .join();
+      final String tenant2 = "tenant2";
+      client.newCreateTenantCommand().tenantId(tenant2).name(tenant2).send().join();
+      client
+          .newAssignUserToTenantCommand()
+          .username(allTenantsUser)
+          .tenantId(tenant2)
+          .send()
+          .join();
+      client
+          .newDeployResourceCommand()
+          .addResourceFromClasspath("processes/sayHello.bpmn")
+          .tenantId(tenant2)
+          .send()
+          .join();
+      final ProcessInstanceEvent processInstance =
+          client
+              .newCreateInstanceCommand()
+              .bpmnProcessId("Test_Process")
+              .latestVersion()
+              .tenantId(tenant1)
+              .send()
+              .join();
+
+      CamundaAssert.assertThat(processInstance).isActive();
+      final List<TaskSummary> actual = kadaiEngine.getTaskService().createTaskQuery().list();
+      assertThat(actual).hasSize(1);
+      TaskSummary kadaiTask = actual.get(0);
+      assertThat(kadaiTask.getState()).isEqualTo(TaskState.READY);
+      assertThat(kadaiTask.getWorkbasketSummary().getKey()).isEqualTo("GPK_KSC");
+      assertThat(kadaiTask.getClassificationSummary().getKey()).isEqualTo("L11010");
+      assertThat(kadaiTask.getDomain()).isEqualTo("DOMAIN_A");
+      assertThat(kadaiTask.getName()).isEqualTo("Say Hello Task");
+    }
+
+    @Test
+    @WithAccessId(user = "admin")
     void should_NotCreateKadaiTask_When_WorkbasketNotFound() throws Exception {
       kadaiAdapterTestUtil.createWorkbasket("GPK_UNKNOWN", "DOMAIN_A");
       kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
