@@ -26,5 +26,6 @@
   <modules>
     <module>kadai-adapter-camunda-8-system-connector</module>
     <module>kadai-adapter-camunda-8-spring-boot-example</module>
+    <module>kadai-adapter-camunda-8-spring-boot-multi-tenancy-example</module>
   </modules>
 </project>
