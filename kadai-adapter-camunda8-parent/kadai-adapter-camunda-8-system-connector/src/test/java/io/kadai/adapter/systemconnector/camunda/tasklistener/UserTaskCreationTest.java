@@ -35,7 +35,7 @@ class UserTaskCreationTest {
 
     @Test
     @WithAccessId(user = "admin")
-    void should_CreateKadaiTask() throws Exception {
+    void should_CreateKadaiTask_When_KadaiDomainIsDeclaredInUserTask() throws Exception {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
       kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
       client
@@ -51,6 +51,43 @@ class UserTaskCreationTest {
               .latestVersion()
               .send()
               .join();
+
+      CamundaAssert.assertThat(processInstance).isActive();
+      final List<TaskSummary> actual = kadaiEngine.getTaskService().createTaskQuery().list();
+      assertThat(actual).hasSize(1);
+      TaskSummary kadaiTask = actual.get(0);
+      assertThat(kadaiTask.getState()).isEqualTo(TaskState.READY);
+      assertThat(kadaiTask.getWorkbasketSummary().getKey()).isEqualTo("GPK_KSC");
+      assertThat(kadaiTask.getClassificationSummary().getKey()).isEqualTo("L11010");
+      assertThat(kadaiTask.getDomain()).isEqualTo("DOMAIN_A");
+      assertThat(kadaiTask.getName()).isEqualTo("Say Hello Task");
+    }
+
+    @Test
+    @WithAccessId(user = "admin")
+    void should_CreateKadaiTask_When_KadaiDomainIsDeclaredInProcessInstance() throws Exception {
+      kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
+      kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
+      client
+          .newDeployResourceCommand()
+          .addResourceFromClasspath("processes/sayHelloNoKadaiDomainOnUserTask.bpmn")
+          .send()
+          .join();
+
+      final ProcessInstanceEvent processInstance =
+          client
+              .newCreateInstanceCommand()
+              .bpmnProcessId("Test_Process")
+              .latestVersion()
+              .send()
+              .join();
+
+      client
+          .newSetVariablesCommand(processInstance.getProcessInstanceKey())
+          .variable("kadai_domain", "DOMAIN_A")
+          .local(false)
+          .send()
+          .join();
 
       CamundaAssert.assertThat(processInstance).isActive();
       final List<TaskSummary> actual = kadaiEngine.getTaskService().createTaskQuery().list();
