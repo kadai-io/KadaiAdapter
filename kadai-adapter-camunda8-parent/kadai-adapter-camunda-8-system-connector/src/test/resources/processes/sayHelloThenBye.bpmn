@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1o9cijb" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.43.1" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="Test_Process" name="Say Hello, then Bye Process" isExecutable="true">
+    <bpmn:endEvent id="Event_0djfvur">
+      <bpmn:incoming>Flow_17yoy14</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_01fikvj" sourceRef="SayHello" targetRef="Activity_06jxf2k" />
+    <bpmn:sequenceFlow id="Flow_17yoy14" sourceRef="Activity_06jxf2k" targetRef="Event_0djfvur" />
+    <bpmn:sequenceFlow id="Flow_1hemi81" sourceRef="StartEvent_1" targetRef="SayHello" />
+    <bpmn:userTask id="Activity_06jxf2k" name="Say Bye">
+      <bpmn:documentation>This is a test description again</bpmn:documentation>
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:taskListeners>
+          <zeebe:taskListener eventType="completing" type="kadai-receive-task-completed-event" />
+          <zeebe:taskListener eventType="creating" type="kadai-receive-task-created-event" />
+          <zeebe:taskListener eventType="canceling" retries="" type="kadai-receive-task-cancelled-event" />
+        </zeebe:taskListeners>
+        <zeebe:taskSchedule followUpDate="=date and time(&#34;2025-12-02T12:00:00Z&#34;)" />
+        <zeebe:priorityDefinition priority="=25" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=&#34;GPK_KSC&#34;" target="kadai_workbasket_key" />
+          <zeebe:input source="=&#34;L11010&#34;" target="kadai_classification_key" />
+          <zeebe:input source="=&#34;DOMAIN_A&#34;" target="kadai_domain" />
+          <zeebe:input source="=&#34;attr1,attr2,some_propagated_key&#34;" target="kadai_attributes" />
+          <zeebe:input source="=&#34;Say Bye Task&#34;" target="kadai_name" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_01fikvj</bpmn:incoming>
+      <bpmn:outgoing>Flow_17yoy14</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="SayHello" name="Say Hello">
+      <bpmn:documentation>This is a test description</bpmn:documentation>
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:taskListeners>
+          <zeebe:taskListener eventType="completing" type="kadai-receive-task-completed-event" />
+          <zeebe:taskListener eventType="creating" type="kadai-receive-task-created-event" />
+          <zeebe:taskListener eventType="canceling" retries="" type="kadai-receive-task-cancelled-event" />
+        </zeebe:taskListeners>
+        <zeebe:taskSchedule followUpDate="=date and time(&#34;2025-12-02T12:00:00Z&#34;)" />
+        <zeebe:priorityDefinition priority="=20" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=&#34;GPK_KSC&#34;" target="kadai_workbasket_key" />
+          <zeebe:input source="=&#34;L11010&#34;" target="kadai_classification_key" />
+          <zeebe:input source="=&#34;DOMAIN_A&#34;" target="kadai_domain" />
+          <zeebe:input source="=&#34;attr1,attr2&#34;" target="kadai_attributes" />
+          <zeebe:input source="=&#34;1&#34;" target="attr1" />
+          <zeebe:input source="=&#34;2&#34;" target="attr2" />
+          <zeebe:input source="=&#34;Say Hello Task&#34;" target="kadai_name" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1hemi81</bpmn:incoming>
+      <bpmn:outgoing>Flow_01fikvj</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1hemi81</bpmn:outgoing>
+    </bpmn:startEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Test_Process">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="182" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ntepff_di" bpmnElement="SayHello">
+        <dc:Bounds x="260" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_06jxf2k_di" bpmnElement="Activity_06jxf2k">
+        <dc:Bounds x="450" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0djfvur_di" bpmnElement="Event_0djfvur">
+        <dc:Bounds x="642" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1hemi81_di" bpmnElement="Flow_1hemi81">
+        <di:waypoint x="218" y="120" />
+        <di:waypoint x="260" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17yoy14_di" bpmnElement="Flow_17yoy14">
+        <di:waypoint x="550" y="120" />
+        <di:waypoint x="642" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01fikvj_di" bpmnElement="Flow_01fikvj">
+        <di:waypoint x="360" y="120" />
+        <di:waypoint x="450" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.ProcessInstanceEvent;
+import io.camunda.client.api.search.response.Variable;
 import io.camunda.client.api.worker.JobHandler;
 import io.camunda.client.api.worker.JobWorker;
 import io.camunda.process.test.api.CamundaAssert;
@@ -78,6 +79,71 @@ class Camunda8TaskCompleterTest {
           () -> "COMPLETED".equals(camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey)));
 
       CamundaAssert.assertThat(processInstance).isCompleted();
+    }
+
+    @Test
+    @WithAccessId(user = "admin")
+    void should_PropagateNewVariablesToProcessContext_When_KadaiTaskIsCompleted() throws Exception {
+      kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
+      kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
+      client
+          .newDeployResourceCommand()
+          .addResourceFromClasspath("processes/sayHelloThenBye.bpmn")
+          .send()
+          .join();
+
+      final ProcessInstanceEvent processInstance =
+          client
+              .newCreateInstanceCommand()
+              .bpmnProcessId("Test_Process")
+              .latestVersion()
+              .send()
+              .join();
+
+      CamundaAssert.assertThat(processInstance).isActive();
+
+      List<TaskSummary> tasks = kadaiEngine.getTaskService().createTaskQuery().list();
+      assertThat(tasks).hasSize(1);
+      Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
+      kadaiTask.getCustomAttributeMap().put("camunda:some_propagated_key", "42");
+      kadaiTask = kadaiEngine.getTaskService().updateTask(kadaiTask);
+      kadaiEngine.getTaskService().claim(kadaiTask.getId());
+      kadaiEngine.getTaskService().completeTask(kadaiTask.getId());
+
+      final Task completedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
+      assertThat(completedKadaiTask.getState()).isEqualTo(TaskState.COMPLETED);
+      String externalId = kadaiTask.getExternalId();
+
+      long camundaTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
+      camunda8TestUtil.waitUntil(
+          () -> "COMPLETED".equals(camunda8TestUtil.getCamundaTaskStatus(camundaTaskKey)));
+
+      // verify Camunda-side existence and scope of new key
+      final boolean newVariablePropagated =
+          client.newVariableSearchRequest().send().join().items().stream()
+              .map(Variable::getName)
+              .anyMatch("some_propagated_key"::equals);
+      assertThat(newVariablePropagated);
+      final Long newVariableScopeKey =
+          client.newVariableSearchRequest().send().join().items().stream()
+              .filter(variable -> variable.getName().equals("some_propagated_key"))
+              .map(Variable::getScopeKey)
+              .findFirst()
+              .get();
+      assertThat(newVariableScopeKey).isEqualTo(processInstance.getProcessInstanceKey());
+
+      // second user-task has been created by Camunda
+      // verify propagation of new key to Kadai
+      tasks =
+          kadaiEngine
+              .getTaskService()
+              .createTaskQuery()
+              .externalIdNotIn(kadaiTask.getExternalId())
+              .list();
+      assertThat(tasks).hasSize(1);
+      kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
+      assertThat(kadaiTask.getCustomAttributeMap().get("camunda:some_propagated_key"))
+          .isEqualTo("42");
     }
 
     @Test
