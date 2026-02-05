@@ -105,7 +105,7 @@ class Camunda8TaskCompleterTest {
       List<TaskSummary> tasks = kadaiEngine.getTaskService().createTaskQuery().list();
       assertThat(tasks).hasSize(1);
       Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
-      kadaiTask.getCustomAttributeMap().put("camunda:some_propagated_key", "42");
+      kadaiTask.getCustomAttributeMap().put("camunda:some_propagated_key", "\"foo\"");
       kadaiTask = kadaiEngine.getTaskService().updateTask(kadaiTask);
       kadaiEngine.getTaskService().claim(kadaiTask.getId());
       kadaiEngine.getTaskService().completeTask(kadaiTask.getId());
@@ -143,7 +143,7 @@ class Camunda8TaskCompleterTest {
       assertThat(tasks).hasSize(1);
       kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
       assertThat(kadaiTask.getCustomAttributeMap().get("camunda:some_propagated_key"))
-          .isEqualTo("42");
+          .isEqualTo("\"foo\"");
     }
 
     @Test
