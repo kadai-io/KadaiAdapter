@@ -123,7 +123,7 @@ class Camunda8TaskCompleterTest {
           client.newVariableSearchRequest().send().join().items().stream()
               .map(Variable::getName)
               .anyMatch("some_propagated_key"::equals);
-      assertThat(newVariablePropagated);
+      assertThat(newVariablePropagated).isTrue();
       final Long newVariableScopeKey =
           client.newVariableSearchRequest().send().join().items().stream()
               .filter(variable -> variable.getName().equals("some_propagated_key"))
@@ -142,8 +142,8 @@ class Camunda8TaskCompleterTest {
               .list();
       assertThat(tasks).hasSize(1);
       kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
-      assertThat(kadaiTask.getCustomAttributeMap().get("camunda:some_propagated_key"))
-          .isEqualTo("\"foo\"");
+      assertThat(kadaiTask.getCustomAttributeMap())
+          .containsEntry("camunda:some_propagated_key", "\"foo\"");
     }
 
     @Test
