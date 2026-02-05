@@ -181,6 +181,78 @@ class UserTaskCompletionTest {
 
     @Test
     @WithAccessId(user = "admin")
+    void should_BeIdempotent_When_TaskCompletedTwice() throws Exception {
+      kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
+      kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
+
+      // create new Tenant and add user to it (user needs access to all tenants)
+      final String tenant1 = "tenant1";
+      final String allTenantsUser = "demo";
+      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).send().join();
+      client
+          .newAssignUserToTenantCommand()
+          .username(allTenantsUser)
+          .tenantId(tenant1)
+          .send()
+          .join();
+
+      client
+          .newDeployResourceCommand()
+          .addResourceFromClasspath("processes/sayHello.bpmn")
+          .send()
+          .join();
+
+      final ProcessInstanceEvent processInstance =
+          client
+              .newCreateInstanceCommand()
+              .bpmnProcessId("Test_Process")
+              .latestVersion()
+              .send()
+              .join();
+
+      CamundaAssert.assertThat(processInstance).isActive();
+
+      final List<TaskSummary> tasks = kadaiEngine.getTaskService().createTaskQuery().list();
+      assertThat(tasks).hasSize(1);
+      assertThat(tasks.get(0).getState()).isEqualTo(TaskState.READY);
+
+      final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
+      final String externalId = kadaiTask.getExternalId();
+      final long userTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
+
+      client.newCompleteUserTaskCommand(userTaskKey).send().join();
+
+      Task afterFirstCompletion = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
+      assertThat(afterFirstCompletion.getState()).isEqualTo(TaskState.COMPLETED);
+
+      CamundaAssert.assertThat(processInstance).isCompleted();
+
+      assertThatThrownBy(() -> completeUserTask(userTaskKey)).isInstanceOf(ProblemException.class);
+
+      Task afterSecondAttempt = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
+      assertThat(afterSecondAttempt.getState()).isEqualTo(TaskState.COMPLETED);
+
+      CamundaAssert.assertThat(processInstance).isCompleted();
+    }
+
+    private void completeUserTask(long userTaskKey) {
+      client.newCompleteUserTaskCommand(userTaskKey).send().join();
+    }
+  }
+
+  @Nested
+  @TestPropertySource(
+      locations = "classpath:camunda8-mt-test-application.properties",
+      properties = {"camunda.client.worker.defaults.tenant-ids=tenant1,tenant2,<default>"})
+  @KadaiAdapterCamunda8SpringBootTest
+  class MultiTenancyUserTaskCompletionIsolationTest {
+
+    @Autowired private CamundaClient client;
+    @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
+    @Autowired private KadaiEngine kadaiEngine;
+
+    @Test
+    @WithAccessId(user = "admin")
     void should_CompleteKadaiTaskForSpecificTenantButNotCivilian_When_CamundaTaskIsCompleted()
         throws Exception {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
@@ -254,66 +326,6 @@ class UserTaskCompletionTest {
       final Task kadaiTask2 = kadaiEngine.getTaskService().getTask(tasks.get(1).getId());
       assertThat(kadaiTask2.getState()).isEqualTo(TaskState.READY);
       CamundaAssert.assertThat(processInstance2).isActive();
-    }
-
-    @Test
-    @WithAccessId(user = "admin")
-    void should_BeIdempotent_When_TaskCompletedTwice() throws Exception {
-      kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
-      kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-
-      // create new Tenant and add user to it (user needs access to all tenants)
-      final String tenant1 = "tenant1";
-      final String allTenantsUser = "demo";
-      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).send().join();
-      client
-          .newAssignUserToTenantCommand()
-          .username(allTenantsUser)
-          .tenantId(tenant1)
-          .send()
-          .join();
-
-      client
-          .newDeployResourceCommand()
-          .addResourceFromClasspath("processes/sayHello.bpmn")
-          .send()
-          .join();
-
-      final ProcessInstanceEvent processInstance =
-          client
-              .newCreateInstanceCommand()
-              .bpmnProcessId("Test_Process")
-              .latestVersion()
-              .send()
-              .join();
-
-      CamundaAssert.assertThat(processInstance).isActive();
-
-      final List<TaskSummary> tasks = kadaiEngine.getTaskService().createTaskQuery().list();
-      assertThat(tasks).hasSize(1);
-      assertThat(tasks.get(0).getState()).isEqualTo(TaskState.READY);
-
-      final Task kadaiTask = kadaiEngine.getTaskService().getTask(tasks.get(0).getId());
-      final String externalId = kadaiTask.getExternalId();
-      final long userTaskKey = ReferencedTaskCreator.extractUserTaskKeyFromTaskId(externalId);
-
-      client.newCompleteUserTaskCommand(userTaskKey).send().join();
-
-      Task afterFirstCompletion = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
-      assertThat(afterFirstCompletion.getState()).isEqualTo(TaskState.COMPLETED);
-
-      CamundaAssert.assertThat(processInstance).isCompleted();
-
-      assertThatThrownBy(() -> completeUserTask(userTaskKey)).isInstanceOf(ProblemException.class);
-
-      Task afterSecondAttempt = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
-      assertThat(afterSecondAttempt.getState()).isEqualTo(TaskState.COMPLETED);
-
-      CamundaAssert.assertThat(processInstance).isCompleted();
-    }
-
-    private void completeUserTask(long userTaskKey) {
-      client.newCompleteUserTaskCommand(userTaskKey).send().join();
     }
   }
 }

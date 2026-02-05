@@ -144,6 +144,55 @@ class UserTaskCreationTest {
 
     @Test
     @WithAccessId(user = "admin")
+    void should_NotCreateKadaiTask_When_WorkbasketNotFound() throws Exception {
+      kadaiAdapterTestUtil.createWorkbasket("GPK_UNKNOWN", "DOMAIN_A");
+      kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
+
+      // create new Tenant and add user to it (user needs access to all tenants)
+      final String tenant1 = "tenant1";
+      final String allTenantsUser = "demo";
+      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).send().join();
+      client
+          .newAssignUserToTenantCommand()
+          .username(allTenantsUser)
+          .tenantId(tenant1)
+          .send()
+          .join();
+
+      client
+          .newDeployResourceCommand()
+          .addResourceFromClasspath("processes/sayHello.bpmn")
+          .send()
+          .join();
+
+      final ProcessInstanceEvent processInstance =
+          client
+              .newCreateInstanceCommand()
+              .bpmnProcessId("Test_Process")
+              .latestVersion()
+              .send()
+              .join();
+
+      CamundaAssert.assertThat(processInstance).isActive();
+      final List<TaskSummary> actual = kadaiEngine.getTaskService().createTaskQuery().list();
+      assertThat(actual).isEmpty();
+    }
+  }
+
+  @Nested
+  @Order(3)
+  @TestPropertySource(
+      locations = "classpath:camunda8-mt-test-application.properties",
+      properties = {"camunda.client.worker.defaults.tenant-ids=tenant1,tenant2,<default>"})
+  @KadaiAdapterCamunda8SpringBootTest
+  class MultiTenancyUserTaskCreationIsolationTest {
+
+    @Autowired private CamundaClient client;
+    @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
+    @Autowired private KadaiEngine kadaiEngine;
+
+    @Test
+    @WithAccessId(user = "admin")
     void should_CreateKadaiTaskOnlyForTargetTenant() throws Exception {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
       kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
@@ -196,42 +245,6 @@ class UserTaskCreationTest {
       assertThat(kadaiTask.getClassificationSummary().getKey()).isEqualTo("L11010");
       assertThat(kadaiTask.getDomain()).isEqualTo("DOMAIN_A");
       assertThat(kadaiTask.getName()).isEqualTo("Say Hello Task");
-    }
-
-    @Test
-    @WithAccessId(user = "admin")
-    void should_NotCreateKadaiTask_When_WorkbasketNotFound() throws Exception {
-      kadaiAdapterTestUtil.createWorkbasket("GPK_UNKNOWN", "DOMAIN_A");
-      kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-
-      // create new Tenant and add user to it (user needs access to all tenants)
-      final String tenant1 = "tenant1";
-      final String allTenantsUser = "demo";
-      client.newCreateTenantCommand().tenantId(tenant1).name(tenant1).send().join();
-      client
-          .newAssignUserToTenantCommand()
-          .username(allTenantsUser)
-          .tenantId(tenant1)
-          .send()
-          .join();
-
-      client
-          .newDeployResourceCommand()
-          .addResourceFromClasspath("processes/sayHello.bpmn")
-          .send()
-          .join();
-
-      final ProcessInstanceEvent processInstance =
-          client
-              .newCreateInstanceCommand()
-              .bpmnProcessId("Test_Process")
-              .latestVersion()
-              .send()
-              .join();
-
-      CamundaAssert.assertThat(processInstance).isActive();
-      final List<TaskSummary> actual = kadaiEngine.getTaskService().createTaskQuery().list();
-      assertThat(actual).isEmpty();
     }
   }
 }

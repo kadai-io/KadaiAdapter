@@ -131,6 +131,19 @@ class UserTaskCancellationTest {
 
       CamundaAssert.assertThat(processInstance).isTerminated();
     }
+  }
+
+  @Nested
+  @Order(3)
+  @TestPropertySource(
+      locations = "classpath:camunda8-mt-test-application.properties",
+      properties = {"camunda.client.worker.defaults.tenant-ids=tenant1,tenant2,<default>"})
+  @KadaiAdapterCamunda8SpringBootTest
+  class MultiTenancyUserTaskCancellationIsolationTest {
+
+    @Autowired private CamundaClient client;
+    @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
+    @Autowired private KadaiEngine kadaiEngine;
 
     @Test
     @WithAccessId(user = "admin")
