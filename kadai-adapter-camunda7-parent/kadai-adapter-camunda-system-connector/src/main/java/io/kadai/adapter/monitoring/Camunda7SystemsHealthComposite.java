@@ -1,11 +1,11 @@
 package io.kadai.adapter.monitoring;
 
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import org.springframework.boot.actuate.health.CompositeHealthContributor;
 import org.springframework.boot.actuate.health.HealthContributor;
 import org.springframework.boot.actuate.health.NamedContributor;
@@ -17,20 +17,19 @@ public class Camunda7SystemsHealthComposite implements CompositeHealthContributo
 
   public Camunda7SystemsHealthComposite(
       RestClient restClient,
-      List<String> camundaSystemUrls,
+      List<Camunda7System> camunda7Systems,
       Camunda7HealthConfigurationProperties properties) {
 
     int i = 0;
-    if (camundaSystemUrls != null) {
-      for (String camundaSystemUrl : camundaSystemUrls) {
-        StringTokenizer systemConfigParts = new StringTokenizer(camundaSystemUrl, "|");
-
-        String camundaUrl = systemConfigParts.nextToken().trim();
-        String outboxUrl = systemConfigParts.nextToken().trim();
-
+    if (camunda7Systems != null) {
+      for (Camunda7System camunda7System : camunda7Systems) {
         healthContributors.put(
             "camundaSystem" + ++i,
-            new Camunda7OutboxHealthComposite(restClient, camundaUrl, outboxUrl, properties));
+            new Camunda7OutboxHealthComposite(
+                restClient,
+                camunda7System.getSystemRestUrl(),
+                camunda7System.getSystemTaskEventUrl(),
+                properties));
       }
     }
   }

@@ -20,7 +20,7 @@ package io.kadai.adapter.camunda.tasklistener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.kadai.adapter.camunda.CamundaListenerConfiguration;
+import io.kadai.adapter.camunda.Camunda7ListenerConfiguration;
 import io.kadai.adapter.camunda.dto.ReferencedTask;
 import io.kadai.adapter.camunda.dto.VariableValueDto;
 import io.kadai.adapter.camunda.exceptions.SystemException;
@@ -185,7 +185,7 @@ public class KadaiTaskListener implements TaskListener {
   private void setOutboxSchema(Connection connection) throws SQLException {
 
     if (outboxSchemaName == null) {
-      outboxSchemaName = CamundaListenerConfiguration.getOutboxSchema();
+      outboxSchemaName = Camunda7ListenerConfiguration.getOutboxSchema();
     }
 
     outboxSchemaName =
@@ -209,7 +209,7 @@ public class KadaiTaskListener implements TaskListener {
 
       Timestamp eventCreationTimestamp = Timestamp.from(Instant.now());
 
-      int initialRetries = CamundaListenerConfiguration.getInitialNumberOfTaskCreationRetries();
+      int initialRetries = Camunda7ListenerConfiguration.getInitialNumberOfTaskCreationRetries();
 
       preparedStatement.setString(1, delegateTask.getEventName());
       preparedStatement.setTimestamp(2, eventCreationTimestamp);
@@ -351,7 +351,7 @@ public class KadaiTaskListener implements TaskListener {
 
       } catch (JsonProcessingException ex) {
 
-        if (CamundaListenerConfiguration.shouldCatchAndLogExceptionForFaultyProcessVariables()) {
+        if (Camunda7ListenerConfiguration.shouldCatchAndLogExceptionForFaultyProcessVariables()) {
 
           LOGGER.error("Caught exception while trying to serialize process variables to JSON", ex);
 
