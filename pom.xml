@@ -63,7 +63,7 @@
     <version.spring.mybatis>3.0.5</version.spring.mybatis>
 
     <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
-    <version.spring.boot>3.5.9</version.spring.boot>
+    <version.spring.boot>3.5.10</version.spring.boot>
 
     <version.jakarta.annotation>3.0.0</version.jakarta.annotation>
     <version.jakarta-ws-rs-api>4.0.0</version.jakarta-ws-rs-api>
