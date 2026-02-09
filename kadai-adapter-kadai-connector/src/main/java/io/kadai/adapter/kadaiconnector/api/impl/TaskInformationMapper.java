@@ -44,6 +44,7 @@ public class TaskInformationMapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskInformationMapper.class);
   private static final String CAMUNDA_PROCESS_VARIABLE_PREFIX = "camunda:";
+  private final TaskService taskService;
 
   @Value("${kadai.adapter.mapping.default.objectreference.company:DEFAULT_COMPANY}")
   private String defaultCompany;
@@ -59,8 +60,6 @@ public class TaskInformationMapper {
 
   @Value("${kadai.adapter.mapping.default.objectreference.value:DEFAULT_VALUE}")
   private String defaultValue;
-
-  private final TaskService taskService;
 
   public TaskInformationMapper(TaskService taskService) {
     this.taskService = taskService;
@@ -186,7 +185,6 @@ public class TaskInformationMapper {
 
   private Map<String, String> retrieveCustomAttributesFromProcessVariables(
       String processVariables) {
-
     Map<String, String> customAttributes = new HashMap<>();
 
     JSONObject jsonObject = new JSONObject(processVariables);
@@ -194,9 +192,12 @@ public class TaskInformationMapper {
     jsonObject
         .keySet()
         .forEach(
-            key ->
-                customAttributes.put(
-                    CAMUNDA_PROCESS_VARIABLE_PREFIX + key, String.valueOf(jsonObject.get(key))));
+            key -> {
+              final Object value = jsonObject.get(key);
+              final String formattedValue =
+                  value instanceof String s ? String.format("\"%s\"", s) : String.valueOf(value);
+              customAttributes.put(CAMUNDA_PROCESS_VARIABLE_PREFIX + key, formattedValue);
+            });
 
     return customAttributes;
   }

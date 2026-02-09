@@ -20,6 +20,7 @@ package io.kadai.adapter.camunda.outbox.rest.service;
 
 import io.kadai.adapter.camunda.OutboxRestConfiguration;
 import io.kadai.adapter.camunda.outbox.rest.exception.Camunda7TaskEventNotFoundException;
+import io.kadai.adapter.camunda.outbox.rest.config.OutboxDataSource;
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentException;
 import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.repository.Camunda7OutboxSqlProvider;
@@ -41,10 +42,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-import org.apache.ibatis.datasource.pooled.PooledDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spinjar.com.fasterxml.jackson.databind.JsonNode;
@@ -71,8 +68,6 @@ public class Camunda7TaskEventsService {
     LOGGER.info(
         "Outbox Rest Api will return at max {} events per request", maxNumberOfEventsReturned);
   }
-
-  private DataSource dataSource = null;
 
   public List<Camunda7TaskEvent> getEvents(MultivaluedMap<String, String> filterParams)
       throws InvalidArgumentException {
@@ -431,11 +426,6 @@ public class Camunda7TaskEventsService {
     return Instant.now().plus(blockedDuration);
   }
 
-  private static DataSource createDatasource(
-      String driver, String jdbcUrl, String username, String password) {
-    return new PooledDataSource(driver, jdbcUrl, username, password);
-  }
-
   private List<Camunda7TaskEvent> getCreateEvents(Duration lockDuration) {
     List<Camunda7TaskEvent> camunda7TaskEvents = new ArrayList<>();
     List<Integer> ids = null;
@@ -590,10 +580,9 @@ public class Camunda7TaskEventsService {
   }
 
   private Connection getConnection() {
-
     Connection connection = null;
     try {
-      connection = getDataSource().getConnection();
+      connection = OutboxDataSource.get().getConnection();
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn(
           "Caught {} while trying to retrieve a connection from the provided datasource",
@@ -608,15 +597,6 @@ public class Camunda7TaskEventsService {
     return connection;
   }
 
-  private DataSource getDataSource() {
-    synchronized (Camunda7TaskEventsService.class) {
-      if (dataSource == null) {
-        return getDataSourceFromPropertiesFile();
-      }
-    }
-    return dataSource;
-  }
-
   private void unlockEvents(List<Integer> ids, Connection connection) throws SQLException {
     final Camunda7OutboxSqlProvider sqlProvider =
         Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
@@ -625,32 +605,6 @@ public class Camunda7TaskEventsService {
     try (PreparedStatement preparedStatement2 = connection.prepareStatement(sql)) {
       preparedStatement2.execute();
     }
-  }
-
-  private DataSource getDataSourceFromPropertiesFile() {
-    try {
-
-      String jndiUrl = OutboxRestConfiguration.getOutboxDatasourceJndi();
-      if (jndiUrl != null) {
-        dataSource = (DataSource) new InitialContext().lookup(jndiUrl);
-
-      } else {
-
-        dataSource =
-            createDatasource(
-                OutboxRestConfiguration.getOutboxDatasourceDriver(),
-                OutboxRestConfiguration.getOutboxDatasourceUrl(),
-                OutboxRestConfiguration.getOutboxDatasourceUsername(),
-                OutboxRestConfiguration.getOutboxDatasourcePassword());
-      }
-
-    } catch (NamingException | NullPointerException e) {
-      LOGGER.warn(
-          "Caught {} while trying to retrieve the datasource from the provided properties file",
-          e.getClass().getName());
-    }
-
-    return dataSource;
   }
 
   private String formatDate(Date date) {

@@ -28,6 +28,13 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
 import java.util.List;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -53,13 +60,30 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   @Bean
-  RestClient restClient(HttpComponentsClientProperties httpComponentsClientProperties) {
+  RestClient restClient(HttpComponentsClientProperties props) {
+    ConnectionConfig connectionConfig =
+        ConnectionConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(props.getConnectionTimeout()))
+            .build();
+
+    PoolingHttpClientConnectionManager connectionManager =
+        PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connectionConfig)
+            .build();
+
+    RequestConfig requestConfig =
+        RequestConfig.custom()
+            .setResponseTimeout(Timeout.ofMilliseconds(props.getReadTimeout()))
+            .build();
+
+    CloseableHttpClient httpClient =
+        HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .build();
+
     HttpComponentsClientHttpRequestFactory requestFactory =
-        new HttpComponentsClientHttpRequestFactory();
-    requestFactory.setConnectTimeout(
-        (int) Duration.ofMillis(httpComponentsClientProperties.getConnectionTimeout()).toMillis());
-    requestFactory.setReadTimeout(
-        (int) Duration.ofMillis(httpComponentsClientProperties.getReadTimeout()).toMillis());
+        new HttpComponentsClientHttpRequestFactory(httpClient);
 
     return RestClient.builder().requestFactory(requestFactory).build();
   }
