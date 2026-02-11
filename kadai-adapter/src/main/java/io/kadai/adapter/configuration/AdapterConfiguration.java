@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.configuration;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -28,4 +29,82 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Import({SchedulerConfiguration.class})
 @Configuration
 @EnableTransactionManagement
-public class AdapterConfiguration {}
+@ConfigurationProperties(prefix = "kadai-adapter.kernel")
+public class AdapterConfiguration {
+
+  private String runAsUser;
+  private SchedulerConfig scheduler;
+
+  public String getRunAsUser() {
+    return runAsUser;
+  }
+
+  public void setRunAsUser(String runAsUser) {
+    this.runAsUser = runAsUser;
+  }
+
+  public SchedulerConfig getScheduler() {
+    return scheduler;
+  }
+
+  public void setScheduler(SchedulerConfig scheduler) {
+    this.scheduler = scheduler;
+  }
+
+  public static class SchedulerConfig {
+    private long startKadaiTasksInterval = 5000L;
+    private long completeReferencedTasksInterval = 5000L;
+    private long claimReferencedTasksInterval = 5000L;
+    private long cancelClaimReferencedTasksInterval = 5000L;
+    private long checkFinishedReferencedTasksInterval = 5000L;
+    private long retriesAndBlockingTaskEventsInterval = 10000L;
+
+    public long getStartKadaiTasksInterval() {
+      return startKadaiTasksInterval;
+    }
+
+    public void setStartKadaiTasksInterval(long startKadaiTasksInterval) {
+      this.startKadaiTasksInterval = startKadaiTasksInterval;
+    }
+
+    public long getCompleteReferencedTasksInterval() {
+      return completeReferencedTasksInterval;
+    }
+
+    public void setCompleteReferencedTasksInterval(long completeReferencedTasksInterval) {
+      this.completeReferencedTasksInterval = completeReferencedTasksInterval;
+    }
+
+    public long getClaimReferencedTasksInterval() {
+      return claimReferencedTasksInterval;
+    }
+
+    public void setClaimReferencedTasksInterval(long claimReferencedTasksInterval) {
+      this.claimReferencedTasksInterval = claimReferencedTasksInterval;
+    }
+
+    public long getCancelClaimReferencedTasksInterval() {
+      return cancelClaimReferencedTasksInterval;
+    }
+
+    public void setCancelClaimReferencedTasksInterval(long cancelClaimReferencedTasksInterval) {
+      this.cancelClaimReferencedTasksInterval = cancelClaimReferencedTasksInterval;
+    }
+
+    public long getCheckFinishedReferencedTasksInterval() {
+      return checkFinishedReferencedTasksInterval;
+    }
+
+    public void setCheckFinishedReferencedTasksInterval(long checkFinishedReferencedTasksInterval) {
+      this.checkFinishedReferencedTasksInterval = checkFinishedReferencedTasksInterval;
+    }
+
+    public long getRetriesAndBlockingTaskEventsInterval() {
+      return retriesAndBlockingTaskEventsInterval;
+    }
+
+    public void setRetriesAndBlockingTaskEventsInterval(long retriesAndBlockingTaskEventsInterval) {
+      this.retriesAndBlockingTaskEventsInterval = retriesAndBlockingTaskEventsInterval;
+    }
+  }
+}

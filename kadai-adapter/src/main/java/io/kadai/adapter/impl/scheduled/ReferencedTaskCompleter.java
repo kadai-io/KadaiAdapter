@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.impl.scheduled;
 
+import io.kadai.adapter.configuration.AdapterConfiguration;
 import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
@@ -33,7 +34,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,28 +45,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReferencedTaskCompleter implements MonitoredScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReferencedTaskCompleter.class);
+
+  protected final String runAsUser;
   private final AdapterManager adapterManager;
   private final MonitoredRun monitoredRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
-
-  @Value("${kadai.adapter.run-as.user}")
-  protected String runAsUser;
-
-  @Value(
-      "${kadai.adapter.scheduler.run.interval.for.complete.referenced.tasks.in.milliseconds:5000}")
-  private int runIntervalMillis;
+  private final long runIntervalMillis;
 
   @Autowired
-  public ReferencedTaskCompleter(AdapterManager adapterManager) {
+  public ReferencedTaskCompleter(
+      AdapterManager adapterManager, AdapterConfiguration adapterConfiguration) {
     this.adapterManager = adapterManager;
     this.monitoredRun = new MonitoredRun();
+    this.runAsUser = adapterConfiguration.getRunAsUser();
+    this.runIntervalMillis =
+        adapterConfiguration.getScheduler().getCompleteReferencedTasksInterval();
   }
 
-  @Scheduled(
-      fixedRateString =
-          "${kadai.adapter.scheduler.run.interval.for.complete.referenced.tasks."
-              + "in.milliseconds:5000}")
   @Transactional
+  @Scheduled(fixedRateString = "#{adapterConfiguration.scheduler.completeReferencedTasksInterval}")
   public void retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTasks() {
     monitoredRun.start();
 

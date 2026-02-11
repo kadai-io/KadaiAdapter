@@ -45,7 +45,20 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @DependsOn(value = {"adapterSpringContextProvider"})
 @EnableTransactionManagement
+@ConfigurationProperties(prefix = "kadai-adapter.kernel.kadai-connector")
 public class KadaiSystemConnectorConfiguration {
+
+  private Integer batchSize = 64;
+
+  public Integer getBatchSize() {
+    return batchSize;
+  }
+
+  public void setBatchSize(Integer batchSize) {
+    this.batchSize = batchSize;
+  }
+
+  // --------------
 
   @Value("${kadai.schemaName:KADAI}")
   public String kadaiSchemaName;

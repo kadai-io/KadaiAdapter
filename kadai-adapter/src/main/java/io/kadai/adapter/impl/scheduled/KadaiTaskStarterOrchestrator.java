@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.impl.scheduled;
 
+import io.kadai.adapter.configuration.AdapterConfiguration;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.impl.service.KadaiTaskStarterService;
 import io.kadai.adapter.manager.AdapterManager;
@@ -32,7 +33,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -41,25 +41,25 @@ import org.springframework.stereotype.Component;
 public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskStarterOrchestrator.class);
+  
   private final AdapterManager adapterManager;
   private final KadaiTaskStarterService kadaiTaskStarterService;
   private final MonitoredRun monitoredRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
-
-  @Value("${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
-  private int runIntervalMillis;
+  private final long runIntervalMillis;
 
   @Autowired
   public KadaiTaskStarterOrchestrator(
-      AdapterManager adapterManager, KadaiTaskStarterService kadaiTaskStarterService) {
+      AdapterManager adapterManager,
+      AdapterConfiguration adapterConfiguration,
+      KadaiTaskStarterService kadaiTaskStarterService) {
     this.adapterManager = adapterManager;
     this.kadaiTaskStarterService = kadaiTaskStarterService;
     this.monitoredRun = new MonitoredRun();
+    this.runIntervalMillis = adapterConfiguration.getScheduler().getStartKadaiTasksInterval();
   }
 
-  @Scheduled(
-      fixedRateString =
-          "${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds:5000}")
+  @Scheduled(fixedRateString = "#{adapterConfiguration.scheduler.startKadaiTasksInterval}")
   public void retrieveNewReferencedTasksAndCreateCorrespondingKadaiTasks() {
     monitoredRun.start();
     if (!adapterIsInitialized()) {

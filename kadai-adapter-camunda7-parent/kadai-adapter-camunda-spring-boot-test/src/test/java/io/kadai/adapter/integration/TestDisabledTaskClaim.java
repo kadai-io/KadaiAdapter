@@ -50,7 +50,7 @@ class TestDisabledTaskClaim extends AbsIntegrationTest {
   @Autowired Camunda7TaskClaimer camunda7TaskClaimer;
   @Autowired Camunda7TaskClaimCanceler camunda7TaskClaimCanceler;
 
-  @Value("${kadai.adapter.camunda.claiming.enabled}")
+  @Value("${kadai-adapter.plugin.camunda7.claiming.enabled}")
   private boolean claimingEnabled;
 
   @WithAccessId(

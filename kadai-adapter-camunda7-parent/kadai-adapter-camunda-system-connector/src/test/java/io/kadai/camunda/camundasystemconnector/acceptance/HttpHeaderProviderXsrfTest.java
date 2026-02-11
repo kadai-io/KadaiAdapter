@@ -29,7 +29,8 @@ class HttpHeaderProviderXsrfTest {
 
   @Nested
   @SpringBootTest
-  @TestPropertySource(properties = {"kadai.adapter.xsrf.token=KAD_UNIQUE_TOKEN_123"})
+  @TestPropertySource(
+      properties = {"kadai-adapter.plugin.camunda7.xsrf-token=KAD_UNIQUE_TOKEN_123"})
   class WithXsrfTokenTest {
     @Autowired private HttpHeaderProvider httpHeaderProvider;
 

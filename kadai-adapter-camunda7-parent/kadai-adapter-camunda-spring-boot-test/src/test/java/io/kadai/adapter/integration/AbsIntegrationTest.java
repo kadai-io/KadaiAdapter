@@ -47,7 +47,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-/** Parent class for integrationtests for the KADAI-Adapter. */
+/** Parent class for integration-tests for the KADAI-Adapter. */
 @ExtendWith(JaasExtension.class)
 @SuppressWarnings("checkstyle:LineLength")
 abstract class AbsIntegrationTest {
@@ -56,43 +56,34 @@ abstract class AbsIntegrationTest {
 
   static boolean isInitialised = false;
 
-  @LocalServerPort private Integer port;
-
-  @Value("${kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds}")
+  @Value("${kadai-adapter.kernel.scheduler.start-kadai-tasks-interval}")
   protected long adapterTaskPollingInterval;
 
-  @Value("${kadai.adapter.scheduler.run.interval.for.complete.referenced.tasks.in.milliseconds}")
+  @Value("${kadai-adapter.kernel.scheduler.complete-referenced-tasks-interval}")
   protected long adapterCompletionPollingInterval;
 
-  @Value(
-      "${kadai.adapter.scheduler.run.interval.for.check.finished.referenced.tasks.in.milliseconds}")
+  @Value("${kadai-adapter.kernel.scheduler.check-finished-referenced-tasks-interval}")
   protected long adapterCancelledClaimPollingInterval;
 
-  @Value("${kadai.adapter.scheduler.run.interval.for.claim.referenced.tasks.in.milliseconds}")
+  @Value("${kadai-adapter.kernel.scheduler.cancel-claim-referenced-tasks-interval}")
   protected long adapterClaimPollingInterval;
 
-  @Value(
-      "${kadai.adapter.scheduler.run.interval.for.cancel.claim.referenced.tasks.in.milliseconds}")
+  @Value("${kadai-adapter.kernel.scheduler.cancel-claim-referenced-tasks-interval}")
   protected long adapterCancelPollingInterval;
 
   @Value("${adapter.polling.interval.adjustment.factor}")
   protected double adapterPollingIntervalAdjustmentFactor;
 
-  @Value(
-      "${kadai.adapter.scheduler.run.interval.for.retries.and.blocking.taskevents.in.milliseconds}")
+  @Value("${kadai-adapter.kernel.scheduler.retries-and-blocking-task-events-interval}")
   protected long adapterRetryAndBlockingInterval;
 
   protected CamundaProcessengineRequester camundaProcessengineRequester;
-
   protected KadaiOutboxRequester kadaiOutboxRequester;
-
   protected TaskService taskService;
-
   @Resource(name = "camundaBpmDataSource")
   protected DataSource camundaBpmDataSource;
-
   protected RestClient restClient;
-
+  @LocalServerPort private Integer port;
   @Autowired private ProcessEngineConfiguration processEngineConfiguration;
 
   @Autowired private HttpHeaderProvider httpHeaderProvider;

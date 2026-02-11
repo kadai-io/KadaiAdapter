@@ -19,7 +19,6 @@
 package io.kadai.adapter.systemconnector.camunda.config;
 
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
-import java.time.Duration;
 import java.util.List;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -28,7 +27,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,6 +43,9 @@ public class Camunda7SystemConnectorConfiguration {
   private List<Camunda7System> systems;
   private ClientConfiguration client;
   private OutboxClientConfiguration outbox;
+  private ClaimingConfiguration claiming;
+  private Long lockDuration = 0L;
+  private String xsrfToken;
 
   public List<Camunda7System> getSystems() {
     return systems;
@@ -68,6 +69,30 @@ public class Camunda7SystemConnectorConfiguration {
 
   public void setOutbox(OutboxClientConfiguration outbox) {
     this.outbox = outbox;
+  }
+
+  public ClaimingConfiguration getClaiming() {
+    return claiming;
+  }
+
+  public void setClaiming(ClaimingConfiguration claiming) {
+    this.claiming = claiming;
+  }
+
+  public Long getLockDuration() {
+    return lockDuration;
+  }
+
+  public void setLockDuration(Long lockDuration) {
+    this.lockDuration = lockDuration;
+  }
+
+  public String getXsrfToken() {
+    return xsrfToken;
+  }
+
+  public void setXsrfToken(String xsrfToken) {
+    this.xsrfToken = xsrfToken;
   }
 
   @Bean
@@ -104,12 +129,6 @@ public class Camunda7SystemConnectorConfiguration {
     return this.getSystems();
   }
 
-  @Bean
-  Duration getLockDuration(
-      @Value("${kadai.adapter.events.lockDuration:#{0}}") final Long lockDuration) {
-    return Duration.ofSeconds(lockDuration);
-  }
-
   public static class ClientConfiguration {
     private String username;
     private String password;
@@ -140,6 +159,18 @@ public class Camunda7SystemConnectorConfiguration {
 
     public void setClient(ClientConfiguration client) {
       this.client = client;
+    }
+  }
+
+  public static class ClaimingConfiguration {
+    private boolean enabled = false;
+
+    public boolean isEnabled() {
+      return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+      this.enabled = enabled;
     }
   }
 }
