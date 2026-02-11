@@ -20,8 +20,11 @@ package io.kadai.camunda.camundasystemconnector.acceptance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
+import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import java.util.List;
 import okhttp3.mockwebserver.MockResponse;
@@ -40,7 +43,13 @@ import org.springframework.test.context.ContextConfiguration;
  * @author bbr
  */
 @ContextConfiguration(classes = {CamundaConnectorTestConfiguration.class})
-@SpringBootTest
+@SpringBootTest(
+    classes = {
+      Camunda7TaskRetriever.class,
+      HttpHeaderProvider.class,
+      Camunda7SystemConnectorConfiguration.class,
+      AdapterSpringContextProvider.class
+    })
 class RetrieveCamunda7TaskAccTest {
 
   @Autowired Camunda7TaskRetriever camunda7TaskRetriever;
