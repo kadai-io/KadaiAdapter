@@ -18,13 +18,6 @@
 
 package io.kadai.adapter.systemconnector.camunda.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskClaimCanceler;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskClaimer;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskCompleter;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskEventCleaner;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
-import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import java.time.Duration;
 import java.util.List;
@@ -50,6 +43,8 @@ import org.springframework.web.client.RestClient;
 public class Camunda7SystemConnectorConfiguration {
 
   private List<Camunda7System> systems;
+  private ClientConfiguration client;
+  private OutboxClientConfiguration outbox;
 
   public List<Camunda7System> getSystems() {
     return systems;
@@ -57,6 +52,22 @@ public class Camunda7SystemConnectorConfiguration {
 
   public void setSystems(List<Camunda7System> systems) {
     this.systems = systems;
+  }
+
+  public ClientConfiguration getClient() {
+    return client;
+  }
+
+  public void setClient(ClientConfiguration client) {
+    this.client = client;
+  }
+
+  public OutboxClientConfiguration getOutbox() {
+    return outbox;
+  }
+
+  public void setOutbox(OutboxClientConfiguration outbox) {
+    this.outbox = outbox;
   }
 
   @Bean
@@ -89,11 +100,6 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   @Bean
-  HttpHeaderProvider httpHeaderProvider() {
-    return new HttpHeaderProvider();
-  }
-
-  @Bean
   List<Camunda7System> camunda7Systems() {
     return this.getSystems();
   }
@@ -104,36 +110,36 @@ public class Camunda7SystemConnectorConfiguration {
     return Duration.ofSeconds(lockDuration);
   }
 
-  @Bean
-  @DependsOn(value = {"httpHeaderProvider"})
-  Camunda7TaskRetriever camunda7TaskRetriever(
-      final HttpHeaderProvider httpHeaderProvider,
-      final ObjectMapper objectMapper,
-      final RestClient restClient) {
-    return new Camunda7TaskRetriever(httpHeaderProvider, objectMapper, restClient);
+  public static class ClientConfiguration {
+    private String username;
+    private String password;
+
+    public String getUsername() {
+      return username;
+    }
+
+    public void setUsername(String username) {
+      this.username = username;
+    }
+
+    public String getPassword() {
+      return password;
+    }
+
+    public void setPassword(String password) {
+      this.password = password;
+    }
   }
 
-  @Bean
-  Camunda7TaskCompleter camunda7TaskCompleter(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskCompleter(httpHeaderProvider, restClient);
-  }
+  public static class OutboxClientConfiguration {
+    private ClientConfiguration client;
 
-  @Bean
-  Camunda7TaskClaimer camunda7TaskClaimer(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskClaimer(httpHeaderProvider, restClient);
-  }
+    public ClientConfiguration getClient() {
+      return client;
+    }
 
-  @Bean
-  Camunda7TaskClaimCanceler camunda7TaskClaimCanceler(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskClaimCanceler(httpHeaderProvider, restClient);
-  }
-
-  @Bean
-  Camunda7TaskEventCleaner camunda7TaskEventCleaner(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskEventCleaner(httpHeaderProvider, restClient);
+    public void setClient(ClientConfiguration client) {
+      this.client = client;
+    }
   }
 }
