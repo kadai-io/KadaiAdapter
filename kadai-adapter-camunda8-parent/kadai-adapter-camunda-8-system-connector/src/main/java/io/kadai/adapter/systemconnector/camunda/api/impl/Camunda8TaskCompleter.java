@@ -6,10 +6,10 @@ import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ClientException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda8SystemConnectorConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -19,16 +19,16 @@ public class Camunda8TaskCompleter {
 
   public static final String USER_TASK_COMPLETED_BY_KADAI_ACTION = "completed-by-kadai";
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda8TaskCompleter.class);
+
   private final CamundaClient camundaClient;
-
-  @Value("${kadai.adapter.camunda8.completing.enabled:true}")
-  private boolean completingEnabled;
-
+  private final boolean completingEnabled;
   private boolean completeConfigLogged = false;
 
   @Autowired
-  public Camunda8TaskCompleter(CamundaClient camundaClient) {
+  public Camunda8TaskCompleter(
+      CamundaClient camundaClient, Camunda8SystemConnectorConfiguration connectorConfiguration) {
     this.camundaClient = camundaClient;
+    this.completingEnabled = connectorConfiguration.getCompleting().isEnabled();
   }
 
   public SystemResponse completeCamunda8Task(ReferencedTask referencedTask) {

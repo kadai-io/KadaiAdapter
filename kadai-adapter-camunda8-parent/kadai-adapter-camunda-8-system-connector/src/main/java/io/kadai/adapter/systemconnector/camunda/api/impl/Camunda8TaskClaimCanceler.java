@@ -6,10 +6,10 @@ import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ClientException;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda8SystemConnectorConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -19,14 +19,14 @@ public class Camunda8TaskClaimCanceler {
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda8TaskClaimCanceler.class);
   private final CamundaClient camundaClient;
 
-  @Value("${kadai.adapter.camunda8.claiming.enabled:true}")
-  private boolean claimingEnabled;
-
+  private final boolean claimingEnabled;
   private boolean cancelClaimConfigLogged = false;
 
   @Autowired
-  public Camunda8TaskClaimCanceler(CamundaClient camundaClient) {
+  public Camunda8TaskClaimCanceler(
+      CamundaClient camundaClient, Camunda8SystemConnectorConfiguration connectorConfiguration) {
     this.camundaClient = camundaClient;
+    this.claimingEnabled = connectorConfiguration.getClaiming().isEnabled();
   }
 
   public SystemResponse cancelClaimOfCamunda8Task(ReferencedTask referencedTask) {
