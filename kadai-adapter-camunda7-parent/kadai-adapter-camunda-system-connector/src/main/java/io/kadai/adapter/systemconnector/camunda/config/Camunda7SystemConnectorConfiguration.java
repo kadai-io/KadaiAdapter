@@ -43,7 +43,7 @@ public class Camunda7SystemConnectorConfiguration {
   private List<Camunda7System> systems;
   private ClientConfiguration client;
   private OutboxClientConfiguration outbox;
-  private ClaimingConfiguration claiming;
+  private ClaimingConfiguration claiming = new ClaimingConfiguration();
   private Long lockDuration = 0L;
   private String xsrfToken;
 
