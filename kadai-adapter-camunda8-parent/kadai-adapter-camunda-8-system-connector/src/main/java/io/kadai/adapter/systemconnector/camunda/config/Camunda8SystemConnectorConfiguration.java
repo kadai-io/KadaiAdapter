@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class Camunda8SystemConnectorConfiguration {
 
   private ClaimingConfiguration claiming = new ClaimingConfiguration();
-  private ClaimingConfiguration completing = new ClaimingConfiguration();
+  private CompletingConfiguration completing = new CompletingConfiguration();
 
   public ClaimingConfiguration getClaiming() {
     return claiming;
@@ -18,15 +18,27 @@ public class Camunda8SystemConnectorConfiguration {
     this.claiming = claiming;
   }
 
-  public ClaimingConfiguration getCompleting() {
+  public CompletingConfiguration getCompleting() {
     return completing;
   }
 
-  public void setCompleting(ClaimingConfiguration completing) {
+  public void setCompleting(CompletingConfiguration completing) {
     this.completing = completing;
   }
 
   public static class ClaimingConfiguration {
+    private boolean enabled = true;
+
+    public boolean isEnabled() {
+      return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+      this.enabled = enabled;
+    }
+  }
+
+  public static class CompletingConfiguration {
     private boolean enabled = true;
 
     public boolean isEnabled() {
