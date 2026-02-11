@@ -41,8 +41,8 @@ import org.springframework.web.client.RestClient;
 public class Camunda7SystemConnectorConfiguration {
 
   private List<Camunda7System> systems;
-  private ClientConfiguration client;
-  private OutboxClientConfiguration outbox;
+  private ClientConfiguration client = new ClientConfiguration();
+  private OutboxClientConfiguration outbox = new OutboxClientConfiguration();
   private ClaimingConfiguration claiming = new ClaimingConfiguration();
   private Long lockDuration = 0L;
   private String xsrfToken;

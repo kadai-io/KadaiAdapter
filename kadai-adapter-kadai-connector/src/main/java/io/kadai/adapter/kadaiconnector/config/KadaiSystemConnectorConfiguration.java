@@ -48,7 +48,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ConfigurationProperties(prefix = "kadai-adapter.kernel.kadai-connector")
 public class KadaiSystemConnectorConfiguration {
 
+  @Value("${kadai.schemaName:KADAI}")
+  public String kadaiSchemaName;
+
+  private TaskMappingConfiguration taskMapping = new TaskMappingConfiguration();
   private Integer batchSize = 64;
+
+  @Value("${kadai.datasource.jndi-name:no-jndi-configured}")
+  private String jndiName;
 
   public Integer getBatchSize() {
     return batchSize;
@@ -58,13 +65,13 @@ public class KadaiSystemConnectorConfiguration {
     this.batchSize = batchSize;
   }
 
-  // --------------
+  public TaskMappingConfiguration getTaskMapping() {
+    return taskMapping;
+  }
 
-  @Value("${kadai.schemaName:KADAI}")
-  public String kadaiSchemaName;
-
-  @Value("${kadai.datasource.jndi-name:no-jndi-configured}")
-  private String jndiName;
+  public void setTaskMapping(TaskMappingConfiguration taskMapping) {
+    this.taskMapping = taskMapping;
+  }
 
   @Bean(name = "kadaiDataSource")
   @ConfigurationProperties(prefix = "kadai.datasource")
@@ -118,5 +125,67 @@ public class KadaiSystemConnectorConfiguration {
   @Bean
   public String kadaiPropertiesDelimiter() {
     return "|";
+  }
+
+  public static class TaskMappingConfiguration {
+
+    private TaskMappingObjectReferenceConfiguration objectReference =
+        new TaskMappingObjectReferenceConfiguration();
+
+    public TaskMappingObjectReferenceConfiguration getObjectReference() {
+      return objectReference;
+    }
+
+    public void setObjectReference(TaskMappingObjectReferenceConfiguration objectReference) {
+      this.objectReference = objectReference;
+    }
+
+    public static class TaskMappingObjectReferenceConfiguration {
+      private String company = "DEFAULT_COMPANY";
+      private String system = "DEFAULT_SYSTEM";
+      private String systemInstance = "DEFAULT_SYSTEM_INSTANCE";
+      private String type = "DEFAULT_TYPE";
+      private String value = "DEFAULT_VALUE";
+
+      public String getCompany() {
+        return company;
+      }
+
+      public void setCompany(String company) {
+        this.company = company;
+      }
+
+      public String getSystem() {
+        return system;
+      }
+
+      public void setSystem(String system) {
+        this.system = system;
+      }
+
+      public String getSystemInstance() {
+        return systemInstance;
+      }
+
+      public void setSystemInstance(String systemInstance) {
+        this.systemInstance = systemInstance;
+      }
+
+      public String getType() {
+        return type;
+      }
+
+      public void setType(String type) {
+        this.type = type;
+      }
+
+      public String getValue() {
+        return value;
+      }
+
+      public void setValue(String value) {
+        this.value = value;
+      }
+    }
   }
 }
