@@ -32,7 +32,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ConfigurationProperties(prefix = "kadai-adapter.kernel")
 public class AdapterConfiguration {
 
+  /** Kadai-name of the user used to interact with Kadai. */
   private String runAsUser;
+
+  /** Configuration for the scheduler. */
   private SchedulerConfig scheduler;
 
   public String getRunAsUser() {
@@ -52,11 +55,38 @@ public class AdapterConfiguration {
   }
 
   public static class SchedulerConfig {
+
+    /**
+     * Interval in milliseconds between runs for retrieving new external tasks and creating them in
+     * Kadai.
+     */
     private long startKadaiTasksInterval = 5000L;
+
+    /**
+     * Interval in milliseconds between runs for retrieving completed Kadai-Tasks and completing
+     * them in external systems.
+     */
     private long completeReferencedTasksInterval = 5000L;
+
+    /**
+     * Interval in milliseconds between runs for retrieving claimed Kadai-Tasks and claiming them in
+     * external systems.
+     */
     private long claimReferencedTasksInterval = 5000L;
+
+    /**
+     * Interval in milliseconds between runs for retrieving cancel-claimed Kadai-Tasks and
+     * cancel-claiming them in external systems.
+     */
     private long cancelClaimReferencedTasksInterval = 5000L;
+
+    /**
+     * Interval in milliseconds between runs for retrieving finished external tasks and finishing
+     * them in Kadai.
+     */
     private long checkFinishedReferencedTasksInterval = 5000L;
+
+    /** Interval in milliseconds between retries for failed and blocked task-events. */
     private long retriesAndBlockingTaskEventsInterval = 10000L;
 
     public long getStartKadaiTasksInterval() {

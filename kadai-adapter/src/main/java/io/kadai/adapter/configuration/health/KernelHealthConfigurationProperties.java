@@ -8,8 +8,11 @@ import org.springframework.context.annotation.Configuration;
 public class KernelHealthConfigurationProperties
     extends CompositeHealthContributorConfigurationProperties {
 
+  /** Health-Configuration for Kadai. */
   private CompositeHealthContributorConfigurationProperties kadai =
       new CompositeHealthContributorConfigurationProperties();
+
+  /** Health-Configuration for the scheduler. */
   private SchedulerHealthConfigurationProperties scheduler =
       new SchedulerHealthConfigurationProperties();
 
@@ -44,14 +47,23 @@ public class KernelHealthConfigurationProperties
   public static class SchedulerHealthConfigurationProperties
       extends CompositeHealthContributorConfigurationProperties {
 
+    /** Health-Configuration for the ReferencedTaskCompleter. */
     private CompositeHealthContributorConfigurationProperties referencedTaskCompleter =
         new CompositeHealthContributorConfigurationProperties();
+
+    /** Health-Configuration for the ReferencedTaskClaimer. */
     private CompositeHealthContributorConfigurationProperties referencedTaskClaimer =
         new CompositeHealthContributorConfigurationProperties();
+
+    /** Health-Configuration for the ReferencedTaskClaimCanceler. */
     private CompositeHealthContributorConfigurationProperties referencedTaskClaimCanceler =
         new CompositeHealthContributorConfigurationProperties();
+
+    /** Health-Configuration for the KadaiTaskStarter. */
     private CompositeHealthContributorConfigurationProperties kadaiTaskStarter =
         new CompositeHealthContributorConfigurationProperties();
+
+    /** Health-Configuration for the KadaiTaskTerminator. */
     private CompositeHealthContributorConfigurationProperties kadaiTaskTerminator =
         new CompositeHealthContributorConfigurationProperties();
 

@@ -40,11 +40,25 @@ import org.springframework.web.client.RestClient;
 @DependsOn(value = {"adapterSpringContextProvider"})
 public class Camunda7SystemConnectorConfiguration {
 
+  /** List of Camunda 7 systems to connect with the KadaiAdapter. */
   private List<Camunda7System> systems;
+
+  /** Configuration for the Camunda 7 Client. */
   private ClientConfiguration client = new ClientConfiguration();
+
+  /** Configuration for the Camunda 7 Outbox Client. */
   private OutboxClientConfiguration outbox = new OutboxClientConfiguration();
+
+  /** Configuration for the Camunda 7 Claiming-Behavior. */
   private ClaimingConfiguration claiming = new ClaimingConfiguration();
+
+  /**
+   * Duration in seconds used for locking tasks in the Outbox in clustered
+   * KadaiAdapter-Environments.
+   */
   private Long lockDuration = 0L;
+
+  /** XSRF-Token used when communicating with either Camunda or the Outbox REST-API. */
   private String xsrfToken;
 
   public List<Camunda7System> getSystems() {
@@ -130,7 +144,11 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   public static class ClientConfiguration {
+
+    /** Basic-Auth username. */
     private String username;
+
+    /** Basic-Auth password. */
     private String password;
 
     public String getUsername() {
@@ -151,6 +169,7 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   public static class OutboxClientConfiguration {
+    /** Configuration for the Camunda 7 Outbox Client. */
     private ClientConfiguration client;
 
     public ClientConfiguration getClient() {
@@ -163,6 +182,10 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   public static class ClaimingConfiguration {
+    /**
+     * Flag for enabling or disabling Claiming as part of the KadaiAdapter synchronization with
+     * Camunda 7.
+     */
     private boolean enabled = false;
 
     public boolean isEnabled() {

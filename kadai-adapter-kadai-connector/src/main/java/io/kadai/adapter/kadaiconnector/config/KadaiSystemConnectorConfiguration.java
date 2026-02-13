@@ -51,7 +51,10 @@ public class KadaiSystemConnectorConfiguration {
   @Value("${kadai.schemaName:KADAI}")
   public String kadaiSchemaName;
 
+  /** Configuration for mapping Kadai-Tasks. */
   private TaskMappingConfiguration taskMapping = new TaskMappingConfiguration();
+
+  /** Amount of tasks to sync from Kadai to external systems in a single run. */
   private Integer batchSize = 64;
 
   @Value("${kadai.datasource.jndi-name:no-jndi-configured}")
@@ -129,6 +132,7 @@ public class KadaiSystemConnectorConfiguration {
 
   public static class TaskMappingConfiguration {
 
+    /** Configuration for mapping Object-References in Kadai-Tasks. */
     private TaskMappingObjectReferenceConfiguration objectReference =
         new TaskMappingObjectReferenceConfiguration();
 
@@ -141,10 +145,22 @@ public class KadaiSystemConnectorConfiguration {
     }
 
     public static class TaskMappingObjectReferenceConfiguration {
+
+      /** Default Object-Reference-Company used for mapping of external tasks to Kadai-Tasks. */
       private String company = "DEFAULT_COMPANY";
+
+      /** Default Object-Reference-System used for mapping of external tasks to Kadai-Tasks. */
       private String system = "DEFAULT_SYSTEM";
+
+      /**
+       * Default Object-Reference-System-Instance used for mapping of external tasks to Kadai-Tasks.
+       */
       private String systemInstance = "DEFAULT_SYSTEM_INSTANCE";
+
+      /** Default Object-Reference-Type used for mapping of external tasks to Kadai-Tasks. */
       private String type = "DEFAULT_TYPE";
+
+      /** Default Object-Reference-Value used for mapping of external tasks to Kadai-Tasks. */
       private String value = "DEFAULT_VALUE";
 
       public String getCompany() {
