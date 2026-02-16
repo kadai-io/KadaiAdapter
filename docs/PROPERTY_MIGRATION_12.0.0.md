@@ -45,5 +45,4 @@ This document lists all configuration properties that have been renamed or chang
   - `kadai-adapter.kernel.*` - Core adapter functionality
   - `kadai-adapter.kernel.kadai-connector.*` - Kadai-specific configuration
   - `kadai-adapter.plugin.camunda7.*` - Camunda 7 plugin configuration
-  - `kadai-adapter.plugin.camunda8.*` - Camunda 8 plugin configuration
 - Interval properties no longer include `.in.milliseconds` suffix - the unit is still milliseconds
