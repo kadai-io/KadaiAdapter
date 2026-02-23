@@ -30,14 +30,12 @@ import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 /** Retrieves new tasks from camunda that have been started or finished by camunda. */
 @Component
-@DependsOn(value = {"httpHeaderProvider"})
 public class Camunda7TaskRetriever {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda7TaskRetriever.class);
