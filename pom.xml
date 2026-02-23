@@ -56,7 +56,7 @@
     <version.maven.resources>3.3.1</version.maven.resources>
     <version.maven.sonar>5.5.0.6356</version.maven.sonar>
     <version.maven.source>3.4.0</version.maven.source>
-    <version.maven.surefire.plugin>3.5.4</version.maven.surefire.plugin>
+    <version.maven.surefire.plugin>3.5.5</version.maven.surefire.plugin>
     <version.maven-war-plugin>3.5.1</version.maven-war-plugin>
 
     <version.mybatis>3.5.19</version.mybatis>
