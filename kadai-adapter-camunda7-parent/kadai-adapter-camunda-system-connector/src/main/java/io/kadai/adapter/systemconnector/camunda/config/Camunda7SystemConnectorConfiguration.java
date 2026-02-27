@@ -18,15 +18,7 @@
 
 package io.kadai.adapter.systemconnector.camunda.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskClaimCanceler;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskClaimer;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskCompleter;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskEventCleaner;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
-import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
-import java.time.Duration;
 import java.util.List;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -35,7 +27,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +40,26 @@ import org.springframework.web.client.RestClient;
 @DependsOn(value = {"adapterSpringContextProvider"})
 public class Camunda7SystemConnectorConfiguration {
 
+  /** List of Camunda 7 systems to connect with the KadaiAdapter. */
   private List<Camunda7System> systems;
+
+  /** Configuration for the Camunda 7 Client. */
+  private ClientConfiguration client = new ClientConfiguration();
+
+  /** Configuration for the Camunda 7 Outbox Client. */
+  private OutboxClientConfiguration outbox = new OutboxClientConfiguration();
+
+  /** Configuration for the Camunda 7 Claiming-Behavior. */
+  private ClaimingConfiguration claiming = new ClaimingConfiguration();
+
+  /**
+   * Duration in seconds used for locking tasks in the Outbox in clustered
+   * KadaiAdapter-Environments.
+   */
+  private Long lockDuration = 0L;
+
+  /** XSRF-Token used when communicating with either Camunda or the Outbox REST-API. */
+  private String xsrfToken;
 
   public List<Camunda7System> getSystems() {
     return systems;
@@ -57,6 +67,46 @@ public class Camunda7SystemConnectorConfiguration {
 
   public void setSystems(List<Camunda7System> systems) {
     this.systems = systems;
+  }
+
+  public ClientConfiguration getClient() {
+    return client;
+  }
+
+  public void setClient(ClientConfiguration client) {
+    this.client = client;
+  }
+
+  public OutboxClientConfiguration getOutbox() {
+    return outbox;
+  }
+
+  public void setOutbox(OutboxClientConfiguration outbox) {
+    this.outbox = outbox;
+  }
+
+  public ClaimingConfiguration getClaiming() {
+    return claiming;
+  }
+
+  public void setClaiming(ClaimingConfiguration claiming) {
+    this.claiming = claiming;
+  }
+
+  public Long getLockDuration() {
+    return lockDuration;
+  }
+
+  public void setLockDuration(Long lockDuration) {
+    this.lockDuration = lockDuration;
+  }
+
+  public String getXsrfToken() {
+    return xsrfToken;
+  }
+
+  public void setXsrfToken(String xsrfToken) {
+    this.xsrfToken = xsrfToken;
   }
 
   @Bean
@@ -89,51 +139,61 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   @Bean
-  HttpHeaderProvider httpHeaderProvider() {
-    return new HttpHeaderProvider();
-  }
-
-  @Bean
   List<Camunda7System> camunda7Systems() {
     return this.getSystems();
   }
 
-  @Bean
-  Duration getLockDuration(
-      @Value("${kadai.adapter.events.lockDuration:#{0}}") final Long lockDuration) {
-    return Duration.ofSeconds(lockDuration);
+  public static class ClientConfiguration {
+
+    /** Basic-Auth username. */
+    private String username;
+
+    /** Basic-Auth password. */
+    private String password;
+
+    public String getUsername() {
+      return username;
+    }
+
+    public void setUsername(String username) {
+      this.username = username;
+    }
+
+    public String getPassword() {
+      return password;
+    }
+
+    public void setPassword(String password) {
+      this.password = password;
+    }
   }
 
-  @Bean
-  @DependsOn(value = {"httpHeaderProvider"})
-  Camunda7TaskRetriever camunda7TaskRetriever(
-      final HttpHeaderProvider httpHeaderProvider,
-      final ObjectMapper objectMapper,
-      final RestClient restClient) {
-    return new Camunda7TaskRetriever(httpHeaderProvider, objectMapper, restClient);
+  public static class OutboxClientConfiguration {
+    /** Configuration for the Camunda 7 Outbox Client. */
+    private ClientConfiguration client;
+
+    public ClientConfiguration getClient() {
+      return client;
+    }
+
+    public void setClient(ClientConfiguration client) {
+      this.client = client;
+    }
   }
 
-  @Bean
-  Camunda7TaskCompleter camunda7TaskCompleter(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskCompleter(httpHeaderProvider, restClient);
-  }
+  public static class ClaimingConfiguration {
+    /**
+     * Flag for enabling or disabling Claiming as part of the KadaiAdapter synchronization with
+     * Camunda 7.
+     */
+    private boolean enabled = false;
 
-  @Bean
-  Camunda7TaskClaimer camunda7TaskClaimer(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskClaimer(httpHeaderProvider, restClient);
-  }
+    public boolean isEnabled() {
+      return enabled;
+    }
 
-  @Bean
-  Camunda7TaskClaimCanceler camunda7TaskClaimCanceler(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskClaimCanceler(httpHeaderProvider, restClient);
-  }
-
-  @Bean
-  Camunda7TaskEventCleaner camunda7TaskEventCleaner(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskEventCleaner(httpHeaderProvider, restClient);
+    public void setEnabled(boolean enabled) {
+      this.enabled = enabled;
+    }
   }
 }

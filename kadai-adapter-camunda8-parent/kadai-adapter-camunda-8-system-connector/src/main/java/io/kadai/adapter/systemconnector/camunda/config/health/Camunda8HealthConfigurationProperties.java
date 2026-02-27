@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class Camunda8HealthConfigurationProperties
     extends CompositeHealthContributorConfigurationProperties {
 
+  /** Health-Configuration for Camunda 8 JobWorkers. */
   private JobWorkerHealthConfigurationProperties jobWorker =
       new JobWorkerHealthConfigurationProperties();
 
@@ -23,10 +24,15 @@ public class Camunda8HealthConfigurationProperties
   public static class JobWorkerHealthConfigurationProperties
       extends CompositeHealthContributorConfigurationProperties {
 
+    /** Health-Configuration for the Camunda 8 Complete Job-Worker. */
     private CompositeHealthContributorConfigurationProperties complete =
         new CompositeHealthContributorConfigurationProperties();
+
+    /** Health-Configuration for the Camunda 8 Create Job-Worker. */
     private CompositeHealthContributorConfigurationProperties create =
         new CompositeHealthContributorConfigurationProperties();
+
+    /** Health-Configuration for the Camunda 8 Cancel Job-Worker. */
     private CompositeHealthContributorConfigurationProperties cancel =
         new CompositeHealthContributorConfigurationProperties();
 

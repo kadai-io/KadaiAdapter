@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import io.kadai.adapter.configuration.AdapterConfiguration;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
@@ -44,7 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class KadaiTaskStarterServiceTest {
 
   @Mock private AdapterManager adapterManager;
-
+  @Mock private AdapterConfiguration adapterConfiguration;
   @Mock private KadaiConnector kadaiConnector;
 
   @Mock private Task kadaiTask;
@@ -54,7 +55,8 @@ class KadaiTaskStarterServiceTest {
 
   @BeforeEach
   void setUp() {
-    testSubject = new KadaiTaskStarterServiceImpl(adapterManager, "test-run-as-user");
+    when(adapterConfiguration.getRunAsUser()).thenReturn("test-run-as-user");
+    testSubject = new KadaiTaskStarterServiceImpl(adapterManager, adapterConfiguration);
 
     // Create a sample ReferencedTask for testing
     referencedTask = new ReferencedTask();

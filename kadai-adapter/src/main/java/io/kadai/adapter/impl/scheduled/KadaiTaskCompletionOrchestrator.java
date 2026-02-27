@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.impl.scheduled;
 
+import io.kadai.adapter.configuration.AdapterConfiguration;
 import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.impl.service.KadaiTaskCompletionService;
 import io.kadai.adapter.manager.AdapterManager;
@@ -30,7 +31,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -47,24 +47,22 @@ public class KadaiTaskCompletionOrchestrator implements MonitoredScheduledCompon
   private final KadaiTaskCompletionService kadaiTaskCompletionService;
   private final MonitoredRun monitoredRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
-
-  @Value(
-      "${kadai.adapter.scheduler.run.interval.for.check.finished.referenced.tasks.in.milliseconds"
-          + ":5000}")
-  private int runIntervalMillis;
+  private final long runIntervalMillis;
 
   @Autowired
   public KadaiTaskCompletionOrchestrator(
-      AdapterManager adapterManager, KadaiTaskCompletionService kadaiTaskCompletionService) {
+      AdapterManager adapterManager,
+      AdapterConfiguration adapterConfiguration,
+      KadaiTaskCompletionService kadaiTaskCompletionService) {
     this.adapterManager = adapterManager;
     this.kadaiTaskCompletionService = kadaiTaskCompletionService;
     this.monitoredRun = new MonitoredRun();
+    this.runIntervalMillis =
+        adapterConfiguration.getScheduler().getCheckFinishedReferencedTasksInterval();
   }
 
   @Scheduled(
-      fixedRateString =
-          "${kadai.adapter.scheduler.run.interval.for.check.finished.referenced.tasks."
-              + "in.milliseconds:5000}")
+      fixedRateString = "#{adapterConfiguration.scheduler.checkFinishedReferencedTasksInterval}")
   public void retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks() {
     monitoredRun.start();
 

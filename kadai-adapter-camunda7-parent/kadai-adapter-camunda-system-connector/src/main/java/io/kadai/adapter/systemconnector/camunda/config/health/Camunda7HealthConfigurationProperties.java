@@ -9,9 +9,11 @@ import org.springframework.context.annotation.Configuration;
 public class Camunda7HealthConfigurationProperties
     extends CompositeHealthContributorConfigurationProperties {
 
+  /** Health-Configuration for Camunda 7. */
   private CompositeHealthContributorConfigurationProperties camunda =
       new CompositeHealthContributorConfigurationProperties();
 
+  /** Health-Configuration for the Camunda 7 Outbox. */
   private CompositeHealthContributorConfigurationProperties outbox =
       new CompositeHealthContributorConfigurationProperties();
 
