@@ -56,7 +56,7 @@ jobs:
           ./mvnw -B dependency:go-offline
           ./mvnw -B test -Dtest=GibtEsNet -Dsurefire.failIfNoSpecifiedTests=false
       - name: Upload Kadai-Adapter artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACTS_KADAI_ADAPTER_JARS_NAME }}
           path: ${{ env.ARTIFACTS_KADAI_ADAPTER_JARS_PATH }}
@@ -109,7 +109,7 @@ jobs:
       - name: Test
         run: ./mvnw -B verify -pl :${{matrix.module}} -Dcheckstyle.skip
       - name: Upload JaCoCo Report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACTS_JACOCO_REPORTS_NAME }}-${{ matrix.module }}
           path: ${{ env.ARTIFACTS_JACOCO_REPORTS_PATH }}
