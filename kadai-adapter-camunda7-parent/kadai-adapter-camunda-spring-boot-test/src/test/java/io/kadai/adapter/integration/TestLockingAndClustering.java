@@ -31,10 +31,10 @@ import io.kadai.common.test.security.WithAccessId;
 import io.kadai.common.test.util.ParallelThreadHelper;
 import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.TaskSummary;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import javax.security.auth.Subject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -165,7 +165,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
             "simple_multiple_execution_process", "");
     List<String> accessIds =
         Collections.synchronizedList(new ArrayList<>(List.of("admin", "taskadmin")));
-    PrivilegedAction<Void> action =
+    Callable<Void> action =
         () -> {
           kadaiTaskStarter.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
           return null;
@@ -197,7 +197,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     List<String> accessIds =
         Collections.synchronizedList(
             new ArrayList<>(List.of("taskadmin", "taskadmin", "taskadmin")));
-    PrivilegedAction<Void> action =
+    Callable<Void> action =
         () -> {
           kadaiTaskTerminator.retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks();
           return null;
@@ -210,11 +210,11 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     }
   }
 
-  private Runnable getRunnableTest(List<String> accessIds, PrivilegedAction<Void> action) {
+  private Runnable getRunnableTest(List<String> accessIds, Callable<Void> action) {
     return () -> {
       Subject subject = new Subject();
       subject.getPrincipals().add(new UserPrincipal(accessIds.remove(0)));
-      Subject.doAs(subject, action);
+      Subject.callAs(subject, action);
     };
   }
 }
