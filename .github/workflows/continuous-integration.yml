@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  JAVA_VERSION: 17
+  JAVA_VERSION: 25
   CACHE_MAVEN_NAME: ma2aen
   CACHE_SONAR_NAME: sonar
   ARTIFACTS_KADAI_ADAPTER_JARS_NAME: kadai-jars
