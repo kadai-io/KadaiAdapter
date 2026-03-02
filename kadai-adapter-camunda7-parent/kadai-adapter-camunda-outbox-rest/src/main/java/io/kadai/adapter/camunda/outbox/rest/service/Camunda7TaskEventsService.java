@@ -19,8 +19,8 @@
 package io.kadai.adapter.camunda.outbox.rest.service;
 
 import io.kadai.adapter.camunda.OutboxRestConfiguration;
-import io.kadai.adapter.camunda.outbox.rest.exception.Camunda7TaskEventNotFoundException;
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxDataSource;
+import io.kadai.adapter.camunda.outbox.rest.exception.Camunda7TaskEventNotFoundException;
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentException;
 import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.repository.Camunda7OutboxSqlProvider;
