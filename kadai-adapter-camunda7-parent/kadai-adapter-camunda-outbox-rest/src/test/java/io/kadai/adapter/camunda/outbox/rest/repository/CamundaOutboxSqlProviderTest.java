@@ -1,6 +1,8 @@
 package io.kadai.adapter.camunda.outbox.rest.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.kadai.common.api.exceptions.UnsupportedDatabaseException;
 import java.util.stream.Stream;
