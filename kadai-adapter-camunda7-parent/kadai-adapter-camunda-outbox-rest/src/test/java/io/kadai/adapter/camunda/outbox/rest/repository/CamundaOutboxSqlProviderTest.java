@@ -12,7 +12,7 @@ class CamundaOutboxSqlProviderTest {
 
   @ParameterizedTest
   @MethodSource("supportedDatabases")
-  void shouldReturnCorrectProvider(
+  void should_ReturnCorrectProvider(
       String databaseProductName, Class<? extends CamundaOutboxSqlProvider> expectedClass) {
 
     CamundaOutboxSqlProvider provider = CamundaOutboxSqlProvider.valueOf(databaseProductName);
@@ -27,7 +27,7 @@ class CamundaOutboxSqlProviderTest {
 
   @ParameterizedTest
   @MethodSource("unsupportedDatabases")
-  void shouldThrowForUnsupportedDatabase(String databaseProductName) {
+  void should_Throw_ForUnsupportedDatabase(String databaseProductName) {
     assertThrows(
         UnsupportedDatabaseException.class,
         () -> CamundaOutboxSqlProvider.valueOf(databaseProductName));
