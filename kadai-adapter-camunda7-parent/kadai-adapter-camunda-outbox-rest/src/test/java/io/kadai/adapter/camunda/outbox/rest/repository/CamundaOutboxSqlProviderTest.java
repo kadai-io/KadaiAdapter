@@ -23,10 +23,6 @@ class CamundaOutboxSqlProviderTest {
     assertEquals(expectedClass, provider.getClass());
   }
 
-  static Stream<String> unsupportedDatabases() {
-    return Stream.of("MySQL", "MariaDB", "SQLServer", "SQLite", "unknown-db");
-  }
-
   @ParameterizedTest
   @MethodSource("unsupportedDatabases")
   void should_Throw_ForUnsupportedDatabase(String databaseProductName) {
@@ -47,5 +43,9 @@ class CamundaOutboxSqlProviderTest {
         Arguments.of("postgresql", PostgresCamundaOutboxSqlProvider.class),
         Arguments.of("Oracle", OracleCamundaOutboxSqlProvider.class),
         Arguments.of("oracle database", OracleCamundaOutboxSqlProvider.class));
+  }
+
+  static Stream<String> unsupportedDatabases() {
+    return Stream.of("MySQL", "MariaDB", "SQLServer", "SQLite", "unknown-db");
   }
 }
