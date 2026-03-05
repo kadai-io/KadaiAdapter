@@ -6,16 +6,17 @@ import io.kadai.common.internal.configuration.DB;
 public interface CamundaOutboxSqlProvider {
 
   static CamundaOutboxSqlProvider valueOf(String databaseProductName) {
-    if (databaseProductName.equals(DB.H2.dbProductName)) {
+    final String databaseProductNameLowerCase = databaseProductName.toLowerCase().trim();
+    if (databaseProductNameLowerCase.contains(DB.H2.dbProductName.toLowerCase())) {
       return new H2CamundaOutboxSqlProvider();
-    } else if (databaseProductName.equals(DB.DB2.dbProductName)) {
+    } else if (databaseProductNameLowerCase.contains(DB.DB2.dbProductName.toLowerCase())) {
       return new Db2CamundaOutboxSqlProvider();
-    } else if (databaseProductName.equals(DB.POSTGRES.dbProductName)) {
+    } else if (databaseProductNameLowerCase.contains(DB.POSTGRES.dbProductName.toLowerCase())) {
       return new PostgresCamundaOutboxSqlProvider();
-    } else if (databaseProductName.contains("Oracle")) {
+    } else if (databaseProductNameLowerCase.contains("oracle")) {
       return new OracleCamundaOutboxSqlProvider();
     } else {
-      throw new UnsupportedDatabaseException(databaseProductName);
+      throw new UnsupportedDatabaseException(databaseProductNameLowerCase);
     }
   }
 
