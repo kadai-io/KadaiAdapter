@@ -2,10 +2,11 @@ package io.kadai.adapter.camunda.outbox.rest.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.kadai.common.api.exceptions.UnsupportedDatabaseException;
 import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -26,9 +27,11 @@ class CamundaOutboxSqlProviderTest {
   @ParameterizedTest
   @MethodSource("unsupportedDatabases")
   void should_Throw_ForUnsupportedDatabase(String databaseProductName) {
-    assertThrows(
-        UnsupportedDatabaseException.class,
-        () -> CamundaOutboxSqlProvider.valueOf(databaseProductName));
+    final ThrowingCallable call = () -> CamundaOutboxSqlProvider.valueOf(databaseProductName);
+    Assertions.assertThatExceptionOfType(UnsupportedDatabaseException.class)
+        .isThrownBy(call)
+        .extracting(UnsupportedDatabaseException::getDatabaseProductName)
+        .isEqualTo(databaseProductName);
   }
 
   static Stream<Arguments> supportedDatabases() {

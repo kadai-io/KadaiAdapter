@@ -16,7 +16,7 @@ public interface CamundaOutboxSqlProvider {
     } else if (databaseProductNameLowerCase.contains("oracle")) {
       return new OracleCamundaOutboxSqlProvider();
     } else {
-      throw new UnsupportedDatabaseException(databaseProductNameLowerCase);
+      throw new UnsupportedDatabaseException(databaseProductName);
     }
   }
 
