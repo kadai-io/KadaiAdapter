@@ -60,7 +60,8 @@
     <dependency>
       <groupId>io.kadai</groupId>
       <artifactId>kadai-common-test</artifactId>
-      <version>${project.version}</version>
+      <version>${version.kadai}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
