@@ -23,7 +23,6 @@ import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.common.internal.util.CheckedSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -50,11 +49,10 @@ public class KadaiTaskCompletionServiceImpl implements KadaiTaskCompletionServic
 
     UserContext.runAsUser(
         runAsUser,
-        CheckedSupplier.rethrowing(
-            () -> {
-              adapterManager.getKadaiConnector().terminateKadaiTask(referencedTask);
-              return null;
-            }));
+        () -> {
+          adapterManager.getKadaiConnector().terminateKadaiTask(referencedTask);
+          return null;
+        });
 
     LOGGER.trace("KadaiTaskCompletionService.terminateKadaiTask EXIT");
   }

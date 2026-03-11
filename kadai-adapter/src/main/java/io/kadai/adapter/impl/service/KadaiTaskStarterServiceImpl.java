@@ -24,7 +24,6 @@ import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import io.kadai.common.internal.util.CheckedSupplier;
 import io.kadai.task.api.models.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +51,11 @@ public class KadaiTaskStarterServiceImpl implements KadaiTaskStarterService {
 
     UserContext.runAsUser(
         runAsUser,
-        CheckedSupplier.rethrowing(
-            () -> {
-              Task kadaiTask = kadaiConnector.convertToKadaiTask(referencedTask);
-              kadaiConnector.createKadaiTask(kadaiTask);
-              return null;
-            }));
+        () -> {
+          Task kadaiTask = kadaiConnector.convertToKadaiTask(referencedTask);
+          kadaiConnector.createKadaiTask(kadaiTask);
+          return null;
+        });
 
     LOGGER.trace("KadaiTaskStarterService.createKadaiTask EXIT");
   }
