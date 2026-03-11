@@ -43,7 +43,7 @@ class OutboxRestServiceAutoConfigurationTest {
   }
 
   @Test
-  void camundaTaskEventsController_is_automatically_configured() {
+  void camunda7TaskEventsController_is_automatically_configured() {
     assertThat(outboxRestServiceConfig).isNotNull();
   }
 

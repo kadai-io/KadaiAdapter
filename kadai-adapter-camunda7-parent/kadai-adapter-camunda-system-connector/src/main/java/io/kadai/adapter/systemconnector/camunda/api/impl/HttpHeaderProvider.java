@@ -18,9 +18,9 @@
 
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -30,41 +30,36 @@ public class HttpHeaderProvider {
 
   private static final String UNDEFINED = "undefined";
 
-  @Value("${kadai-system-connector-camunda-rest-api-user-name:undefined}")
-  private String camundaRestApiUserName;
+  private final Camunda7SystemConnectorConfiguration camunda7config;
 
-  @Value("${kadai-system-connector-camunda-rest-api-user-password:undefined}")
-  private String camundaRestApiUserPassword;
+  public HttpHeaderProvider(Camunda7SystemConnectorConfiguration camunda7config) {
+    this.camunda7config = camunda7config;
+  }
 
-  @Value("${kadai-system-connector-outbox-rest-api-user-name:undefined}")
-  private String outboxRestApiUserName;
-
-  @Value("${kadai-system-connector-outbox-rest-api-user-password:undefined}")
-  private String outboxRestApiUserPassword;
-
-  @Value("${kadai.adapter.xsrf.token:}")
-  private String xsrfToken;
-
-  public HttpHeaders camundaRestApiHeaders() {
-    if (UNDEFINED.equals(camundaRestApiUserName)) {
+  public HttpHeaders camunda7RestApiHeaders() {
+    if (UNDEFINED.equals(camunda7config.getClient().getUsername())) {
       return new HttpHeaders();
     } else {
-      String plainCreds = camundaRestApiUserName + ":" + camundaRestApiUserPassword;
+      String plainCreds =
+          camunda7config.getClient().getUsername() + ":" + camunda7config.getClient().getPassword();
       return encodeHttpHeaders(plainCreds);
     }
   }
 
   public HttpHeaders outboxRestApiHeaders() {
-    if (UNDEFINED.equals(outboxRestApiUserName)) {
+    if (UNDEFINED.equals(camunda7config.getOutbox().getClient().getUsername())) {
       return new HttpHeaders();
     } else {
-      String plainCreds = outboxRestApiUserName + ":" + outboxRestApiUserPassword;
+      String plainCreds =
+          camunda7config.getOutbox().getClient().getUsername()
+              + ":"
+              + camunda7config.getOutbox().getClient().getPassword();
       return encodeHttpHeaders(plainCreds);
     }
   }
 
-  public HttpHeaders getHttpHeadersForCamundaRestApi() {
-    HttpHeaders headers = camundaRestApiHeaders();
+  public HttpHeaders getHttpHeadersForCamunda7RestApi() {
+    HttpHeaders headers = camunda7RestApiHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     return headers;
   }
@@ -80,9 +75,9 @@ public class HttpHeaderProvider {
     String encodedCredentials = Base64.getEncoder().encodeToString(credentialsBytes);
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", "Basic " + encodedCredentials);
-    if (xsrfToken != null && !xsrfToken.isEmpty()) {
-      headers.add("Cookie", "XSRF-TOKEN=" + xsrfToken);
-      headers.add("X-XSRF-TOKEN", xsrfToken);
+    if (camunda7config.getXsrfToken() != null && !camunda7config.getXsrfToken().isEmpty()) {
+      headers.add("Cookie", "XSRF-TOKEN=" + camunda7config.getXsrfToken());
+      headers.add("X-XSRF-TOKEN", camunda7config.getXsrfToken());
     }
     return headers;
   }

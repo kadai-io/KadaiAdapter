@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.impl.service;
 
+import io.kadai.adapter.configuration.AdapterConfiguration;
 import io.kadai.adapter.exceptions.TaskCreationFailedException;
 import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.kadaiconnector.api.KadaiConnector;
@@ -27,7 +28,6 @@ import io.kadai.common.internal.util.CheckedSupplier;
 import io.kadai.task.api.models.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,13 +36,12 @@ public class KadaiTaskStarterServiceImpl implements KadaiTaskStarterService {
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskStarterServiceImpl.class);
 
   private final AdapterManager adapterManager;
-
   private final String runAsUser;
 
   public KadaiTaskStarterServiceImpl(
-      AdapterManager adapterManager, @Value("${kadai.adapter.run-as.user}") String runAsUser) {
+      AdapterManager adapterManager, AdapterConfiguration adapterConfiguration) {
     this.adapterManager = adapterManager;
-    this.runAsUser = runAsUser;
+    this.runAsUser = adapterConfiguration.getRunAsUser();
   }
 
   @Override

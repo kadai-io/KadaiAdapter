@@ -25,8 +25,10 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "httpcomponentsclient")
 public class HttpComponentsClientProperties {
 
+  /** The Connection-Timeout in milliseconds. */
   private long connectionTimeout = 2_000;
 
+  /** The Read-Timeout in milliseconds. */
   private long readTimeout = 5_000;
 
   public long getConnectionTimeout() {
