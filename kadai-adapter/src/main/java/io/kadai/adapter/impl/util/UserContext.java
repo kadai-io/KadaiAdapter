@@ -19,7 +19,8 @@
 package io.kadai.adapter.impl.util;
 
 import io.kadai.common.api.security.UserPrincipal;
-import java.util.function.Supplier;
+import io.kadai.common.internal.util.CheckedSupplier;
+import java.util.concurrent.CompletionException;
 import javax.security.auth.Subject;
 
 public class UserContext {
@@ -28,9 +29,21 @@ public class UserContext {
     throw new IllegalStateException("Utility class");
   }
 
-  public static <T> T runAsUser(String runAsUserId, Supplier<T> supplier) {
+  // Unchecked cast necessary to rethrow the original exception type
+  // as Subject::callAs wraps every exception in a CompletionException
+  @SuppressWarnings("unchecked")
+  public static <T, E extends Exception> T runAsUser(
+      String runAsUserId, CheckedSupplier<T, E> supplier) throws E {
     Subject subject = new Subject();
     subject.getPrincipals().add(new UserPrincipal(runAsUserId));
-    return Subject.callAs(subject, supplier::get);
+    try {
+      return Subject.callAs(subject, supplier::get);
+    } catch (CompletionException e) {
+      try {
+        throw ((E) e.getCause());
+      } catch (ClassCastException ex) {
+        throw new RuntimeException("Unexpected exception type", ex);
+      }
+    }
   }
 }
