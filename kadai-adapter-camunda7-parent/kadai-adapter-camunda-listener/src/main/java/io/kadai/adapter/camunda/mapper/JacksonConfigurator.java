@@ -19,25 +19,20 @@
 package io.kadai.adapter.camunda.mapper;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.text.SimpleDateFormat;
 
-/** This class is responsible for configuring the ObjectMapper of Jackson. */
+/** This class is responsible for configuring the JsonMapper of Jackson. */
 public final class JacksonConfigurator {
 
   public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
   private JacksonConfigurator() {}
 
-  public static ObjectMapper createAndConfigureObjectMapper() {
-
-    ObjectMapper mapper = new ObjectMapper();
-    SimpleDateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
-    mapper.setDateFormat(dateFormat);
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-    return mapper;
+  public static JsonMapper createAndConfigureJsonMapper() {
+    return JsonMapper.builder()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .defaultDateFormat(new SimpleDateFormat(DEFAULT_DATE_FORMAT))
+        .build();
   }
 }

@@ -19,7 +19,7 @@
 package io.kadai.adapter.camunda.tasklistener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.kadai.adapter.camunda.Camunda7ListenerConfiguration;
 import io.kadai.adapter.camunda.dto.ReferencedTask;
 import io.kadai.adapter.camunda.dto.VariableValueDto;
@@ -63,10 +63,9 @@ public class KadaiTaskListener implements TaskListener {
   private static final String SQL_INSERT_EVENT =
       "INSERT INTO event_store (TYPE,CREATED,PAYLOAD,REMAINING_RETRIES,"
           + "BLOCKED_UNTIL,CAMUNDA_TASK_ID, SYSTEM_ENGINE_IDENTIFIER) VALUES (?,?,?,?,?,?,?)";
-  private static KadaiTaskListener instance = null;
   private static final String[] PREFIXES = {"kadai.", "kadai-", "taskana.", "taskana-"};
-
-  private final ObjectMapper objectMapper = JacksonConfigurator.createAndConfigureObjectMapper();
+  private static KadaiTaskListener instance = null;
+  private final JsonMapper jsonMapper = JacksonConfigurator.createAndConfigureJsonMapper();
   private boolean gotActivated = false;
   private String outboxSchemaName = null;
 
@@ -253,7 +252,7 @@ public class KadaiTaskListener implements TaskListener {
     referencedTask.setCustomInt7(getVariableWithFallback(delegateTask, "custom-int-7", null));
     referencedTask.setCustomInt8(getVariableWithFallback(delegateTask, "custom-int-8", null));
     referencedTask.setVariables(getProcessVariables(delegateTask));
-    String referencedTaskJson = objectMapper.writeValueAsString(referencedTask);
+    String referencedTaskJson = jsonMapper.writeValueAsString(referencedTask);
     LOGGER.debug("Exit from getReferencedTaskJson. Returning {}.", referencedTaskJson);
     return referencedTaskJson;
   }
@@ -313,8 +312,7 @@ public class KadaiTaskListener implements TaskListener {
 
     variableNames.forEach(
         nameOfVariableToAdd ->
-            addToVariablesBuilder(
-                delegateTask, objectMapper, variablesBuilder, nameOfVariableToAdd));
+            addToVariablesBuilder(delegateTask, jsonMapper, variablesBuilder, nameOfVariableToAdd));
 
     if (variablesBuilder.length() > 0) {
       variablesBuilder.deleteCharAt(variablesBuilder.length() - 1).append("}");
@@ -327,7 +325,7 @@ public class KadaiTaskListener implements TaskListener {
 
   private void addToVariablesBuilder(
       DelegateTask delegateTask,
-      ObjectMapper objectMapper,
+      JsonMapper objectMapper,
       StringBuilder processVariablesBuilder,
       String nameOfprocessVariableToAdd) {
 
@@ -364,7 +362,7 @@ public class KadaiTaskListener implements TaskListener {
   }
 
   private VariableValueDto determineProcessVariableTypeAndCreateVariableValueDto(
-      TypedValue processVariable, ObjectMapper objectMapper) throws JsonProcessingException {
+      TypedValue processVariable, JsonMapper objectMapper) throws JsonProcessingException {
 
     VariableValueDto variableValueDto = new VariableValueDto();
 
