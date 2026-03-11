@@ -21,9 +21,9 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.api.SystemResponse;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,17 +40,19 @@ import org.springframework.web.client.RestClient;
 public class Camunda7TaskClaimCanceler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda7TaskClaimCanceler.class);
+
   private final HttpHeaderProvider httpHeaderProvider;
   private final RestClient restClient;
-
-  @Value("${kadai.adapter.camunda.claiming.enabled:false}")
-  private boolean claimingEnabled;
-
+  private final boolean claimingEnabled;
   private boolean cancelClaimConfigLogged = false;
 
-  public Camunda7TaskClaimCanceler(HttpHeaderProvider httpHeaderProvider, RestClient restClient) {
+  public Camunda7TaskClaimCanceler(
+      HttpHeaderProvider httpHeaderProvider,
+      Camunda7SystemConnectorConfiguration camunda7SystemConnectorConfiguration,
+      RestClient restClient) {
     this.httpHeaderProvider = httpHeaderProvider;
     this.restClient = restClient;
+    this.claimingEnabled = camunda7SystemConnectorConfiguration.getClaiming().isEnabled();
   }
 
   public SystemResponse cancelClaimOfCamunda7Task(

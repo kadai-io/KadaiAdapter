@@ -27,12 +27,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 /** Completes Camunda Tasks via the Camunda REST Api. */
+@Component
 public class Camunda7TaskCompleter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda7TaskCompleter.class);

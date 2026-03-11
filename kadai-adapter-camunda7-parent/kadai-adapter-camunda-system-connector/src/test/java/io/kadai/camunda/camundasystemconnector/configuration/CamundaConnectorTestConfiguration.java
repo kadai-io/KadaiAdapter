@@ -19,22 +19,10 @@
 package io.kadai.camunda.camundasystemconnector.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskCompleter;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
-import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.core5.util.Timeout;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
 
 /**
  * Configuration for test of Camunda System Connector.
@@ -48,53 +36,5 @@ public class CamundaConnectorTestConfiguration {
   @Bean
   ObjectMapper objectMapper() {
     return new ObjectMapper();
-  }
-
-  @Bean
-  HttpHeaderProvider httpHeaderProvider() {
-    return new HttpHeaderProvider();
-  }
-
-  @Bean
-  RestClient restClient(HttpComponentsClientProperties props) {
-    ConnectionConfig connectionConfig =
-        ConnectionConfig.custom()
-            .setConnectTimeout(Timeout.ofMilliseconds(props.getConnectionTimeout()))
-            .build();
-
-    PoolingHttpClientConnectionManager connectionManager =
-        PoolingHttpClientConnectionManagerBuilder.create()
-            .setDefaultConnectionConfig(connectionConfig)
-            .build();
-
-    RequestConfig requestConfig =
-        RequestConfig.custom()
-            .setResponseTimeout(Timeout.ofMilliseconds(props.getReadTimeout()))
-            .build();
-
-    CloseableHttpClient httpClient =
-        HttpClients.custom()
-            .setConnectionManager(connectionManager)
-            .setDefaultRequestConfig(requestConfig)
-            .build();
-
-    HttpComponentsClientHttpRequestFactory requestFactory =
-        new HttpComponentsClientHttpRequestFactory(httpClient);
-
-    return RestClient.builder().requestFactory(requestFactory).build();
-  }
-
-  @Bean
-  Camunda7TaskRetriever camundaTaskRetriever(
-      final HttpHeaderProvider httpHeaderProvider,
-      final ObjectMapper objectMapper,
-      final RestClient restClient) {
-    return new Camunda7TaskRetriever(httpHeaderProvider, objectMapper, restClient);
-  }
-
-  @Bean
-  Camunda7TaskCompleter camundaTaskCompleter(
-      final HttpHeaderProvider httpHeaderProvider, final RestClient restClient) {
-    return new Camunda7TaskCompleter(httpHeaderProvider, restClient);
   }
 }
