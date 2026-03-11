@@ -34,7 +34,7 @@ class HttpHeaderProviderXsrfTest {
     @Test
     void should_ReturnHttpHeaderWithoutXsrfToken_When_PropertyNotExists() {
       HttpHeaders headers = httpHeaderProvider.outboxRestApiHeaders();
-      assertThat(headers).containsOnlyKeys("Authorization");
+      assertThat(headers).hasOnlyFields("Authorization");
     }
   }
 
@@ -55,7 +55,7 @@ class HttpHeaderProviderXsrfTest {
     @Test
     void should_ReturnHttpHeaderWithXsrfToken_When_PropertyExists() {
       HttpHeaders headers = httpHeaderProvider.outboxRestApiHeaders();
-      assertThat(headers).containsKeys("Authorization", "Cookie", "X-XSRF-TOKEN");
+      assertThat(headers).hasOnlyFields("Authorization", "Cookie", "X-XSRF-TOKEN");
       assertThat(headers.get("Cookie")).containsExactly("XSRF-TOKEN=KAD_UNIQUE_TOKEN_123");
       assertThat(headers.get("X-XSRF-TOKEN")).containsExactly("KAD_UNIQUE_TOKEN_123");
     }
