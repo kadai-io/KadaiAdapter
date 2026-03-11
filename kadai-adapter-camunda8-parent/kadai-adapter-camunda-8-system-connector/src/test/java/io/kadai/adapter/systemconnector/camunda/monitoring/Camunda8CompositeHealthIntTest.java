@@ -7,7 +7,6 @@ import io.camunda.client.CamundaClient;
 import io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
-import io.kadai.common.api.KadaiEngine;
 import io.kadai.common.test.security.WithAccessId;
 import java.util.Map;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -30,7 +29,6 @@ class Camunda8CompositeHealthIntTest {
   @Autowired private Camunda8TestUtil camunda8TestUtil;
   @Autowired private CamundaClient client;
   @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
-  @Autowired private KadaiEngine kadaiEngine;
 
   @Nested
   @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -48,9 +46,6 @@ class Camunda8CompositeHealthIntTest {
           .join();
 
       client.newCreateInstanceCommand().bpmnProcessId("Test_Process").latestVersion().send().join();
-
-      camunda8TestUtil.waitUntil(
-          () -> !kadaiEngine.getTaskService().createTaskQuery().list().isEmpty());
 
       RestClient restClient =
           RestClient.builder()
