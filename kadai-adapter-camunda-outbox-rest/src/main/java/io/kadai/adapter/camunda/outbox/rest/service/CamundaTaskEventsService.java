@@ -428,7 +428,7 @@ public class CamundaTaskEventsService {
     List<CamundaTaskEvent> camundaTaskEvents = new ArrayList<>();
     List<Integer> ids = null;
 
-    try (Connection connection = getConnection()) {
+    try (Connection connection = getConnection(false)) {
       final CamundaOutboxSqlProvider sqlProvider =
           CamundaOutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql =
@@ -445,6 +445,7 @@ public class CamundaTaskEventsService {
         camundaTaskEvents = getCamundaTaskEvents(camundaTaskEventResultSet);
         ids = camundaTaskEvents.stream().map(CamundaTaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
+        connection.commit();
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
               "Events locked: {}",
@@ -455,6 +456,7 @@ public class CamundaTaskEventsService {
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
+            connection.commit();
             if (LOGGER.isDebugEnabled()) {
               LOGGER.debug(
                   "Events unlocked: {}",
@@ -464,6 +466,7 @@ public class CamundaTaskEventsService {
             LOGGER.error("Failed to unlock events", ex);
           }
         }
+        connection.rollback();
       }
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn("Caught Exception while trying to retrieve create events from the outbox", e);
@@ -575,10 +578,16 @@ public class CamundaTaskEventsService {
     return camundaTaskEvents;
   }
 
-  private Connection getConnection() {
+  private Connection getConnection(boolean autoCommit) {
     Connection connection = null;
     try {
       connection = OutboxDataSource.get().getConnection();
+      if (!connection.getAutoCommit()) {
+        LOGGER.warn(
+            "Connection may already be participating in transaction provided by surrounding "
+                + "transaction-manager. Transaction may not behave correctly.");
+      }
+      connection.setAutoCommit(autoCommit);
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn(
           "Caught {} while trying to retrieve a connection from the provided datasource",
@@ -591,6 +600,10 @@ public class CamundaTaskEventsService {
           "Retrieved connection was NULL. Please make sure to provide a valid datasource.");
     }
     return connection;
+  }
+
+  private Connection getConnection() {
+    return getConnection(true);
   }
 
   private void unlockEvents(List<Integer> ids, Connection connection) throws SQLException {
