@@ -456,6 +456,7 @@ public class CamundaTaskEventsService {
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
+            connection.commit();
             if (LOGGER.isDebugEnabled()) {
               LOGGER.debug(
                   "Events unlocked: {}",
