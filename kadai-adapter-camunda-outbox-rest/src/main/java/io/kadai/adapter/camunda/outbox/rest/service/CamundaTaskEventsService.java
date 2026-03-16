@@ -582,6 +582,11 @@ public class CamundaTaskEventsService {
     Connection connection = null;
     try {
       connection = OutboxDataSource.get().getConnection();
+      if (!connection.getAutoCommit()) {
+        LOGGER.warn(
+            "Connection may already be participating in transaction provided by surrounding "
+                + "transaction-manager. Transaction may not behave correctly.");
+      }
       connection.setAutoCommit(autoCommit);
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn(
