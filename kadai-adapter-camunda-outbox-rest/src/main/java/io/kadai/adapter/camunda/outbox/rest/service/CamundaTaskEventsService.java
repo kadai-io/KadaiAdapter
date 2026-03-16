@@ -466,8 +466,8 @@ public class CamundaTaskEventsService {
             LOGGER.error("Failed to unlock events", ex);
           }
         }
+        connection.rollback();
       }
-      connection.rollback();
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn("Caught Exception while trying to retrieve create events from the outbox", e);
     }
