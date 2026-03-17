@@ -20,11 +20,7 @@ package io.kadai.camunda.camundasystemconnector.configuration;
 
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.SerializationFeature;
 
 /**
  * Configuration for test of Camunda System Connector.
@@ -33,15 +29,4 @@ import tools.jackson.databind.SerializationFeature;
  */
 @Configuration
 @EnableConfigurationProperties(HttpComponentsClientProperties.class)
-public class CamundaConnectorTestConfiguration {
-
-  @Bean
-  JsonMapperBuilderCustomizer customizer() {
-    return builder ->
-        builder
-            .deactivateDefaultTyping()
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-  }
-
-}
+public class CamundaConnectorTestConfiguration {}
