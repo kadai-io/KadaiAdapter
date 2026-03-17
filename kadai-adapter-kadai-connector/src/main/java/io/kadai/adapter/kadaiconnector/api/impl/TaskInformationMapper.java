@@ -18,6 +18,8 @@
 
 package io.kadai.adapter.kadaiconnector.api.impl;
 
+import io.kadai.adapter.kadaiconnector.config.KadaiSystemConnectorConfiguration;
+import io.kadai.adapter.kadaiconnector.config.KadaiSystemConnectorConfiguration.TaskMappingConfiguration;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.task.api.CallbackState;
 import io.kadai.task.api.TaskService;
@@ -35,7 +37,6 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /** Maps properties between ReferencedTasks from external systems and corresponding KADAI tasks. */
@@ -44,25 +45,14 @@ public class TaskInformationMapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskInformationMapper.class);
   private static final String CAMUNDA_PROCESS_VARIABLE_PREFIX = "camunda:";
+
   private final TaskService taskService;
+  private final TaskMappingConfiguration taskMappingConfiguration;
 
-  @Value("${kadai.adapter.mapping.default.objectreference.company:DEFAULT_COMPANY}")
-  private String defaultCompany;
-
-  @Value("${kadai.adapter.mapping.default.objectreference.system:DEFAULT_SYSTEM}")
-  private String defaultSystem;
-
-  @Value("${kadai.adapter.mapping.default.objectreference.system.instance:DEFAULT_SYSTEM_INSTANCE}")
-  private String defaultSystemInstance;
-
-  @Value("${kadai.adapter.mapping.default.objectreference.type:DEFAULT_TYPE}")
-  private String defaultType;
-
-  @Value("${kadai.adapter.mapping.default.objectreference.value:DEFAULT_VALUE}")
-  private String defaultValue;
-
-  public TaskInformationMapper(TaskService taskService) {
+  public TaskInformationMapper(
+      TaskService taskService, KadaiSystemConnectorConfiguration connectorConfiguration) {
     this.taskService = taskService;
+    this.taskMappingConfiguration = connectorConfiguration.getTaskMapping();
   }
 
   public Task convertToKadaiTask(ReferencedTask referencedTask) {
@@ -244,23 +234,11 @@ public class TaskInformationMapper {
   private ObjectReference createObjectReference() {
 
     return taskService.newObjectReference(
-        defaultCompany, defaultSystem, defaultSystemInstance, defaultType, defaultValue);
+        taskMappingConfiguration.getObjectReference().getCompany(),
+        taskMappingConfiguration.getObjectReference().getSystem(),
+        taskMappingConfiguration.getObjectReference().getSystemInstance(),
+        taskMappingConfiguration.getObjectReference().getType(),
+        taskMappingConfiguration.getObjectReference().getValue());
   }
 
-  @Override
-  public String toString() {
-    return "TaskInformationMapper [defaultCompany="
-        + defaultCompany
-        + ", defaultSystem="
-        + defaultSystem
-        + ", defaultSystemInstance="
-        + defaultSystemInstance
-        + ", defaultType="
-        + defaultType
-        + ", defaultValue="
-        + defaultValue
-        + ", taskService="
-        + taskService
-        + "]";
-  }
 }

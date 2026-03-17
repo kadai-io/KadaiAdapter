@@ -20,7 +20,7 @@ package io.kadai.adapter.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kadai.adapter.camunda.outbox.rest.resource.CamundaTaskEventListResource;
+import io.kadai.adapter.camunda.outbox.rest.resource.Camunda7TaskEventListResource;
 import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
 import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
@@ -31,10 +31,10 @@ import io.kadai.common.test.security.WithAccessId;
 import io.kadai.common.test.util.ParallelThreadHelper;
 import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.TaskSummary;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import javax.security.auth.Subject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,28 +71,28 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     String url = BASIC_OUTBOX_PATH + "?lock-for=10";
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    CamundaTaskEventListResource answer =
+    Camunda7TaskEventListResource answer =
         restClient
             .get()
             .uri(url)
             .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
-            .toEntity(CamundaTaskEventListResource.class)
+            .toEntity(Camunda7TaskEventListResource.class)
             .getBody();
 
     assertThat(answer).isNotNull();
-    assertThat(answer.getCamundaTaskEvents()).hasSize(1);
+    assertThat(answer.getCamunda7TaskEvents()).hasSize(1);
     answer =
         restClient
             .get()
             .uri(url)
             .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
-            .toEntity(CamundaTaskEventListResource.class)
+            .toEntity(Camunda7TaskEventListResource.class)
             .getBody();
 
     assertThat(answer).isNotNull();
-    assertThat(answer.getCamundaTaskEvents()).isEmpty();
+    assertThat(answer.getCamunda7TaskEvents()).isEmpty();
 
     try {
       Thread.sleep(10000);
@@ -105,11 +105,11 @@ class TestLockingAndClustering extends AbsIntegrationTest {
             .uri(url)
             .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
-            .toEntity(CamundaTaskEventListResource.class)
+            .toEntity(Camunda7TaskEventListResource.class)
             .getBody();
 
     assertThat(answer).isNotNull();
-    assertThat(answer.getCamundaTaskEvents()).hasSize(1);
+    assertThat(answer.getCamunda7TaskEvents()).hasSize(1);
   }
 
   @WithAccessId(
@@ -126,17 +126,17 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     String urlWithLock = BASIC_OUTBOX_PATH + "?lock-for=10";
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    CamundaTaskEventListResource answer =
+    Camunda7TaskEventListResource answer =
         restClient
             .get()
             .uri(urlWithLock)
             .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
-            .toEntity(CamundaTaskEventListResource.class)
+            .toEntity(Camunda7TaskEventListResource.class)
             .getBody();
     assertThat(answer).isNotNull();
-    assertThat(answer.getCamundaTaskEvents()).hasSize(1);
-    int eventId = answer.getCamundaTaskEvents().get(0).getId();
+    assertThat(answer.getCamunda7TaskEvents()).hasSize(1);
+    int eventId = answer.getCamunda7TaskEvents().get(0).getId();
     String urlWithUnlock = BASIC_OUTBOX_PATH + "/unlock-event/" + eventId;
 
     restClient
@@ -151,10 +151,10 @@ class TestLockingAndClustering extends AbsIntegrationTest {
             .uri(urlWithLock)
             .headers(httpHeaders -> httpHeaders.addAll(headers))
             .retrieve()
-            .toEntity(CamundaTaskEventListResource.class)
+            .toEntity(Camunda7TaskEventListResource.class)
             .getBody();
     assertThat(answer).isNotNull();
-    assertThat(answer.getCamundaTaskEvents()).hasSize(1);
+    assertThat(answer.getCamunda7TaskEvents()).hasSize(1);
   }
 
   @WithAccessId(user = "taskadmin")
@@ -165,7 +165,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
             "simple_multiple_execution_process", "");
     List<String> accessIds =
         Collections.synchronizedList(new ArrayList<>(List.of("admin", "taskadmin")));
-    PrivilegedAction<Void> action =
+    Callable<Void> action =
         () -> {
           kadaiTaskStarter.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
           return null;
@@ -197,7 +197,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     List<String> accessIds =
         Collections.synchronizedList(
             new ArrayList<>(List.of("taskadmin", "taskadmin", "taskadmin")));
-    PrivilegedAction<Void> action =
+    Callable<Void> action =
         () -> {
           kadaiTaskTerminator.retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks();
           return null;
@@ -210,11 +210,11 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     }
   }
 
-  private Runnable getRunnableTest(List<String> accessIds, PrivilegedAction<Void> action) {
+  private Runnable getRunnableTest(List<String> accessIds, Callable<Void> action) {
     return () -> {
       Subject subject = new Subject();
       subject.getPrincipals().add(new UserPrincipal(accessIds.remove(0)));
-      Subject.doAs(subject, action);
+      Subject.callAs(subject, action);
     };
   }
 }
