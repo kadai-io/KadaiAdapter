@@ -47,6 +47,9 @@ class Camunda8CompositeHealthIntTest {
 
       client.newCreateInstanceCommand().bpmnProcessId("Test_Process").latestVersion().send().join();
 
+      // wait until the job worker has processed the job as CI-Run is a little fussy here
+      Thread.sleep(5000);
+
       RestClient restClient =
           RestClient.builder()
               .baseUrl("http://localhost:" + port)
