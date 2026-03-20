@@ -31,8 +31,6 @@ public class Camunda7ListenerConfiguration {
       "kadai.adapter.create_outbox_schema";
   private static final String KADAI_OUTBOX_PROPERTIES = "kadai-outbox.properties";
   private static final String KADAI_ADAPTER_OUTBOX_SCHEMA = "kadai.adapter.outbox.schema";
-  private static final String KADAI_ADAPTER_OUTBOX_DATASOURCE_JNDI =
-      "kadai.adapter.outbox.datasource.jndi";
   private static final String KADAI_ADAPTER_OUTBOX_DATASOURCE_DRIVER =
       "kadai.adapter.outbox.datasource.driver";
   private static final String KADAI_ADAPTER_OUTBOX_DATASOURCE_URL =
@@ -108,10 +106,6 @@ public class Camunda7ListenerConfiguration {
     } else {
       return outboxSchema;
     }
-  }
-
-  public static String getOutboxDatasourceJndi() {
-    return getInstance().outboxProperties.getProperty(KADAI_ADAPTER_OUTBOX_DATASOURCE_JNDI);
   }
 
   public static String getOutboxDatasourceDriver() {
