@@ -25,9 +25,6 @@ import io.kadai.common.internal.SpringKadaiEngine;
 import io.kadai.task.api.TaskService;
 import io.kadai.workbasket.api.WorkbasketService;
 import java.sql.SQLException;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,9 +54,6 @@ public class KadaiSystemConnectorConfiguration {
   /** Amount of tasks to sync from Kadai to external systems in a single run. */
   private Integer batchSize = 64;
 
-  @Value("${kadai.datasource.jndi-name:no-jndi-configured}")
-  private String jndiName;
-
   public Integer getBatchSize() {
     return batchSize;
   }
@@ -78,13 +72,8 @@ public class KadaiSystemConnectorConfiguration {
 
   @Bean(name = "kadaiDataSource")
   @ConfigurationProperties(prefix = "kadai.datasource")
-  public DataSource kadaiDataSource() throws NamingException {
-    if ("no-jndi-configured".equals(jndiName)) {
-      return DataSourceBuilder.create().build();
-    } else {
-      Context ctx = new InitialContext();
-      return (DataSource) ctx.lookup(jndiName);
-    }
+  public DataSource kadaiDataSource() {
+    return DataSourceBuilder.create().build();
   }
 
   @Bean

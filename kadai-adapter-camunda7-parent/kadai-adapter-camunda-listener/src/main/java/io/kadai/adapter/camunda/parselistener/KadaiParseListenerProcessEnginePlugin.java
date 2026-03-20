@@ -27,8 +27,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 import org.apache.ibatis.datasource.pooled.PooledDataSource;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParseListener;
@@ -176,25 +174,14 @@ public class KadaiParseListenerProcessEnginePlugin extends AbstractProcessEngine
   private DataSource getDataSourceFromPropertiesFile() {
     DataSource dataSource = null;
     try {
-      String jndiLookup = Camunda7ListenerConfiguration.getOutboxDatasourceJndi();
+      String driver = Camunda7ListenerConfiguration.getOutboxDatasourceDriver();
+      String jdbcUrl = Camunda7ListenerConfiguration.getOutboxDatasourceUrl();
+      String userName = Camunda7ListenerConfiguration.getOutboxDatasourceUsername();
+      String password = Camunda7ListenerConfiguration.getOutboxDatasourcePassword();
+      dataSource = createDatasource(driver, jdbcUrl, userName, password);
+      LOGGER.info("created Datasource from properties {}, ...", jdbcUrl);
 
-      if (jndiLookup != null) {
-        dataSource = (DataSource) new InitialContext().lookup(jndiLookup);
-        if (dataSource != null) {
-          LOGGER.info("retrieved Datasource from jndi lookup {}", jndiLookup);
-        } else {
-          LOGGER.info("jndi lookup {} didn't return a Datasource.", jndiLookup);
-        }
-      } else {
-        String driver = Camunda7ListenerConfiguration.getOutboxDatasourceDriver();
-        String jdbcUrl = Camunda7ListenerConfiguration.getOutboxDatasourceUrl();
-        String userName = Camunda7ListenerConfiguration.getOutboxDatasourceUsername();
-        String password = Camunda7ListenerConfiguration.getOutboxDatasourcePassword();
-        dataSource = createDatasource(driver, jdbcUrl, userName, password);
-        LOGGER.info("created Datasource from properties {}, ...", jdbcUrl);
-      }
-
-    } catch (NamingException | NullPointerException e) {
+    } catch (NullPointerException e) {
       LOGGER.warn(
           "Caught {} while trying to retrieve the datasource from the provided properties file",
           e.getClass().getName());
