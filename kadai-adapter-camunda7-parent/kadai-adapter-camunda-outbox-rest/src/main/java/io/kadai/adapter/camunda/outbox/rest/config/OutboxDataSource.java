@@ -3,12 +3,9 @@ package io.kadai.adapter.camunda.outbox.rest.config;
 import io.kadai.adapter.camunda.OutboxRestConfiguration;
 import javax.sql.DataSource;
 import org.apache.ibatis.datasource.pooled.PooledDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class OutboxDataSource {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OutboxDataSource.class);
   private static volatile DataSource dataSource;
 
   private OutboxDataSource() {}
