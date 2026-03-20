@@ -45,13 +45,13 @@ import java.util.List;
 import java.util.Map;
 import spinjar.com.fasterxml.jackson.core.JsonProcessingException;
 import spinjar.com.fasterxml.jackson.core.type.TypeReference;
-import spinjar.com.fasterxml.jackson.databind.ObjectMapper;
+import spinjar.com.fasterxml.jackson.databind.json.JsonMapper;
 
 /** Controller for the Outbox REST service. */
 @Path(Mapping.URL_EVENTS)
 public class Camunda7TaskEventsController {
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final JsonMapper JSON_MAPPER = new JsonMapper();
   private static final String REMAINING_RETRIES = "remainingRetries";
 
   Camunda7TaskEventsService camunda7TaskEventService = new Camunda7TaskEventsService();
@@ -132,7 +132,7 @@ public class Camunda7TaskEventsController {
       throws InvalidArgumentException, Camunda7TaskEventNotFoundException, JsonProcessingException {
 
     Map<String, Integer> patchMap =
-        OBJECT_MAPPER.readValue(body, new TypeReference<Map<String, Integer>>() {});
+        JSON_MAPPER.readValue(body, new TypeReference<Map<String, Integer>>() {});
 
     if (patchMap == null || !patchMap.containsKey(REMAINING_RETRIES)) {
       throw new InvalidArgumentException(
@@ -162,7 +162,7 @@ public class Camunda7TaskEventsController {
     }
 
     Map<String, Integer> patchMap =
-        OBJECT_MAPPER.readValue(body, new TypeReference<Map<String, Integer>>() {});
+        JSON_MAPPER.readValue(body, new TypeReference<Map<String, Integer>>() {});
 
     if (patchMap == null || !patchMap.containsKey(REMAINING_RETRIES)) {
       throw new InvalidArgumentException(

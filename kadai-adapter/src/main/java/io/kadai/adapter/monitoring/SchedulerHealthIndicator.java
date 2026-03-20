@@ -4,9 +4,9 @@ import io.kadai.adapter.impl.scheduled.MonitoredScheduledComponent;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.HealthIndicator;
+import org.springframework.boot.health.contributor.Status;
 
 public class SchedulerHealthIndicator implements HealthIndicator {
 

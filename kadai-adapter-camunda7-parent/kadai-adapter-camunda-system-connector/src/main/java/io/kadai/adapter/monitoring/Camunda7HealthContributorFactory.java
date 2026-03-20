@@ -5,7 +5,7 @@ import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConf
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.HealthContributor;
+import org.springframework.boot.health.contributor.HealthContributor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 

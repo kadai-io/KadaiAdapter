@@ -18,11 +18,9 @@
 
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEventListResource;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Retrieves new tasks from camunda that have been started or finished by camunda. */
 @Component
@@ -41,13 +41,13 @@ public class Camunda7TaskRetriever {
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda7TaskRetriever.class);
 
   private final HttpHeaderProvider httpHeaderProvider;
-  private final ObjectMapper objectMapper;
+  private final JsonMapper jsonMapper;
   private final RestClient restClient;
 
   public Camunda7TaskRetriever(
-      HttpHeaderProvider httpHeaderProvider, ObjectMapper objectMapper, RestClient restClient) {
+      HttpHeaderProvider httpHeaderProvider, JsonMapper jsonMapper, RestClient restClient) {
     this.httpHeaderProvider = httpHeaderProvider;
-    this.objectMapper = objectMapper;
+    this.jsonMapper = jsonMapper;
     this.restClient = restClient;
   }
 
@@ -152,13 +152,12 @@ public class Camunda7TaskRetriever {
         try {
 
           ReferencedTask referencedTask =
-              objectMapper.readValue(referencedTaskJson, ReferencedTask.class);
+              jsonMapper.readValue(referencedTaskJson, ReferencedTask.class);
           referencedTask.setOutboxEventId(String.valueOf(camunda7TaskEvent.getId()));
           referencedTask.setOutboxEventType(String.valueOf(camunda7TaskEvent.getType()));
           referencedTasks.add(referencedTask);
 
-        } catch (IOException e) {
-
+        } catch (JacksonException e) {
           LOGGER.warn(
               "Caught {} while trying to create ReferencedTasks "
                   + " out of CamundaTaskEventResources. RefTaskJson = {}",

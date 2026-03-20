@@ -10,6 +10,7 @@ import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTes
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,6 +23,7 @@ class HttpHeaderProviderXsrfTest {
   @Nested
   @SpringBootTest(
       classes = {
+        JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
@@ -34,13 +36,16 @@ class HttpHeaderProviderXsrfTest {
     @Test
     void should_ReturnHttpHeaderWithoutXsrfToken_When_PropertyNotExists() {
       HttpHeaders headers = httpHeaderProvider.outboxRestApiHeaders();
-      assertThat(headers).containsOnlyKeys("Authorization");
+      assertThat(headers.getFirst("Authorization")).startsWith("Basic");
+      assertThat(headers.getFirst("Cookie")).isNull();
+      assertThat(headers.getFirst("X-XSRF-TOKEN")).isNull();
     }
   }
 
   @Nested
   @SpringBootTest(
       classes = {
+        JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
@@ -55,9 +60,9 @@ class HttpHeaderProviderXsrfTest {
     @Test
     void should_ReturnHttpHeaderWithXsrfToken_When_PropertyExists() {
       HttpHeaders headers = httpHeaderProvider.outboxRestApiHeaders();
-      assertThat(headers).containsKeys("Authorization", "Cookie", "X-XSRF-TOKEN");
-      assertThat(headers.get("Cookie")).containsExactly("XSRF-TOKEN=KAD_UNIQUE_TOKEN_123");
-      assertThat(headers.get("X-XSRF-TOKEN")).containsExactly("KAD_UNIQUE_TOKEN_123");
+      assertThat(headers.getFirst("Authorization")).startsWith("Basic");
+      assertThat(headers.get("Cookie")).contains("XSRF-TOKEN=KAD_UNIQUE_TOKEN_123");
+      assertThat(headers.getFirst("X-XSRF-TOKEN")).isEqualTo("KAD_UNIQUE_TOKEN_123");
     }
   }
 }
