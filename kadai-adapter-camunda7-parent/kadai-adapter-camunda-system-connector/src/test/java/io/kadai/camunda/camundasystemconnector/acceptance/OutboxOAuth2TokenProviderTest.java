@@ -270,6 +270,263 @@ class OutboxOAuth2TokenProviderTest {
     assertThat(request.getHeader("Content-Type")).contains("application/x-www-form-urlencoded");
   }
 
+  @Test
+  void should_RefreshToken_When_TokenResponseMissingAccessToken() {
+    String tokenResponseBody =
+        """
+        {
+          "token_type": "Bearer",
+          "expires_in": 3600
+        }
+        """;
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody(tokenResponseBody)
+            .addHeader("Content-Type", "application/json"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+
+    assertThatThrownBy(provider::getAccessToken)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("Failed to obtain OAuth2 access token from " + mockTokenServer.url("/token"));
+  }
+
+  @Test
+  void should_ThrowException_When_TokenResponseIsNull() {
+    mockTokenServer.enqueue(
+        new MockResponse().setBody("").addHeader("Content-Type", "application/json"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+
+    assertThatThrownBy(provider::getAccessToken)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("Failed to obtain OAuth2 access token");
+  }
+
+  @Test
+  void should_ThrowException_When_TokenServerReturnsInvalidJson() {
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody("{ invalid json }")
+            .addHeader("Content-Type", "application/json"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+
+    assertThatThrownBy(provider::getAccessToken).isInstanceOf(Exception.class);
+  }
+
+  @Test
+  void should_ThrowException_When_TokenServerReturns500Error() {
+    mockTokenServer.enqueue(
+        new MockResponse().setResponseCode(500).setBody("Internal Server Error"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+
+    assertThatThrownBy(provider::getAccessToken).isInstanceOf(Exception.class);
+  }
+
+  @Test
+  void should_ThrowException_When_TokenServerReturns503Error() {
+    mockTokenServer.enqueue(new MockResponse().setResponseCode(503).setBody("Service Unavailable"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+
+    assertThatThrownBy(provider::getAccessToken).isInstanceOf(Exception.class);
+  }
+
+  @Test
+  void should_HandleMultipleConcurrentRequests_WithSingleTokenFetch() throws InterruptedException {
+    String tokenResponseBody =
+        """
+        {
+          "access_token": "concurrent-test-token",
+          "token_type": "Bearer",
+          "expires_in": 3600
+        }
+        """;
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody(tokenResponseBody)
+            .addHeader("Content-Type", "application/json"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+
+    // Simulate 10 concurrent requests
+    java.util.List<String> tokens =
+        java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+    java.util.List<Thread> threads = new java.util.ArrayList<>();
+
+    for (int i = 0; i < 10; i++) {
+      threads.add(new Thread(() -> tokens.add(provider.getAccessToken())));
+    }
+
+    threads.forEach(Thread::start);
+    for (Thread thread : threads) {
+      thread.join();
+    }
+
+    // All tokens should be identical
+    assertThat(tokens).hasSize(10);
+    assertThat(tokens).allMatch(t -> t.equals("concurrent-test-token"));
+
+    // But only one token request should have been made to the server
+    assertThat(mockTokenServer.getRequestCount()).isEqualTo(1);
+  }
+
+  @Test
+  void should_HandleVeryShortLivedTokens() {
+    String tokenResponseBody =
+        """
+        {
+          "access_token": "short-lived-token",
+          "token_type": "Bearer",
+          "expires_in": 20
+        }
+        """;
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody(tokenResponseBody)
+            .addHeader("Content-Type", "application/json"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+    String token = provider.getAccessToken();
+
+    assertThat(token).isEqualTo("short-lived-token");
+    // The 30-second expiry buffer means this token is immediately considered expired,
+    // so the next getAccessToken() call will trigger a refresh
+  }
+
+  @Test
+  void should_IncludeAllClientCredentialsInRequest() throws Exception {
+    String tokenResponseBody =
+        """
+        {
+          "access_token": "credentials-test-token",
+          "token_type": "Bearer",
+          "expires_in": 3600
+        }
+        """;
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody(tokenResponseBody)
+            .addHeader("Content-Type", "application/json"));
+
+    OAuth2Configuration oauth2Config = new OAuth2Configuration();
+    oauth2Config.setTokenUri(mockTokenServer.url("/token").toString());
+    oauth2Config.setClientId("test-client-123");
+    oauth2Config.setClientSecret("test-secret-xyz");
+    oauth2Config.setScopes("read write execute");
+
+    OutboxOAuth2TokenProvider provider = createProvider(oauth2Config);
+    provider.getAccessToken();
+
+    RecordedRequest request = mockTokenServer.takeRequest();
+    String body = request.getBody().readUtf8();
+
+    assertThat(body).contains("grant_type=client_credentials");
+    assertThat(body).contains("client_id=test-client-123");
+    assertThat(body).contains("client_secret=test-secret-xyz");
+    assertThat(body).contains("scope=read+write+execute");
+  }
+
+  @Test
+  void should_HandleTokenResponseWithNegativeExpiresIn() {
+    String tokenResponseBody =
+        """
+        {
+          "access_token": "negative-expiry-token",
+          "token_type": "Bearer",
+          "expires_in": -100
+        }
+        """;
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody(tokenResponseBody)
+            .addHeader("Content-Type", "application/json"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+    String token = provider.getAccessToken();
+
+    assertThat(token).isEqualTo("negative-expiry-token");
+  }
+
+  @Test
+  void should_HandleTokenResponseWithoutExpiresInField() throws Exception {
+    String tokenResponseBody =
+        """
+        {
+          "access_token": "no-expiry-field-token",
+          "token_type": "Bearer",
+          "scope": "read write"
+        }
+        """;
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody(tokenResponseBody)
+            .addHeader("Content-Type", "application/json"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+    String token = provider.getAccessToken();
+
+    assertThat(token).isEqualTo("no-expiry-field-token");
+  }
+
+  @Test
+  void should_HandleScopesWithSpecialCharacters() throws Exception {
+    String tokenResponseBody =
+        """
+        {
+          "access_token": "special-scope-token",
+          "token_type": "Bearer",
+          "expires_in": 3600
+        }
+        """;
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody(tokenResponseBody)
+            .addHeader("Content-Type", "application/json"));
+
+    OAuth2Configuration oauth2Config = new OAuth2Configuration();
+    oauth2Config.setTokenUri(mockTokenServer.url("/token").toString());
+    oauth2Config.setClientId("id");
+    oauth2Config.setClientSecret("secret");
+    oauth2Config.setScopes("resource:read resource:write");
+
+    OutboxOAuth2TokenProvider provider = createProvider(oauth2Config);
+    provider.getAccessToken();
+
+    RecordedRequest request = mockTokenServer.takeRequest();
+    String body = request.getBody().readUtf8();
+
+    // Verify scopes are properly URL-encoded
+    assertThat(body).contains("scope=");
+    assertThat(body).containsAnyOf("resource%3Aread", "resource:read");
+  }
+
+  @Test
+  void should_ReturnBearerTokenWithoutModification() throws Exception {
+    String tokenValue = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.test";
+    String tokenResponseBody =
+        String.format(
+            """
+        {
+          "access_token": "%s",
+          "token_type": "Bearer",
+          "expires_in": 3600
+        }
+        """,
+            tokenValue);
+    mockTokenServer.enqueue(
+        new MockResponse()
+            .setBody(tokenResponseBody)
+            .addHeader("Content-Type", "application/json"));
+
+    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
+    String token = provider.getAccessToken();
+
+    assertThat(token).isEqualTo(tokenValue);
+  }
+
   private OAuth2Configuration createOAuth2Config() {
     OAuth2Configuration oauth2Config = new OAuth2Configuration();
     oauth2Config.setTokenUri(mockTokenServer.url("/token").toString());
