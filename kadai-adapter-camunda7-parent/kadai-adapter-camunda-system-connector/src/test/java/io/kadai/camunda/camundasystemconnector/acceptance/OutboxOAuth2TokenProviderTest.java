@@ -7,12 +7,16 @@ import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorCo
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration.OAuth2Configuration;
 import io.kadai.adapter.systemconnector.camunda.config.OutboxOAuth2TokenProvider;
 import java.io.IOException;
+import java.util.stream.Stream;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -61,10 +65,11 @@ class OutboxOAuth2TokenProviderTest {
     RecordedRequest request = mockTokenServer.takeRequest();
     assertThat(request.getMethod()).isEqualTo("POST");
     String body = request.getBody().readUtf8();
-    assertThat(body).contains("grant_type=client_credentials");
-    assertThat(body).contains("client_id=my-client-id");
-    assertThat(body).contains("client_secret=my-client-secret");
-    assertThat(body).contains("scope=read+write");
+    assertThat(body)
+        .contains("grant_type=client_credentials")
+        .contains("client_id=my-client-id")
+        .contains("client_secret=my-client-secret")
+        .contains("scope=read+write");
   }
 
   @Test
@@ -179,73 +184,27 @@ class OutboxOAuth2TokenProviderTest {
     assertThat(token).isEqualTo("default-expiry-token");
   }
 
-  @Test
-  void should_ThrowException_When_TokenEndpointReturnsError() {
-    mockTokenServer.enqueue(new MockResponse().setResponseCode(401).setBody("Unauthorized"));
+  @ParameterizedTest
+  @MethodSource("invalidOAuth2Configurations")
+  void should_ThrowException_When_OAuth2ConfigurationIsInvalid(OAuth2Configuration oauth2Config) {
+    Camunda7SystemConnectorConfiguration config = new Camunda7SystemConnectorConfiguration();
+    var outbox = new Camunda7SystemConnectorConfiguration.OutboxClientConfiguration();
+    outbox.setOauth2(oauth2Config);
+    config.setOutbox(outbox);
+
+    assertThatThrownBy(() -> new OutboxOAuth2TokenProvider(config))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("OAuth2 configuration is incomplete");
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {400, 401, 403, 500})
+  void should_ThrowException_When_TokenEndpointReturnsError(int statusCode) {
+    mockTokenServer.enqueue(new MockResponse().setResponseCode(statusCode).setBody("Error"));
 
     OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
 
     assertThatThrownBy(provider::getAccessToken).isInstanceOf(Exception.class);
-  }
-
-  @Test
-  void should_ThrowException_When_TokenUriIsMissing() {
-    OAuth2Configuration oauth2Config = new OAuth2Configuration();
-    oauth2Config.setClientId("id");
-    oauth2Config.setClientSecret("secret");
-
-    Camunda7SystemConnectorConfiguration config = new Camunda7SystemConnectorConfiguration();
-    var outbox = new Camunda7SystemConnectorConfiguration.OutboxClientConfiguration();
-    outbox.setOauth2(oauth2Config);
-    config.setOutbox(outbox);
-
-    assertThatThrownBy(() -> new OutboxOAuth2TokenProvider(config))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("OAuth2 configuration is incomplete");
-  }
-
-  @Test
-  void should_ThrowException_When_ClientIdIsMissing() {
-    OAuth2Configuration oauth2Config = new OAuth2Configuration();
-    oauth2Config.setTokenUri("http://localhost/token");
-    oauth2Config.setClientSecret("secret");
-
-    Camunda7SystemConnectorConfiguration config = new Camunda7SystemConnectorConfiguration();
-    var outbox = new Camunda7SystemConnectorConfiguration.OutboxClientConfiguration();
-    outbox.setOauth2(oauth2Config);
-    config.setOutbox(outbox);
-
-    assertThatThrownBy(() -> new OutboxOAuth2TokenProvider(config))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("OAuth2 configuration is incomplete");
-  }
-
-  @Test
-  void should_ThrowException_When_ClientSecretIsMissing() {
-    OAuth2Configuration oauth2Config = new OAuth2Configuration();
-    oauth2Config.setTokenUri("http://localhost/token");
-    oauth2Config.setClientId("id");
-
-    Camunda7SystemConnectorConfiguration config = new Camunda7SystemConnectorConfiguration();
-    var outbox = new Camunda7SystemConnectorConfiguration.OutboxClientConfiguration();
-    outbox.setOauth2(oauth2Config);
-    config.setOutbox(outbox);
-
-    assertThatThrownBy(() -> new OutboxOAuth2TokenProvider(config))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("OAuth2 configuration is incomplete");
-  }
-
-  @Test
-  void should_ThrowException_When_OAuth2ConfigIsNull() {
-    Camunda7SystemConnectorConfiguration config = new Camunda7SystemConnectorConfiguration();
-    var outbox = new Camunda7SystemConnectorConfiguration.OutboxClientConfiguration();
-    outbox.setOauth2(null);
-    config.setOutbox(outbox);
-
-    assertThatThrownBy(() -> new OutboxOAuth2TokenProvider(config))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("OAuth2 configuration is incomplete");
   }
 
   @Test
@@ -365,11 +324,7 @@ class OutboxOAuth2TokenProviderTest {
       thread.join();
     }
 
-    // All tokens should be identical
-    assertThat(tokens).hasSize(10);
-    assertThat(tokens).allMatch(t -> t.equals("concurrent-test-token"));
-
-    // But only one token request should have been made to the server
+    assertThat(tokens).hasSize(10).allMatch(t -> t.equals("concurrent-test-token"));
     assertThat(mockTokenServer.getRequestCount()).isEqualTo(1);
   }
 
@@ -392,8 +347,6 @@ class OutboxOAuth2TokenProviderTest {
     String token = provider.getAccessToken();
 
     assertThat(token).isEqualTo("short-lived-token");
-    // The 30-second expiry buffer means this token is immediately considered expired,
-    // so the next getAccessToken() call will trigger a refresh
   }
 
   @Test
@@ -423,10 +376,11 @@ class OutboxOAuth2TokenProviderTest {
     RecordedRequest request = mockTokenServer.takeRequest();
     String body = request.getBody().readUtf8();
 
-    assertThat(body).contains("grant_type=client_credentials");
-    assertThat(body).contains("client_id=test-client-123");
-    assertThat(body).contains("client_secret=test-secret-xyz");
-    assertThat(body).contains("scope=read+write+execute");
+    assertThat(body)
+        .contains("grant_type=client_credentials")
+        .contains("client_id=test-client-123")
+        .contains("client_secret=test-secret-xyz")
+        .contains("scope=read+write+execute");
   }
 
   @Test
@@ -451,7 +405,7 @@ class OutboxOAuth2TokenProviderTest {
   }
 
   @Test
-  void should_HandleTokenResponseWithoutExpiresInField() throws Exception {
+  void should_HandleTokenResponseWithoutExpiresInField() {
     String tokenResponseBody =
         """
         {
@@ -499,12 +453,11 @@ class OutboxOAuth2TokenProviderTest {
     String body = request.getBody().readUtf8();
 
     // Verify scopes are properly URL-encoded
-    assertThat(body).contains("scope=");
-    assertThat(body).containsAnyOf("resource%3Aread", "resource:read");
+    assertThat(body).contains("scope=").containsAnyOf("resource%3Aread", "resource:read");
   }
 
   @Test
-  void should_ReturnBearerTokenWithoutModification() throws Exception {
+  void should_ReturnBearerTokenWithoutModification() {
     String tokenValue = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.test";
     String tokenResponseBody =
         String.format(
@@ -525,6 +478,22 @@ class OutboxOAuth2TokenProviderTest {
     String token = provider.getAccessToken();
 
     assertThat(token).isEqualTo(tokenValue);
+  }
+
+  private static Stream<OAuth2Configuration> invalidOAuth2Configurations() {
+    OAuth2Configuration missingTokenUri = new OAuth2Configuration();
+    missingTokenUri.setClientId("id");
+    missingTokenUri.setClientSecret("secret");
+
+    OAuth2Configuration missingClientId = new OAuth2Configuration();
+    missingClientId.setTokenUri("http://localhost/token");
+    missingClientId.setClientSecret("secret");
+
+    OAuth2Configuration missingClientSecret = new OAuth2Configuration();
+    missingClientSecret.setTokenUri("http://localhost/token");
+    missingClientSecret.setClientId("id");
+
+    return Stream.of(missingTokenUri, missingClientId, missingClientSecret, null);
   }
 
   private OAuth2Configuration createOAuth2Config() {

@@ -317,7 +317,6 @@ class OutboxOAuth2AccTest {
     // Both outbox requests should carry the same Bearer token (cached)
     String auth1 = req1.getHeader("Authorization");
     String auth2 = req2.getHeader("Authorization");
-    assertThat(auth1).isEqualTo(auth2);
-    assertThat(auth1).startsWith("Bearer ");
+    assertThat(auth1).isEqualTo(auth2).startsWith("Bearer ");
   }
 }
