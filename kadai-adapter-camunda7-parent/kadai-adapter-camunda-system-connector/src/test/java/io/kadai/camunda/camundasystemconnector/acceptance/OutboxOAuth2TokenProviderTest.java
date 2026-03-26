@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.web.client.RestClient;
 
@@ -101,8 +102,9 @@ class OutboxOAuth2TokenProviderTest {
     assertThat(mockTokenServer.getRequestCount()).isEqualTo(1);
   }
 
-  @Test
-  void should_NotIncludeScope_When_ScopeIsNull() throws Exception {
+  @ParameterizedTest
+  @NullAndEmptySource
+  void should_NotIncludeScope_When_ScopeIsNullOrEmpty(String scope) throws Exception {
     String tokenResponseBody =
         """
         {
@@ -120,7 +122,7 @@ class OutboxOAuth2TokenProviderTest {
     oauth2Config.setTokenUri(mockTokenServer.url("/token").toString());
     oauth2Config.setClientId("id");
     oauth2Config.setClientSecret("secret");
-    oauth2Config.setScopes(null);
+    oauth2Config.setScopes(scope);
 
     OutboxOAuth2TokenProvider provider = createProvider(oauth2Config);
     String token = provider.getAccessToken();
@@ -132,47 +134,9 @@ class OutboxOAuth2TokenProviderTest {
     assertThat(body).doesNotContain("scope=");
   }
 
-  @Test
-  void should_NotIncludeScope_When_ScopeIsEmpty() throws Exception {
-    String tokenResponseBody =
-        """
-        {
-          "access_token": "empty-scope-token",
-          "token_type": "Bearer",
-          "expires_in": 600
-        }
-        """;
-    mockTokenServer.enqueue(
-        new MockResponse()
-            .setBody(tokenResponseBody)
-            .addHeader("Content-Type", "application/json"));
-
-    OAuth2Configuration oauth2Config = new OAuth2Configuration();
-    oauth2Config.setTokenUri(mockTokenServer.url("/token").toString());
-    oauth2Config.setClientId("id");
-    oauth2Config.setClientSecret("secret");
-    oauth2Config.setScopes("");
-
-    OutboxOAuth2TokenProvider provider = createProvider(oauth2Config);
-    String token = provider.getAccessToken();
-
-    assertThat(token).isEqualTo("empty-scope-token");
-
-    RecordedRequest request = mockTokenServer.takeRequest();
-    String body = request.getBody().readUtf8();
-    assertThat(body).doesNotContain("scope=");
-  }
-
-  @Test
-  void should_UseDefaultExpiresIn_When_ExpiresInIsZero() {
-    String tokenResponseBody =
-        """
-        {
-          "access_token": "default-expiry-token",
-          "token_type": "Bearer",
-          "expires_in": 0
-        }
-        """;
+  @ParameterizedTest
+  @MethodSource("expiresInEdgeCaseBodies")
+  void should_ReturnToken_When_ExpiresInIsEdgeCase(String tokenResponseBody) {
     mockTokenServer.enqueue(
         new MockResponse()
             .setBody(tokenResponseBody)
@@ -181,7 +145,7 @@ class OutboxOAuth2TokenProviderTest {
     OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
     String token = provider.getAccessToken();
 
-    assertThat(token).isEqualTo("default-expiry-token");
+    assertThat(token).isEqualTo("edge-case-token");
   }
 
   @ParameterizedTest
@@ -198,7 +162,7 @@ class OutboxOAuth2TokenProviderTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {400, 401, 403, 500})
+  @ValueSource(ints = {400, 401, 403, 500, 503})
   void should_ThrowException_When_TokenEndpointReturnsError(int statusCode) {
     mockTokenServer.enqueue(new MockResponse().setResponseCode(statusCode).setBody("Error"));
 
@@ -250,43 +214,11 @@ class OutboxOAuth2TokenProviderTest {
         .hasMessage("Failed to obtain OAuth2 access token from " + mockTokenServer.url("/token"));
   }
 
-  @Test
-  void should_ThrowException_When_TokenResponseIsNull() {
+  @ParameterizedTest
+  @ValueSource(strings = {"", "{ invalid json }"})
+  void should_ThrowException_When_TokenResponseBodyIsInvalid(String responseBody) {
     mockTokenServer.enqueue(
-        new MockResponse().setBody("").addHeader("Content-Type", "application/json"));
-
-    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
-
-    assertThatThrownBy(provider::getAccessToken)
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("Failed to obtain OAuth2 access token");
-  }
-
-  @Test
-  void should_ThrowException_When_TokenServerReturnsInvalidJson() {
-    mockTokenServer.enqueue(
-        new MockResponse()
-            .setBody("{ invalid json }")
-            .addHeader("Content-Type", "application/json"));
-
-    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
-
-    assertThatThrownBy(provider::getAccessToken).isInstanceOf(Exception.class);
-  }
-
-  @Test
-  void should_ThrowException_When_TokenServerReturns500Error() {
-    mockTokenServer.enqueue(
-        new MockResponse().setResponseCode(500).setBody("Internal Server Error"));
-
-    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
-
-    assertThatThrownBy(provider::getAccessToken).isInstanceOf(Exception.class);
-  }
-
-  @Test
-  void should_ThrowException_When_TokenServerReturns503Error() {
-    mockTokenServer.enqueue(new MockResponse().setResponseCode(503).setBody("Service Unavailable"));
+        new MockResponse().setBody(responseBody).addHeader("Content-Type", "application/json"));
 
     OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
 
@@ -329,27 +261,6 @@ class OutboxOAuth2TokenProviderTest {
   }
 
   @Test
-  void should_HandleVeryShortLivedTokens() {
-    String tokenResponseBody =
-        """
-        {
-          "access_token": "short-lived-token",
-          "token_type": "Bearer",
-          "expires_in": 20
-        }
-        """;
-    mockTokenServer.enqueue(
-        new MockResponse()
-            .setBody(tokenResponseBody)
-            .addHeader("Content-Type", "application/json"));
-
-    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
-    String token = provider.getAccessToken();
-
-    assertThat(token).isEqualTo("short-lived-token");
-  }
-
-  @Test
   void should_IncludeAllClientCredentialsInRequest() throws Exception {
     String tokenResponseBody =
         """
@@ -381,48 +292,6 @@ class OutboxOAuth2TokenProviderTest {
         .contains("client_id=test-client-123")
         .contains("client_secret=test-secret-xyz")
         .contains("scope=read+write+execute");
-  }
-
-  @Test
-  void should_HandleTokenResponseWithNegativeExpiresIn() {
-    String tokenResponseBody =
-        """
-        {
-          "access_token": "negative-expiry-token",
-          "token_type": "Bearer",
-          "expires_in": -100
-        }
-        """;
-    mockTokenServer.enqueue(
-        new MockResponse()
-            .setBody(tokenResponseBody)
-            .addHeader("Content-Type", "application/json"));
-
-    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
-    String token = provider.getAccessToken();
-
-    assertThat(token).isEqualTo("negative-expiry-token");
-  }
-
-  @Test
-  void should_HandleTokenResponseWithoutExpiresInField() {
-    String tokenResponseBody =
-        """
-        {
-          "access_token": "no-expiry-field-token",
-          "token_type": "Bearer",
-          "scope": "read write"
-        }
-        """;
-    mockTokenServer.enqueue(
-        new MockResponse()
-            .setBody(tokenResponseBody)
-            .addHeader("Content-Type", "application/json"));
-
-    OutboxOAuth2TokenProvider provider = createProvider(createOAuth2Config());
-    String token = provider.getAccessToken();
-
-    assertThat(token).isEqualTo("no-expiry-field-token");
   }
 
   @Test
@@ -478,6 +347,38 @@ class OutboxOAuth2TokenProviderTest {
     String token = provider.getAccessToken();
 
     assertThat(token).isEqualTo(tokenValue);
+  }
+
+  private static Stream<String> expiresInEdgeCaseBodies() {
+    return Stream.of(
+        """
+        {
+          "access_token": "edge-case-token",
+          "token_type": "Bearer",
+          "expires_in": 0
+        }
+        """,
+        """
+        {
+          "access_token": "edge-case-token",
+          "token_type": "Bearer",
+          "expires_in": -100
+        }
+        """,
+        """
+        {
+          "access_token": "edge-case-token",
+          "token_type": "Bearer",
+          "expires_in": 20
+        }
+        """,
+        """
+        {
+          "access_token": "edge-case-token",
+          "token_type": "Bearer",
+          "scope": "read write"
+        }
+        """);
   }
 
   private static Stream<OAuth2Configuration> invalidOAuth2Configurations() {
