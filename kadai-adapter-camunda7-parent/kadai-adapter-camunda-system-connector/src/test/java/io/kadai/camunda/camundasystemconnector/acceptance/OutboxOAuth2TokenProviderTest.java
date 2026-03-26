@@ -335,7 +335,7 @@ class OutboxOAuth2TokenProviderTest {
   }
 
   @Test
-  void should_HandleMultipleConcurrentRequests_WithSingleTokenFetch() throws InterruptedException {
+  void should_HandleMultipleConcurrentRequestsWithSingleTokenFetch() throws InterruptedException {
     String tokenResponseBody =
         """
         {

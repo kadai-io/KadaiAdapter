@@ -189,7 +189,7 @@ class HttpHeaderProviderOAuth2Test {
     @Autowired private HttpHeaderProvider httpHeaderProvider;
 
     @Test
-    void should_ReturnBasicAuthForCamundaRestApi_RegardlessOfOutboxAuthType() {
+    void should_ReturnBasicAuthForCamundaRestApiRegardlessOfOutboxAuthType() {
       HttpHeaders headers = httpHeaderProvider.camunda7RestApiHeaders();
       // Camunda REST API uses its own client config, not the outbox config
       assertThat(headers.getFirst("Authorization")).startsWith("Basic ");

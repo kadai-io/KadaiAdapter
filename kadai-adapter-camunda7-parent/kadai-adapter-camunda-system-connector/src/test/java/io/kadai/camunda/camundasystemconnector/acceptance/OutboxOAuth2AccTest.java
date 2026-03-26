@@ -149,7 +149,7 @@ class OutboxOAuth2AccTest {
   }
 
   @Test
-  void should_ConfigureOAuth2Properties_Correctly() {
+  void should_ConfigureOAuth2PropertiesCorrectly() {
     assertThat(config.getOutbox().getAuthType())
         .isEqualTo(Camunda7SystemConnectorConfiguration.AuthType.OAUTH2);
     assertThat(config.getOutbox().getOauth2()).isNotNull();
