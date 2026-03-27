@@ -7,7 +7,7 @@ import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.HealthContributor;
+import org.springframework.boot.health.contributor.HealthContributor;
 import org.springframework.stereotype.Component;
 
 @Component

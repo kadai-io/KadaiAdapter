@@ -28,11 +28,14 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.SerializationFeature;
 
 /** Configures the camunda system connector. */
 @Configuration
@@ -141,6 +144,15 @@ public class Camunda7SystemConnectorConfiguration {
   @Bean
   List<Camunda7System> camunda7Systems() {
     return this.getSystems();
+  }
+
+  @Bean
+  JsonMapperBuilderCustomizer customizer() {
+    return builder ->
+        builder
+            .deactivateDefaultTyping()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
   }
 
   public static class ClientConfiguration {

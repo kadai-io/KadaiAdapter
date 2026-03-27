@@ -2,11 +2,10 @@ package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import org.springframework.boot.actuate.health.CompositeHealthContributor;
-import org.springframework.boot.actuate.health.HealthContributor;
-import org.springframework.boot.actuate.health.NamedContributor;
+import java.util.stream.Stream;
+import org.springframework.boot.health.contributor.CompositeHealthContributor;
+import org.springframework.boot.health.contributor.HealthContributor;
 import org.springframework.web.client.RestClient;
 
 public class Camunda7OutboxHealthComposite implements CompositeHealthContributor {
@@ -33,9 +32,8 @@ public class Camunda7OutboxHealthComposite implements CompositeHealthContributor
   }
 
   @Override
-  public Iterator<NamedContributor<HealthContributor>> iterator() {
+  public Stream<Entry> stream() {
     return healthContributors.entrySet().stream()
-        .map(entry -> NamedContributor.of(entry.getKey(), entry.getValue()))
-        .iterator();
+        .map(entry -> new Entry(entry.getKey(), entry.getValue()));
   }
 }
