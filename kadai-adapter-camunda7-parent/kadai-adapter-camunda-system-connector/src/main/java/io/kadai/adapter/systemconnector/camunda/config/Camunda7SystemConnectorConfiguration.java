@@ -221,7 +221,7 @@ public class Camunda7SystemConnectorConfiguration {
     /** The OAuth2 client secret. */
     private String clientSecret;
 
-    /** Comma-separated list of scopes to request. */
+    /** Space-separated list of scopes to request. */
     private String scopes;
 
     public String getTokenUri() {
