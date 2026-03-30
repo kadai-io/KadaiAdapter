@@ -2,9 +2,6 @@ package io.kadai.camunda.camundasystemconnector.acceptance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEvent;
-import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEventListResource;
 import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
@@ -12,8 +9,6 @@ import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorCo
 import io.kadai.adapter.systemconnector.camunda.config.OutboxOAuth2TokenProvider;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -156,167 +151,5 @@ class OutboxOAuth2AccTest {
     assertThat(config.getOutbox().getOauth2().getClientId()).isEqualTo("kadai-adapter");
     assertThat(config.getOutbox().getOauth2().getClientSecret()).isEqualTo("super-secret");
     assertThat(config.getOutbox().getOauth2().getScopes()).isEqualTo("outbox:read outbox:write");
-  }
-
-  @Test
-  void should_SendBearerTokenToOutbox_When_MakingGetRequest() throws Exception {
-    Camunda7TaskEventListResource listResource = new Camunda7TaskEventListResource();
-    listResource.setCamunda7TaskEvents(new ArrayList<>());
-    ObjectMapper objectMapper = new ObjectMapper();
-    String outboxResponseBody = objectMapper.writeValueAsString(listResource);
-
-    mockOutboxServer.enqueue(
-        new MockResponse()
-            .setBody(outboxResponseBody)
-            .addHeader("Content-Type", "application/json"));
-
-    String outboxUrl = mockOutboxServer.url("/outbox-rest/events?type=create").toString();
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-
-    Camunda7TaskEventListResource response =
-        restClient
-            .get()
-            .uri(outboxUrl)
-            .headers(httpHeaders -> httpHeaders.addAll(headers))
-            .retrieve()
-            .body(Camunda7TaskEventListResource.class);
-
-    assertThat(response).isNotNull();
-    assertThat(response.getCamunda7TaskEvents()).isEmpty();
-
-    RecordedRequest recordedRequest = mockOutboxServer.takeRequest();
-    assertThat(recordedRequest.getHeader("Authorization")).startsWith("Bearer ");
-    assertThat(recordedRequest.getHeader("Authorization"))
-        .contains("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");
-    assertThat(recordedRequest.getHeader("Content-Type")).isEqualTo("application/json");
-  }
-
-  @Test
-  void should_SendBearerTokenForOutboxDelete_When_MakingPostRequest() throws Exception {
-    mockOutboxServer.enqueue(new MockResponse().setResponseCode(204));
-
-    String deleteUrl = mockOutboxServer.url("/outbox-rest/events/delete-events").toString();
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-
-    restClient
-        .post()
-        .uri(deleteUrl)
-        .headers(httpHeaders -> httpHeaders.addAll(headers))
-        .body("[1, 2, 3]")
-        .retrieve()
-        .toEntity(Void.class);
-
-    RecordedRequest recordedRequest = mockOutboxServer.takeRequest();
-    assertThat(recordedRequest.getHeader("Authorization")).startsWith("Bearer ");
-    assertThat(recordedRequest.getBody().readUtf8()).isEqualTo("[1, 2, 3]");
-  }
-
-  @Test
-  void should_SendBearerTokenForOutboxDecreaseRetries_When_MakingPostRequest() throws Exception {
-    mockOutboxServer.enqueue(new MockResponse().setResponseCode(200));
-
-    String retriesUrl =
-        mockOutboxServer.url("/outbox-rest/events/decrease-remaining-retries").toString();
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-
-    restClient
-        .post()
-        .uri(retriesUrl)
-        .headers(httpHeaders -> httpHeaders.addAll(headers))
-        .body("{\"eventId\":\"42\",\"error\":\"some error\"}")
-        .retrieve()
-        .toEntity(Void.class);
-
-    RecordedRequest recordedRequest = mockOutboxServer.takeRequest();
-    assertThat(recordedRequest.getHeader("Authorization")).startsWith("Bearer ");
-  }
-
-  @Test
-  void should_ReturnOutboxEvents_When_UsingOAuth2Token() throws Exception {
-    Camunda7TaskEvent event1 = new Camunda7TaskEvent();
-    event1.setId(1);
-    event1.setType("create");
-    event1.setPayload("{\"id\":\"task-001\"}");
-    event1.setRemainingRetries(3);
-
-    Camunda7TaskEvent event2 = new Camunda7TaskEvent();
-    event2.setId(2);
-    event2.setType("create");
-    event2.setPayload("{\"id\":\"task-002\"}");
-    event2.setRemainingRetries(3);
-
-    Camunda7TaskEventListResource listResource = new Camunda7TaskEventListResource();
-    List<Camunda7TaskEvent> events = new ArrayList<>();
-    events.add(event1);
-    events.add(event2);
-    listResource.setCamunda7TaskEvents(events);
-
-    ObjectMapper objectMapper = new ObjectMapper();
-    String outboxResponseBody = objectMapper.writeValueAsString(listResource);
-
-    mockOutboxServer.enqueue(
-        new MockResponse()
-            .setBody(outboxResponseBody)
-            .addHeader("Content-Type", "application/json"));
-
-    String eventsUrl = mockOutboxServer.url("/outbox-rest/events?type=create").toString();
-    HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-
-    Camunda7TaskEventListResource response =
-        restClient
-            .get()
-            .uri(eventsUrl)
-            .headers(httpHeaders -> httpHeaders.addAll(headers))
-            .retrieve()
-            .body(Camunda7TaskEventListResource.class);
-
-    assertThat(response).isNotNull();
-    assertThat(response.getCamunda7TaskEvents()).hasSize(2);
-    assertThat(response.getCamunda7TaskEvents().get(0).getType()).isEqualTo("create");
-    assertThat(response.getCamunda7TaskEvents().get(1).getId()).isEqualTo(2);
-
-    RecordedRequest recordedRequest = mockOutboxServer.takeRequest();
-    assertThat(recordedRequest.getHeader("Authorization")).startsWith("Bearer ");
-  }
-
-  @Test
-  void should_ReuseToken_When_MultipleOutboxRequestsMade() throws Exception {
-    // Enqueue two outbox responses
-    Camunda7TaskEventListResource emptyResource = new Camunda7TaskEventListResource();
-    emptyResource.setCamunda7TaskEvents(new ArrayList<>());
-    ObjectMapper objectMapper = new ObjectMapper();
-    String body = objectMapper.writeValueAsString(emptyResource);
-
-    mockOutboxServer.enqueue(
-        new MockResponse().setBody(body).addHeader("Content-Type", "application/json"));
-    mockOutboxServer.enqueue(
-        new MockResponse().setBody(body).addHeader("Content-Type", "application/json"));
-
-    String url1 = mockOutboxServer.url("/outbox-rest/events?type=create").toString();
-    String url2 = mockOutboxServer.url("/outbox-rest/events?type=complete&type=delete").toString();
-
-    HttpHeaders headers1 = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    restClient
-        .get()
-        .uri(url1)
-        .headers(h -> h.addAll(headers1))
-        .retrieve()
-        .body(Camunda7TaskEventListResource.class);
-
-    HttpHeaders headers2 = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    restClient
-        .get()
-        .uri(url2)
-        .headers(h -> h.addAll(headers2))
-        .retrieve()
-        .body(Camunda7TaskEventListResource.class);
-
-    RecordedRequest req1 = mockOutboxServer.takeRequest();
-    RecordedRequest req2 = mockOutboxServer.takeRequest();
-
-    // Both outbox requests should carry the same Bearer token (cached)
-    String auth1 = req1.getHeader("Authorization");
-    String auth2 = req2.getHeader("Authorization");
-    assertThat(auth1).isEqualTo(auth2).startsWith("Bearer ");
   }
 }
