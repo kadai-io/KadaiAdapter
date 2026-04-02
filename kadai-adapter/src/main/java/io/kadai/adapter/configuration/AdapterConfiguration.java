@@ -89,6 +89,9 @@ public class AdapterConfiguration {
     /** Interval in milliseconds between retries for failed and blocked task-events. */
     private long retriesAndBlockingTaskEventsInterval = 10000L;
 
+    /** Number of threads used for parallel creation of KADAI tasks. */
+    private int startKadaiTasksThreadCount = 1;
+
     public long getStartKadaiTasksInterval() {
       return startKadaiTasksInterval;
     }
@@ -135,6 +138,14 @@ public class AdapterConfiguration {
 
     public void setRetriesAndBlockingTaskEventsInterval(long retriesAndBlockingTaskEventsInterval) {
       this.retriesAndBlockingTaskEventsInterval = retriesAndBlockingTaskEventsInterval;
+    }
+
+    public int getStartKadaiTasksThreadCount() {
+      return startKadaiTasksThreadCount;
+    }
+
+    public void setStartKadaiTasksThreadCount(int startKadaiTasksThreadCount) {
+      this.startKadaiTasksThreadCount = startKadaiTasksThreadCount;
     }
   }
 }
