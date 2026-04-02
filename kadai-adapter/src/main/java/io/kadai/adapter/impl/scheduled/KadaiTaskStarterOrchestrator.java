@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -169,8 +170,12 @@ public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent
     for (Future<?> future : futures) {
       try {
         future.get();
-      } catch (Exception e) {
-        LOGGER.error("Error waiting for task creation future", e);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt(); // restore interrupt
+        LOGGER.error("Thread interrupted while waiting for future", e);
+        break;
+      } catch (ExecutionException e) {
+        LOGGER.error("Error during task execution", e);
       }
     }
 
