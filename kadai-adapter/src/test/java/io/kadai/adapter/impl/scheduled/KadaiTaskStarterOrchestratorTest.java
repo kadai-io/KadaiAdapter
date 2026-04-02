@@ -453,6 +453,82 @@ class KadaiTaskStarterOrchestratorTest {
         .isLessThan(duration1 / 2);
   }
 
+  @Test
+  void should_RestoreInterruptAndBreak_When_InterruptedWhileWaitingForFuture() throws Exception {
+    setupAdapterManager();
+
+    List<ReferencedTask> tasks = createReferencedTasks(2);
+    when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
+
+    CountDownLatch taskStarted = new CountDownLatch(1);
+    CountDownLatch interruptThread = new CountDownLatch(1);
+
+    doAnswer(
+            _invocation -> {
+              taskStarted.countDown();
+              // Wait to be interrupted
+              interruptThread.await();
+              Thread.sleep(100);
+              return null;
+            })
+        .when(kadaiTaskStarterService)
+        .createKadaiTask(any(ReferencedTask.class));
+
+    // Capture the main thread
+    Thread testThread = Thread.currentThread();
+
+    // Start a thread that will interrupt the main thread after task starts
+    Thread interrupter =
+        new Thread(
+            () -> {
+              try {
+                taskStarted.await();
+                interruptThread.countDown();
+                Thread.sleep(50);
+                testThread.interrupt();
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+              }
+            });
+    interrupter.setDaemon(true);
+    interrupter.start();
+
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(2);
+    orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
+
+    assertThat(Thread.interrupted())
+        .as("Interrupt flag should be set after interrupt handling")
+        .isTrue();
+  }
+
+  @Test
+  void should_LogAndContinue_When_ExecutionExceptionOccurs() throws Exception {
+    setupAdapterManager();
+
+    List<ReferencedTask> tasks = createReferencedTasks(3);
+    when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
+
+    AtomicInteger callCount = new AtomicInteger(0);
+    doAnswer(
+            _invocation -> {
+              int count = callCount.getAndIncrement();
+              if (count == 1) {
+                // Simulate an exception that would be wrapped in ExecutionException
+                throw new RuntimeException("Simulated exception during task creation");
+              }
+              return null;
+            })
+        .when(kadaiTaskStarterService)
+        .createKadaiTask(any(ReferencedTask.class));
+
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(2);
+    orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
+
+    verify(kadaiTaskStarterService, times(3)).createKadaiTask(any(ReferencedTask.class));
+    verify(inboundSystemConnector)
+        .kadaiTaskFailedToBeCreatedForNewReferencedTask(any(ReferencedTask.class), any());
+  }
+
   private KadaiTaskStarterOrchestrator createOrchestrator(int threadCount) {
     AdapterConfiguration adapterConfiguration = new AdapterConfiguration();
     SchedulerConfig schedulerConfig = new SchedulerConfig();
