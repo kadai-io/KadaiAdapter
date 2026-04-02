@@ -446,10 +446,7 @@ class KadaiTaskStarterOrchestratorTest {
 
     assertThat(duration4)
         .as("4 threads (%dms) should be faster than 2 threads (%dms)", duration4, duration2)
-        .isLessThan(duration2);
-
-    // 4 threads should be at least 2x faster than 1 thread
-    assertThat(duration4)
+        .isLessThan(duration2)
         .as(
             "4 threads (%dms) should be at least 2x faster than 1 thread (%dms)",
             duration4, duration1)
