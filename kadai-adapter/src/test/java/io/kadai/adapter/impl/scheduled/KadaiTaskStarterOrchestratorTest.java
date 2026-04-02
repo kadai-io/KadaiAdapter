@@ -52,6 +52,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("checkstyle:LambdaParameterName")
 class KadaiTaskStarterOrchestratorTest {
 
   @Mock private AdapterManager adapterManager;
@@ -60,35 +61,30 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_CreateAllTasks_When_ProcessingInParallel() throws Exception {
-    int taskCount = 20;
-    int threadCount = 4;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(4);
     setupAdapterManager();
 
-    List<ReferencedTask> tasks = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks = createReferencedTasks(20);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
 
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
-    verify(kadaiTaskStarterService, times(taskCount)).createKadaiTask(any(ReferencedTask.class));
+    verify(kadaiTaskStarterService, times(20)).createKadaiTask(any(ReferencedTask.class));
     verify(inboundSystemConnector).kadaiTasksHaveBeenCreatedForNewReferencedTasks(any());
   }
 
   @Test
   void should_UseMultipleThreads_When_ProcessingTasks() throws Exception {
-    int taskCount = 10;
-    int threadCount = 4;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
     setupAdapterManager();
 
-    List<ReferencedTask> tasks = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks = createReferencedTasks(10);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
 
     Set<String> threadNames = ConcurrentHashMap.newKeySet();
-    CountDownLatch allStarted = new CountDownLatch(taskCount);
+    CountDownLatch allStarted = new CountDownLatch(10);
 
     doAnswer(
-            invocation -> {
+            _invocation -> {
               threadNames.add(Thread.currentThread().getName());
               allStarted.countDown();
               // Small delay to ensure threads overlap
@@ -98,6 +94,7 @@ class KadaiTaskStarterOrchestratorTest {
         .when(kadaiTaskStarterService)
         .createKadaiTask(any(ReferencedTask.class));
 
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(4);
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     assertThat(threadNames)
@@ -107,8 +104,6 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_CompleteAllTasks_When_SomeTasksFail() throws Exception {
-    int threadCount = 4;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
     setupAdapterManager();
 
     List<ReferencedTask> tasks = createReferencedTasks(5);
@@ -116,7 +111,7 @@ class KadaiTaskStarterOrchestratorTest {
 
     AtomicInteger callCount = new AtomicInteger(0);
     doAnswer(
-            invocation -> {
+            _invocation -> {
               int count = callCount.getAndIncrement();
               if (count == 1 || count == 3) {
                 throw new TaskCreationFailedException(
@@ -127,6 +122,7 @@ class KadaiTaskStarterOrchestratorTest {
         .when(kadaiTaskStarterService)
         .createKadaiTask(any(ReferencedTask.class));
 
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(4);
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     verify(kadaiTaskStarterService, times(5)).createKadaiTask(any(ReferencedTask.class));
@@ -136,8 +132,6 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_TreatAlreadyExistAsSuccess_When_TaskAlreadyExistExceptionOccurs() throws Exception {
-    int threadCount = 2;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
     setupAdapterManager();
 
     List<ReferencedTask> tasks = createReferencedTasks(3);
@@ -156,6 +150,7 @@ class KadaiTaskStarterOrchestratorTest {
         .when(kadaiTaskStarterService)
         .createKadaiTask(any(ReferencedTask.class));
 
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(2);
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     verify(inboundSystemConnector)
@@ -167,8 +162,6 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_FetchVariables_When_VariablesAreNull() {
-    int threadCount = 2;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
     setupAdapterManager();
 
     List<ReferencedTask> tasks = new ArrayList<>();
@@ -181,6 +174,7 @@ class KadaiTaskStarterOrchestratorTest {
     when(inboundSystemConnector.retrieveReferencedTaskVariables("task-no-vars"))
         .thenReturn("{\"fetched\":\"true\"}");
 
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(2);
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     verify(inboundSystemConnector).retrieveReferencedTaskVariables("task-no-vars");
@@ -189,8 +183,7 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_NotFetchVariables_When_VariablesAlreadyPresent() {
-    int threadCount = 2;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(2);
     setupAdapterManager();
 
     List<ReferencedTask> tasks = createReferencedTasks(1); // has variables set
@@ -203,8 +196,7 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_HandleEmptyTaskList_When_NoNewTasks() {
-    int threadCount = 4;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(4);
     setupAdapterManager();
 
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks())
@@ -218,8 +210,7 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_SetSystemUrl_For_EachTask() {
-    int threadCount = 2;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(2);
     setupAdapterManager();
 
     List<ReferencedTask> tasks = createReferencedTasks(3);
@@ -234,12 +225,9 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_ProcessTasksConcurrentlyProvingParallelism() throws Exception {
-    int taskCount = 8;
-    int threadCount = 4;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
     setupAdapterManager();
 
-    List<ReferencedTask> tasks = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks = createReferencedTasks(8);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
 
     // Track maximum concurrency
@@ -247,7 +235,7 @@ class KadaiTaskStarterOrchestratorTest {
     AtomicInteger maxConcurrency = new AtomicInteger(0);
 
     doAnswer(
-            invocation -> {
+            _invocation -> {
               int current = currentConcurrency.incrementAndGet();
               // Update max concurrency atomically
               maxConcurrency.updateAndGet(max -> Math.max(max, current));
@@ -259,6 +247,7 @@ class KadaiTaskStarterOrchestratorTest {
         .when(kadaiTaskStarterService)
         .createKadaiTask(any(ReferencedTask.class));
 
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(4);
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     assertThat(maxConcurrency.get())
@@ -269,20 +258,18 @@ class KadaiTaskStarterOrchestratorTest {
   }
 
   @Test
+  @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
   void should_BeSignificantlyFaster_When_UsingMultipleThreads() throws Exception {
-    int taskCount = 20;
-    long taskDurationMs = 50; // simulated per-task duration
-
     setupAdapterManager();
-    List<ReferencedTask> tasks = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks = createReferencedTasks(20);
 
     // Measure single-threaded execution
     KadaiTaskStarterOrchestrator singleThreadOrchestrator = createOrchestrator(1);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
 
     doAnswer(
-            _ -> {
-              Thread.sleep(taskDurationMs);
+            _invocation -> {
+              Thread.sleep(50); // simulated per-task duration
               return null;
             })
         .when(kadaiTaskStarterService)
@@ -293,7 +280,7 @@ class KadaiTaskStarterOrchestratorTest {
     Duration singleThreadDuration = Duration.between(singleStart, Instant.now());
 
     // Reset tasks (systemUrl gets set during processing)
-    tasks = createReferencedTasks(taskCount);
+    tasks = createReferencedTasks(20);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
 
     // Measure multi-threaded execution
@@ -320,19 +307,16 @@ class KadaiTaskStarterOrchestratorTest {
 
   @Test
   void should_RespectConfiguredThreadCount() throws Exception {
-    int taskCount = 16;
-    int threadCount = 4;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
     setupAdapterManager();
 
-    List<ReferencedTask> tasks = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks = createReferencedTasks(16);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
 
     AtomicInteger maxConcurrency = new AtomicInteger(0);
     AtomicInteger currentConcurrency = new AtomicInteger(0);
 
     doAnswer(
-            _ -> {
+            _invocation -> {
               int current = currentConcurrency.incrementAndGet();
               maxConcurrency.updateAndGet(max -> Math.max(max, current));
               // Wait briefly to ensure threads are busy
@@ -343,35 +327,32 @@ class KadaiTaskStarterOrchestratorTest {
         .when(kadaiTaskStarterService)
         .createKadaiTask(any(ReferencedTask.class));
 
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(4);
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     assertThat(maxConcurrency.get())
-        .as("Concurrency should not exceed configured thread count of %d", threadCount)
-        .isLessThanOrEqualTo(threadCount);
+        .as("Concurrency should not exceed configured thread count of %d", 4)
+        .isLessThanOrEqualTo(4);
     assertThat(maxConcurrency.get()).as("Should use multiple threads").isGreaterThan(1);
   }
 
   @Test
   void should_ReturnAllSuccessfulTasks_When_ProcessedInParallel() {
-    int taskCount = 10;
-    int threadCount = 4;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(4);
     setupAdapterManager();
 
-    List<ReferencedTask> tasks = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks = createReferencedTasks(10);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks);
 
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     verify(inboundSystemConnector)
         .kadaiTasksHaveBeenCreatedForNewReferencedTasks(
-            org.mockito.ArgumentMatchers.argThat(list -> list.size() == taskCount));
+            org.mockito.ArgumentMatchers.argThat(list -> list.size() == 10));
   }
 
   @Test
   void should_HandleMixedResultsCorrectly_When_SomeTasksFailInParallel() throws Exception {
-    int threadCount = 4;
-    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(threadCount);
     setupAdapterManager();
 
     List<ReferencedTask> tasks = createReferencedTasks(6);
@@ -401,6 +382,7 @@ class KadaiTaskStarterOrchestratorTest {
         .when(kadaiTaskStarterService)
         .createKadaiTask(any(ReferencedTask.class));
 
+    KadaiTaskStarterOrchestrator orchestrator = createOrchestrator(4);
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     // Then
@@ -415,22 +397,23 @@ class KadaiTaskStarterOrchestratorTest {
   }
 
   @Test
+  @SuppressWarnings({
+    "checkstyle:AbbreviationAsWordInName",
+    "checkstyle:VariableDeclarationUsageDistance"
+  })
   void should_ScaleLinearlyWithThreads_When_TasksAreIOBound() throws Exception {
-    int taskCount = 20;
-    long taskDurationMs = 50;
-
     setupAdapterManager();
 
     doAnswer(
-            invocation -> {
-              Thread.sleep(taskDurationMs);
+            _invocation -> {
+              Thread.sleep(50);
               return null;
             })
         .when(kadaiTaskStarterService)
         .createKadaiTask(any(ReferencedTask.class));
 
     // Measure with 1 thread
-    List<ReferencedTask> tasks1 = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks1 = createReferencedTasks(20);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks1);
     KadaiTaskStarterOrchestrator oneThread = createOrchestrator(1);
 
@@ -439,7 +422,7 @@ class KadaiTaskStarterOrchestratorTest {
     long duration1 = Duration.between(start1, Instant.now()).toMillis();
 
     // Measure with 2 threads
-    List<ReferencedTask> tasks2 = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks2 = createReferencedTasks(20);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks2);
     KadaiTaskStarterOrchestrator twoThreads = createOrchestrator(2);
 
@@ -448,7 +431,7 @@ class KadaiTaskStarterOrchestratorTest {
     long duration2 = Duration.between(start2, Instant.now()).toMillis();
 
     // Measure with 4 threads
-    List<ReferencedTask> tasks4 = createReferencedTasks(taskCount);
+    List<ReferencedTask> tasks4 = createReferencedTasks(20);
     when(inboundSystemConnector.retrieveNewStartedReferencedTasks()).thenReturn(tasks4);
     KadaiTaskStarterOrchestrator fourThreads = createOrchestrator(4);
 
