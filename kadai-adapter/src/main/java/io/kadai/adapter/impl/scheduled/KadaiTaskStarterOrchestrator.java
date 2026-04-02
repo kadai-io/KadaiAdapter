@@ -29,7 +29,11 @@ import io.kadai.adapter.util.LowerMedian;
 import io.kadai.task.api.exceptions.TaskAlreadyExistException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +45,13 @@ import org.springframework.stereotype.Component;
 public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiTaskStarterOrchestrator.class);
-  
+
   private final AdapterManager adapterManager;
   private final KadaiTaskStarterService kadaiTaskStarterService;
   private final MonitoredRun monitoredRun;
   private final LowerMedian<Duration> runDurationLowerMedian = new LowerMedian<>(100);
   private final long runIntervalMillis;
+  private final ExecutorService executorService;
 
   @Autowired
   public KadaiTaskStarterOrchestrator(
@@ -57,6 +62,9 @@ public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent
     this.kadaiTaskStarterService = kadaiTaskStarterService;
     this.monitoredRun = new MonitoredRun();
     this.runIntervalMillis = adapterConfiguration.getScheduler().getStartKadaiTasksInterval();
+    this.executorService =
+        Executors.newFixedThreadPool(
+            adapterConfiguration.getScheduler().getStartKadaiTasksThreadCount());
   }
 
   @Scheduled(fixedRateString = "#{adapterConfiguration.scheduler.startKadaiTasksInterval}")
@@ -124,32 +132,48 @@ public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent
 
   private List<ReferencedTask> createAndStartKadaiTasks(
       InboundSystemConnector systemConnector, List<ReferencedTask> tasksToStart) {
-    List<ReferencedTask> newCreatedTasksInKadai = new ArrayList<>();
+    List<ReferencedTask> newCreatedTasksInKadai = Collections.synchronizedList(new ArrayList<>());
+    List<Future<?>> futures = new ArrayList<>();
+
     for (ReferencedTask referencedTask : tasksToStart) {
+      futures.add(
+          executorService.submit(
+              () -> {
+                try {
+                  addVariablesToReferencedTask(referencedTask, systemConnector);
+                  referencedTask.setSystemUrl(systemConnector.getSystemUrl());
+                  kadaiTaskStarterService.createKadaiTask(referencedTask);
+                  newCreatedTasksInKadai.add(referencedTask);
+                } catch (TaskCreationFailedException e) {
+                  if (e.getCause() instanceof TaskAlreadyExistException) {
+                    newCreatedTasksInKadai.add(referencedTask);
+                  } else {
+                    handleError(
+                        systemConnector,
+                        referencedTask,
+                        e,
+                        "caught Exception when attempting to start KadaiTask "
+                            + "for referencedTask {}");
+                  }
+                } catch (Exception e) {
+                  handleError(
+                      systemConnector,
+                      referencedTask,
+                      e,
+                      "caught unexpected Exception when attempting to start KadaiTask "
+                          + "for referencedTask {}");
+                }
+              }));
+    }
+
+    for (Future<?> future : futures) {
       try {
-        addVariablesToReferencedTask(referencedTask, systemConnector);
-        referencedTask.setSystemUrl(systemConnector.getSystemUrl());
-        kadaiTaskStarterService.createKadaiTask(referencedTask);
-        newCreatedTasksInKadai.add(referencedTask);
-      } catch (TaskCreationFailedException e) {
-        if (e.getCause() instanceof TaskAlreadyExistException) {
-          newCreatedTasksInKadai.add(referencedTask);
-        } else {
-          handleError(
-              systemConnector,
-              referencedTask,
-              e,
-              "caught Exception when attempting to start KadaiTask for referencedTask {}");
-        }
+        future.get();
       } catch (Exception e) {
-        handleError(
-            systemConnector,
-            referencedTask,
-            e,
-            "caught unexpected Exception when attempting to start KadaiTask "
-                + "for referencedTask {}");
+        LOGGER.error("Error waiting for task creation future", e);
       }
     }
+
     return newCreatedTasksInKadai;
   }
 
