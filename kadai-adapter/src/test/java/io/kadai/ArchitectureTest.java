@@ -85,6 +85,9 @@ class ArchitectureTest {
   @Test
   void noMethodsShouldUseThreadSleep() {
     noClasses()
+        .that()
+        .doNotHaveFullyQualifiedName( // needs sleep to simulate work in parallel
+            "io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestratorTest")
         .should()
         .callMethod(Thread.class, "sleep", long.class)
         .orShould()
