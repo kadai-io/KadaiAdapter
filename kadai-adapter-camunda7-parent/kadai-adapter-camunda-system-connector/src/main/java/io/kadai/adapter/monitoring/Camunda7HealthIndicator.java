@@ -1,9 +1,11 @@
 package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.monitoring.models.CamundaEngineInfoRepresentationModel;
+import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import java.net.URI;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -13,11 +15,14 @@ public class Camunda7HealthIndicator implements HealthIndicator {
   private static final String BASE_URL = "baseUrl";
 
   private final RestClient restClient;
+  private final HttpHeaderProvider httpHeaderProvider;
   private URI url;
   private String urlString;
 
-  public Camunda7HealthIndicator(RestClient restClient, String urlString) {
+  public Camunda7HealthIndicator(
+      RestClient restClient, HttpHeaderProvider httpHeaderProvider, String urlString) {
     this.restClient = restClient;
+    this.httpHeaderProvider = httpHeaderProvider;
     this.urlString = urlString;
     this.url = UriComponentsBuilder.fromUriString(urlString).pathSegment("engine").build().toUri();
   }
@@ -44,9 +49,11 @@ public class Camunda7HealthIndicator implements HealthIndicator {
   }
 
   ResponseEntity<CamundaEngineInfoRepresentationModel[]> pingCamundaRest() {
+    HttpHeaders headers = httpHeaderProvider.camundaRestApiHeaders();
     return restClient
         .get()
         .uri(url)
+        .headers(h -> h.addAll(headers))
         .retrieve()
         .toEntity(CamundaEngineInfoRepresentationModel[].class);
   }

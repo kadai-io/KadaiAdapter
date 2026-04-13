@@ -1,9 +1,11 @@
 package io.kadai.adapter.monitoring;
 
 import io.kadai.adapter.monitoring.models.OutboxEventCountRepresentationModel;
+import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import java.net.URI;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
@@ -14,11 +16,14 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
   private static final String BASE_URL = "baseUrl";
 
   private final RestClient restClient;
+  private final HttpHeaderProvider httpHeaderProvider;
   private URI url;
   private String urlString;
 
-  public Camunda7OutboxHealthIndicator(RestClient restClient, String urlString) {
+  public Camunda7OutboxHealthIndicator(
+      RestClient restClient, HttpHeaderProvider httpHeaderProvider, String urlString) {
     this.restClient = restClient;
+    this.httpHeaderProvider = httpHeaderProvider;
     this.url =
         UriComponentsBuilder.fromUriString(urlString)
             .pathSegment("events")
@@ -55,6 +60,12 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
   }
 
   ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
-    return restClient.get().uri(url).retrieve().toEntity(OutboxEventCountRepresentationModel.class);
+    HttpHeaders headers = httpHeaderProvider.outboxRestApiHeaders();
+    return restClient
+        .get()
+        .uri(url)
+        .headers(h -> h.addAll(headers))
+        .retrieve()
+        .toEntity(OutboxEventCountRepresentationModel.class);
   }
 }

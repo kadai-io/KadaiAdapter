@@ -3,6 +3,7 @@ package io.kadai.adapter.monitoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +25,8 @@ class Camunda7SystemHealthCompositeTest {
             List.of(
                 "http://localhost:10020/engine-rest| http://localhost:10020/outbox-rest",
                 "http://localhost:10021/engine-rest| http://localhost:10021/outbox-rest"),
-            new Camunda7HealthConfigurationProperties());
+            new Camunda7HealthConfigurationProperties(),
+            mock(HttpHeaderProvider.class));
 
     assertThat(camundaSystemsHealthComposite.getContributor(contributorName)).isNotNull();
   }
@@ -39,7 +41,8 @@ class Camunda7SystemHealthCompositeTest {
     Camunda7HealthConfigurationProperties properties = new Camunda7HealthConfigurationProperties();
 
     Camunda7SystemsHealthComposite composite =
-        new Camunda7SystemsHealthComposite(restTemplate, urls, properties);
+        new Camunda7SystemsHealthComposite(
+            restTemplate, urls, properties, mock(HttpHeaderProvider.class));
 
     long count = composite.stream().count();
     assertThat(count).isEqualTo(2);
