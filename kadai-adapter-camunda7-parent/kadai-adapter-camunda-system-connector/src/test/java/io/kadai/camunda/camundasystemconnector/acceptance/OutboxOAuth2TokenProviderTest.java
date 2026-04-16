@@ -156,7 +156,7 @@ class OutboxOAuth2TokenProviderTest {
     outbox.setOauth2(oauth2Config);
     config.setOutbox(outbox);
 
-    assertThatThrownBy(() -> new OutboxOAuth2TokenProvider(config))
+    assertThatThrownBy(() -> new OutboxOAuth2TokenProvider(config, RestClient.builder().build()))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("OAuth2 configuration is incomplete");
   }

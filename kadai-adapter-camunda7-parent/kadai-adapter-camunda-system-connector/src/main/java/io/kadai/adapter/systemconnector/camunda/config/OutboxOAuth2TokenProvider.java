@@ -55,8 +55,10 @@ public class OutboxOAuth2TokenProvider {
   private Instant tokenExpiresAt;
 
   @Autowired
-  public OutboxOAuth2TokenProvider(Camunda7SystemConnectorConfiguration config) {
+  public OutboxOAuth2TokenProvider(
+      Camunda7SystemConnectorConfiguration config, RestClient tokenRestClient) {
     this.oauth2Config = config.getOutbox().getOauth2();
+    this.tokenRestClient = tokenRestClient;
     if (oauth2Config == null
         || oauth2Config.getTokenUri() == null
         || oauth2Config.getClientId() == null
@@ -66,7 +68,6 @@ public class OutboxOAuth2TokenProvider {
               + "Please set kadai-adapter.plugin.camunda7.outbox.oauth2.token-uri, "
               + "client-id, and client-secret.");
     }
-    this.tokenRestClient = RestClient.builder().build();
   }
 
   // visible for testing
