@@ -19,7 +19,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @ContextConfiguration(classes = {CamundaConnectorTestConfiguration.class})
 @SpringBootTest
-class HttpHeaderProviderOAuth2Test {
+class HttpHeaderProviderTest {
 
   @Nested
   @SpringBootTest(
