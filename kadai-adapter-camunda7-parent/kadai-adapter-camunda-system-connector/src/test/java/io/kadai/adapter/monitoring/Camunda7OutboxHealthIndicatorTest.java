@@ -2,7 +2,6 @@ package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +49,7 @@ class Camunda7OutboxHealthIndicatorTest {
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
 
     when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
     when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
     when(mockResponseSpec.toEntity(OutboxEventCountRepresentationModel.class))
@@ -69,7 +68,7 @@ class Camunda7OutboxHealthIndicatorTest {
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
 
     when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
     when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
     when(mockResponseSpec.toEntity(OutboxEventCountRepresentationModel.class))
@@ -86,8 +85,7 @@ class Camunda7OutboxHealthIndicatorTest {
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
 
     when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(eq(EXPECTED_URI)))
-        .thenThrow(new RuntimeException("Connection failed"));
+    when(mockRequestSpec.uri(EXPECTED_URI)).thenThrow(new RuntimeException("Connection failed"));
 
     assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
   }
@@ -106,7 +104,7 @@ class Camunda7OutboxHealthIndicatorTest {
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
 
     when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
     when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
     when(mockResponseSpec.toEntity(OutboxEventCountRepresentationModel.class))
