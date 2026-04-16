@@ -1,11 +1,13 @@
 package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.monitoring.models.Camunda7EngineInfoRepresentationModel;
+import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -17,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Status;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
@@ -34,7 +37,7 @@ class Camunda7HealthIndicatorTest {
   @Test
   void should_ReturnUp_When_CamundaRespondsSuccessfully() {
     Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, BASE_URL);
+        new Camunda7HealthIndicator(restClient, mockHttpHeaderProvider(), BASE_URL);
     Camunda7EngineInfoRepresentationModel engine = new Camunda7EngineInfoRepresentationModel();
     Camunda7EngineInfoRepresentationModel[] engines = {engine};
 
@@ -43,6 +46,7 @@ class Camunda7HealthIndicatorTest {
 
     when(restClient.get()).thenReturn(mockRequestSpec);
     when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
     when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
         .thenReturn(ResponseEntity.ok(engines));
@@ -53,13 +57,14 @@ class Camunda7HealthIndicatorTest {
   @Test
   void should_ReturnDown_When_CamundaRespondsSuccessfullyButListsNoEngines() {
     Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, BASE_URL);
+        new Camunda7HealthIndicator(restClient, mockHttpHeaderProvider(), BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
 
     when(restClient.get()).thenReturn(mockRequestSpec);
     when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
     when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
         .thenReturn(ResponseEntity.ok(new Camunda7EngineInfoRepresentationModel[0]));
@@ -71,13 +76,14 @@ class Camunda7HealthIndicatorTest {
   @MethodSource("errorResponseProvider")
   void should_ReturnDown_When_CamundaRespondsWithError(HttpStatus httpStatus) {
     Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, BASE_URL);
+        new Camunda7HealthIndicator(restClient, mockHttpHeaderProvider(), BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
     RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
 
     when(restClient.get()).thenReturn(mockRequestSpec);
     when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
     when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
     when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
         .thenThrow(new RuntimeException("HTTP " + httpStatus.value()));
@@ -88,7 +94,7 @@ class Camunda7HealthIndicatorTest {
   @Test
   void should_ReturnDown_When_CamundaPingFails() {
     Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, BASE_URL);
+        new Camunda7HealthIndicator(restClient, mockHttpHeaderProvider(), BASE_URL);
 
     RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
 
@@ -97,6 +103,36 @@ class Camunda7HealthIndicatorTest {
         .thenThrow(new RuntimeException("Connection failed"));
 
     assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
+  }
+
+  @Test
+  void should_SendAuthenticationHeaders_When_PingingCamunda() {
+    HttpHeaderProvider httpHeaderProvider = mock(HttpHeaderProvider.class);
+    HttpHeaders authHeaders = new HttpHeaders();
+    authHeaders.add("Authorization", "Basic dXNlcjpwYXNz");
+    when(httpHeaderProvider.camunda7RestApiHeaders()).thenReturn(authHeaders);
+
+    Camunda7HealthIndicator camundaHealthIndicator =
+        new Camunda7HealthIndicator(restClient, httpHeaderProvider, BASE_URL);
+
+    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
+    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+    Camunda7EngineInfoRepresentationModel[] engines = {new Camunda7EngineInfoRepresentationModel()};
+
+    when(restClient.get()).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.uri(eq(EXPECTED_URI))).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
+    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
+    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
+        .thenReturn(ResponseEntity.ok(engines));
+
+    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
+  }
+
+  private HttpHeaderProvider mockHttpHeaderProvider() {
+    HttpHeaderProvider httpHeaderProvider = mock(HttpHeaderProvider.class);
+    when(httpHeaderProvider.camunda7RestApiHeaders()).thenReturn(new HttpHeaders());
+    return httpHeaderProvider;
   }
 
   private static Stream<Arguments> errorResponseProvider() {
