@@ -6,9 +6,10 @@ import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -41,42 +42,16 @@ class Camunda7HealthCompositeAccTest {
             .build();
   }
 
-  @Test
-  void should_ReturnUp_When_CamundaEngineAndOutboxAreReachable() {
-    ResponseEntity<Map> response =
-        restClient
-            .get()
-            .uri("/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1")
-            .retrieve()
-            .toEntity(Map.class);
-    Map<String, Object> body = response.getBody();
-
-    assertThat(body).isNotNull();
-    assertThat(body).extracting("status").isEqualTo("UP");
-  }
-
-  @Test
-  void should_ReturnUp_For_CamundaEngineHealthIndicator() {
-    ResponseEntity<Map> response =
-        restClient
-            .get()
-            .uri("/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1/camunda")
-            .retrieve()
-            .toEntity(Map.class);
-    Map<String, Object> body = response.getBody();
-
-    assertThat(body).isNotNull();
-    assertThat(body).extracting("status").isEqualTo("UP");
-  }
-
-  @Test
-  void should_ReturnUp_For_OutboxHealthIndicator() {
-    ResponseEntity<Map> response =
-        restClient
-            .get()
-            .uri("/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1/outbox")
-            .retrieve()
-            .toEntity(Map.class);
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "/actuator/health/kadaiAdapter/plugin/camunda7",
+        "/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1",
+        "/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1/camunda",
+        "/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1/outbox"
+      })
+  void should_ReturnUp_For(String uri) {
+    ResponseEntity<Map> response = restClient.get().uri(uri).retrieve().toEntity(Map.class);
     Map<String, Object> body = response.getBody();
 
     assertThat(body).isNotNull();
