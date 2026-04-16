@@ -11,6 +11,13 @@ import java.util.stream.Stream;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -407,7 +415,23 @@ class OutboxOAuth2TokenProviderTest {
   }
 
   private OutboxOAuth2TokenProvider createProvider(OAuth2Configuration oauth2Config) {
-    RestClient restClient = RestClient.builder().build();
+    ConnectionConfig connectionConfig =
+        ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(50)).build();
+    PoolingHttpClientConnectionManager connectionManager =
+        PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connectionConfig)
+            .build();
+    RequestConfig requestConfig =
+        RequestConfig.custom().setResponseTimeout(Timeout.ofMilliseconds(50)).build();
+    CloseableHttpClient httpClient =
+        HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .build();
+    HttpComponentsClientHttpRequestFactory requestFactory =
+        new HttpComponentsClientHttpRequestFactory(httpClient);
+    final RestClient restClient = RestClient.builder().requestFactory(requestFactory).build();
+
     return new OutboxOAuth2TokenProvider(oauth2Config, restClient);
   }
 }
