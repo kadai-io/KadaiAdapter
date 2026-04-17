@@ -36,6 +36,7 @@
     <module>kadai-adapter-camunda-outbox-rest</module>
     <module>kadai-adapter-camunda-outbox-rest-spring-boot-starter</module>
     <module>kadai-adapter-camunda-spring-boot-example</module>
+    <module>kadai-adapter-camunda-spring-boot-example-oauth2</module>
     <module>kadai-adapter-camunda-spring-boot-test</module>
     <module>kadai-adapter-camunda-system-connector</module>
   </modules>
