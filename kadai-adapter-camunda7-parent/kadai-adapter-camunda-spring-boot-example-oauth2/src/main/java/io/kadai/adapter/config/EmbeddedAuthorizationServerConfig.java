@@ -78,7 +78,6 @@ public class EmbeddedAuthorizationServerConfig {
    *
    * @param http the {@link HttpSecurity} to configure
    * @return the configured {@link SecurityFilterChain}
-   * @throws Exception if the security configuration fails
    */
   @Bean
   @Order(1)
