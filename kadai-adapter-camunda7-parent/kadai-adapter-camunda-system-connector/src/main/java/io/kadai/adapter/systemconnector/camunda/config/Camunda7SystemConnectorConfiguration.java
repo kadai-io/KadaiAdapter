@@ -155,6 +155,12 @@ public class Camunda7SystemConnectorConfiguration {
             .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
   }
 
+  /** Supported authentication types for the Outbox REST API. */
+  public enum AuthType {
+    BASIC,
+    OAUTH2
+  }
+
   public static class ClientConfiguration {
 
     /** Basic-Auth username. */
@@ -181,8 +187,23 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   public static class OutboxClientConfiguration {
-    /** Configuration for the Camunda 7 Outbox Client. */
+
+    /** The authentication type to use: BASIC (default) or OAUTH2. */
+    private AuthType authType = AuthType.BASIC;
+
+    /** Configuration for the Camunda 7 Outbox Client (used when authType is BASIC). */
     private ClientConfiguration client;
+
+    /** Configuration for OAuth2 authentication (used when authType is OAUTH2). */
+    private OAuth2Configuration oauth2;
+
+    public AuthType getAuthType() {
+      return authType;
+    }
+
+    public void setAuthType(AuthType authType) {
+      this.authType = authType;
+    }
 
     public ClientConfiguration getClient() {
       return client;
@@ -190,6 +211,61 @@ public class Camunda7SystemConnectorConfiguration {
 
     public void setClient(ClientConfiguration client) {
       this.client = client;
+    }
+
+    public OAuth2Configuration getOauth2() {
+      return oauth2;
+    }
+
+    public void setOauth2(OAuth2Configuration oauth2) {
+      this.oauth2 = oauth2;
+    }
+  }
+
+  public static class OAuth2Configuration {
+
+    /** The token endpoint URI of the OAuth2 authorization server. */
+    private String tokenUri;
+
+    /** The OAuth2 client ID. */
+    private String clientId;
+
+    /** The OAuth2 client secret. */
+    private String clientSecret;
+
+    /** Space-separated list of scopes to request. */
+    private String scopes;
+
+    public String getTokenUri() {
+      return tokenUri;
+    }
+
+    public void setTokenUri(String tokenUri) {
+      this.tokenUri = tokenUri;
+    }
+
+    public String getClientId() {
+      return clientId;
+    }
+
+    public void setClientId(String clientId) {
+      this.clientId = clientId;
+    }
+
+    public String getClientSecret() {
+      return clientSecret;
+    }
+
+    public void setClientSecret(String clientSecret) {
+      this.clientSecret = clientSecret;
+    }
+
+    public String getScopes() {
+      return scopes;
+    }
+
+    public void setScopes(String scopes) {
+      this.scopes = scopes;
     }
   }
 

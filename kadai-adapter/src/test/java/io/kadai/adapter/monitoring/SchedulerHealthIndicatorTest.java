@@ -57,4 +57,11 @@ class SchedulerHealthIndicatorTest {
 
     assertThat(schedulerHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.DOWN);
   }
+
+  @Test
+  void should_ReturnUnknown_When_SchedulerHasNotCompletedFirstRun() {
+    when(monitoredRunSpy.getEnd()).thenReturn(null);
+
+    assertThat(schedulerHealthIndicatorSpy.health().getStatus()).isEqualTo(Status.UNKNOWN);
+  }
 }

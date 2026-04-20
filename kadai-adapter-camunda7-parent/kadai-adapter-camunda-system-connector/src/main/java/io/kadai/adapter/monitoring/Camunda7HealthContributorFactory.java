@@ -1,5 +1,6 @@
 package io.kadai.adapter.monitoring;
 
+import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.List;
@@ -15,15 +16,18 @@ public class Camunda7HealthContributorFactory implements PluginHealthContributor
   private final RestClient restClient;
   private final Camunda7HealthConfigurationProperties properties;
   private final List<Camunda7System> camunda7Systems;
+  private final HttpHeaderProvider httpHeaderProvider;
 
   @Autowired
   public Camunda7HealthContributorFactory(
       RestClient restClient,
       Camunda7HealthConfigurationProperties properties,
-      List<Camunda7System> camunda7Systems) {
+      List<Camunda7System> camunda7Systems,
+      HttpHeaderProvider httpHeaderProvider) {
     this.restClient = restClient;
     this.properties = properties;
     this.camunda7Systems = camunda7Systems;
+    this.httpHeaderProvider = httpHeaderProvider;
   }
 
   @Override
@@ -34,7 +38,9 @@ public class Camunda7HealthContributorFactory implements PluginHealthContributor
   @Override
   public Optional<HealthContributor> newInstance() {
     return properties.getEnabled()
-        ? Optional.of(new Camunda7SystemsHealthComposite(restClient, camunda7Systems, properties))
+        ? Optional.of(
+            new Camunda7SystemsHealthComposite(
+                restClient, camunda7Systems, properties, httpHeaderProvider))
         : Optional.empty();
   }
 }

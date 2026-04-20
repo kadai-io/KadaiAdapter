@@ -11,7 +11,7 @@
   <parent>
     <groupId>io.kadai</groupId>
     <artifactId>kadai-adapter-camunda7-parent</artifactId>
-    <version>11.3.2-SNAPSHOT</version>
+    <version>11.3.3-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -36,6 +36,10 @@
       <groupId>io.kadai</groupId>
       <artifactId>kadai-adapter</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-client</artifactId>
     </dependency>
 
     <!-- testing dependencies -->

@@ -22,6 +22,11 @@ public class SchedulerHealthIndicator implements HealthIndicator {
   @Override
   public Health health() {
     Instant lastRun = monitoredScheduledComponent.getLastRun().getEnd();
+    if (lastRun == null) {
+      return Health.unknown()
+          .withDetail("message", "Scheduler has not completed a run yet")
+          .build();
+    }
     Instant expectedNextRunBefore =
         lastRun
             .plus(

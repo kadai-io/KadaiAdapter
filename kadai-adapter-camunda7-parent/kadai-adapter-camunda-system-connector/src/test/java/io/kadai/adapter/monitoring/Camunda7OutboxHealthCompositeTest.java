@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 
 import io.kadai.adapter.configuration.health.CompositeHealthContributorConfigurationProperties;
+import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,7 +23,8 @@ class Camunda7OutboxHealthCompositeTest {
             mock(),
             "http://localhost:10020/engine-rest",
             "http://localhost:10020/outbox-rest",
-            properties);
+            properties,
+            mock(HttpHeaderProvider.class));
     final long actual = camundaOutboxHealthComposite.stream().count();
 
     assertThat(actual).isEqualTo(expectedEnabledCount);
@@ -37,7 +39,8 @@ class Camunda7OutboxHealthCompositeTest {
             mock(),
             "http://localhost:10020/engine-rest",
             "http://localhost:10020/outbox-rest",
-            new Camunda7HealthConfigurationProperties());
+            new Camunda7HealthConfigurationProperties(),
+            mock(HttpHeaderProvider.class));
 
     assertThat(camundaOutboxHealthComposite.getContributor(contributorName)).isNotNull();
   }

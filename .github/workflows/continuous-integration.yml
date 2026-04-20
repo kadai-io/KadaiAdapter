@@ -85,6 +85,7 @@ jobs:
 #          - camunda-outbox-example-boot
 #          - kadai-adapter-camunda-listener-example
 #          - kadai-adapter-camunda-spring-boot-example
+#          - kadai-adapter-camunda-spring-boot-example-oauth2
           - kadai-adapter-camunda-8-system-connector
           - kadai-adapter-camunda-8-spring-boot-example
     steps:
