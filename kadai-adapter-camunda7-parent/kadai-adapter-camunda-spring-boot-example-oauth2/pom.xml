@@ -59,11 +59,10 @@
       <version>${project.version}</version>
       <classifier>classes</classifier>
     </dependency>
-    <!-- JAX-RS runtime that hosts the outbox REST service inside Spring Boot -->
+    <!-- JAX-RS runtime that hosts the outbox REST service inside Spring Boot (Jersey) -->
     <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-servlet-spring-boot-starter</artifactId>
-      <version>${version.resteasy.spring.boot}</version>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jersey</artifactId>
     </dependency>
     <!-- JWT Bearer token validation for the outbox REST endpoints -->
     <dependency>
