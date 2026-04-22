@@ -1,7 +1,7 @@
 package io.kadai.adapter.monitoring;
 
 import java.util.Optional;
-import org.springframework.boot.actuate.health.HealthContributor;
+import org.springframework.boot.health.contributor.HealthContributor;
 
 /**
  * Instantiated factory for KadaiAdapter-specific plugin-health-contributors.

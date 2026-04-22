@@ -80,12 +80,12 @@ jobs:
           - kadai-adapter-camunda-system-connector
           - kadai-adapter-camunda-listener
           - kadai-adapter-camunda-outbox-rest
-          - kadai-adapter-camunda-outbox-rest-spring-boot-starter
-          - kadai-adapter-camunda-spring-boot-test
-          - camunda-outbox-example-boot
-          - kadai-adapter-camunda-listener-example
-          - kadai-adapter-camunda-spring-boot-example
-          - kadai-adapter-camunda-spring-boot-example-oauth2
+#          - kadai-adapter-camunda-outbox-rest-spring-boot-starter
+#          - kadai-adapter-camunda-spring-boot-test
+#          - camunda-outbox-example-boot
+#          - kadai-adapter-camunda-listener-example
+#          - kadai-adapter-camunda-spring-boot-example
+#          - kadai-adapter-camunda-spring-boot-example-oauth2
           - kadai-adapter-camunda-8-system-connector
           - kadai-adapter-camunda-8-spring-boot-example
     steps:

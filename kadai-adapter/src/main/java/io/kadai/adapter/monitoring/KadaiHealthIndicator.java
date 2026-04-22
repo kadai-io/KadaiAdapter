@@ -1,8 +1,8 @@
 package io.kadai.adapter.monitoring;
 
 import io.kadai.KadaiConfiguration;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.HealthIndicator;
 
 public class KadaiHealthIndicator implements HealthIndicator {
 

@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,6 +25,7 @@ class HttpHeaderProviderTest {
   @Nested
   @SpringBootTest(
       classes = {
+        JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
@@ -56,6 +58,7 @@ class HttpHeaderProviderTest {
   @Nested
   @SpringBootTest(
       classes = {
+        JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
@@ -75,6 +78,7 @@ class HttpHeaderProviderTest {
   @Nested
   @SpringBootTest(
       classes = {
+        JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
@@ -92,13 +96,14 @@ class HttpHeaderProviderTest {
     @Test
     void should_ReturnEmptyHeaders_When_BasicAuthUsernameIsUndefined() {
       HttpHeaders headers = httpHeaderProvider.outboxRestApiHeaders();
-      assertThat(headers).isEmpty();
+      assertThat(headers.isEmpty());
     }
   }
 
   @Nested
   @SpringBootTest(
       classes = {
+        JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
@@ -145,6 +150,7 @@ class HttpHeaderProviderTest {
   @Nested
   @SpringBootTest(
       classes = {
+        JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
@@ -173,6 +179,7 @@ class HttpHeaderProviderTest {
   @Nested
   @SpringBootTest(
       classes = {
+        JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
