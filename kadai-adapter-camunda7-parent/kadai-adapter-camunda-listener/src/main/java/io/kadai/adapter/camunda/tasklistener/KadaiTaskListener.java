@@ -18,6 +18,8 @@
 
 package io.kadai.adapter.camunda.tasklistener;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.camunda.Camunda7ListenerConfiguration;
 import io.kadai.adapter.camunda.dto.ReferencedTask;
 import io.kadai.adapter.camunda.dto.VariableValueDto;
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.variable.value.ObjectValue;
 import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.ExtensionElements;
@@ -47,8 +50,6 @@ import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * This class is responsible for dealing with events within the lifecycle of a camunda user task.
@@ -65,7 +66,7 @@ public class KadaiTaskListener implements TaskListener {
           + "BLOCKED_UNTIL,CAMUNDA_TASK_ID, SYSTEM_ENGINE_IDENTIFIER) VALUES (?,?,?,?,?,?,?)";
   private static final String[] PREFIXES = {"kadai.", "kadai-", "taskana.", "taskana-"};
   private static KadaiTaskListener instance = null;
-  private final JsonMapper jsonMapper = JacksonConfigurator.createAndConfigureJsonMapper();
+  private final ObjectMapper jsonMapper = JacksonConfigurator.createAndConfigureObjectMapper();
   private boolean gotActivated = false;
   private String outboxSchemaName = null;
 
@@ -222,7 +223,7 @@ public class KadaiTaskListener implements TaskListener {
     }
   }
 
-  private String getReferencedTaskJson(DelegateTask delegateTask) throws JacksonException {
+  private String getReferencedTaskJson(DelegateTask delegateTask) throws JsonProcessingException {
 
     ReferencedTask referencedTask = new ReferencedTask();
 
@@ -325,11 +326,11 @@ public class KadaiTaskListener implements TaskListener {
 
   private void addToVariablesBuilder(
       DelegateTask delegateTask,
-      JsonMapper objectMapper,
+      ObjectMapper objectMapper,
       StringBuilder processVariablesBuilder,
       String nameOfprocessVariableToAdd) {
 
-    TypedValue processVariable = delegateTask.getVariableTyped(nameOfprocessVariableToAdd);
+    TypedValue processVariable = delegateTask.getVariableTyped(nameOfprocessVariableToAdd, false);
 
     if (processVariable != null) {
 
@@ -347,7 +348,7 @@ public class KadaiTaskListener implements TaskListener {
             .append(variableValueDtoJson)
             .append(",");
 
-      } catch (JacksonException ex) {
+      } catch (JsonProcessingException ex) {
 
         if (Camunda7ListenerConfiguration.shouldCatchAndLogExceptionForFaultyProcessVariables()) {
 
@@ -362,7 +363,7 @@ public class KadaiTaskListener implements TaskListener {
   }
 
   private VariableValueDto determineProcessVariableTypeAndCreateVariableValueDto(
-      TypedValue processVariable, JsonMapper objectMapper) throws JacksonException {
+      TypedValue processVariable, ObjectMapper objectMapper) throws JsonProcessingException {
 
     VariableValueDto variableValueDto = new VariableValueDto();
 
@@ -375,13 +376,21 @@ public class KadaiTaskListener implements TaskListener {
 
       variableValueDto.setType(processVariable.getType().getName());
 
-      String processVariableJsonString =
-          objectMapper.writeValueAsString(processVariable.getValue());
-      variableValueDto.setValue(processVariableJsonString);
-
       Map<String, Object> valueInfo = new HashMap<>();
-      valueInfo.put("serializationDataFormat", "application/json");
-      valueInfo.put("objectTypeName", processVariable.getValue().getClass());
+      if (processVariable instanceof ObjectValue) {
+        // Use the already-serialized form to avoid loading the POJO class,
+        // which may not be available on the Camunda container's classpath.
+        ObjectValue objectValue = (ObjectValue) processVariable;
+        variableValueDto.setValue(objectValue.getValueSerialized());
+        valueInfo.put("serializationDataFormat", objectValue.getSerializationDataFormat());
+        valueInfo.put("objectTypeName", objectValue.getObjectTypeName());
+      } else {
+        String processVariableJsonString =
+            objectMapper.writeValueAsString(processVariable.getValue());
+        variableValueDto.setValue(processVariableJsonString);
+        valueInfo.put("serializationDataFormat", "application/json");
+        valueInfo.put("objectTypeName", processVariable.getValue().getClass());
+      }
       variableValueDto.setValueInfo(valueInfo);
     }
 

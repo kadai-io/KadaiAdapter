@@ -18,8 +18,8 @@
 
 package io.kadai.adapter.camunda.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.text.SimpleDateFormat;
-import tools.jackson.databind.json.JsonMapper;
 
 /** This class is responsible for configuring the JsonMapper of Jackson. */
 public final class JacksonConfigurator {
@@ -28,9 +28,7 @@ public final class JacksonConfigurator {
 
   private JacksonConfigurator() {}
 
-  public static JsonMapper createAndConfigureJsonMapper() {
-    return JsonMapper.builder()
-        .defaultDateFormat(new SimpleDateFormat(DEFAULT_DATE_FORMAT))
-        .build();
+  public static ObjectMapper createAndConfigureObjectMapper() {
+    return new ObjectMapper().setDateFormat(new SimpleDateFormat(DEFAULT_DATE_FORMAT));
   }
 }

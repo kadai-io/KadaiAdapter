@@ -30,10 +30,8 @@ import io.kadai.task.api.exceptions.TaskNotFoundException;
 import io.kadai.task.api.models.TaskSummary;
 import java.time.Instant;
 import java.util.List;
-import org.camunda.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
@@ -51,7 +49,8 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration
 class TestCancelledTaskRetrieval extends AbsIntegrationTest {
 
-  @Autowired private JobExecutor jobExecutor;
+  /** Max wait time for the Camunda job executor (external container). */
+  private static final long CAMUNDA_JOB_EXECUTOR_MAX_WAIT_MS = 5_000L;
 
   @WithAccessId(
       user = "teamlead_1",
@@ -206,7 +205,7 @@ class TestCancelledTaskRetrieval extends AbsIntegrationTest {
       // wait for the camunda task to be interrupted by the timer event (1 second), then the camunda
       // job poll.
       // Assert it was interrupted.
-      Thread.sleep(1000 + (long) (this.jobExecutor.getMaxWait() * 1.2));
+      Thread.sleep(1000 + (long) (CAMUNDA_JOB_EXECUTOR_MAX_WAIT_MS * 1.2));
       boolean taskRetrievalSuccessful =
           this.camundaProcessengineRequester.getTaskFromTaskId(camundaTaskId);
       assertThat(taskRetrievalSuccessful).isFalse();
@@ -249,7 +248,7 @@ class TestCancelledTaskRetrieval extends AbsIntegrationTest {
 
       taskService.cancelTask(kadaiTasks.get(0).getId());
 
-      Thread.sleep(1000 + (long) (this.jobExecutor.getMaxWait() * 1.2));
+      Thread.sleep(1000 + (long) (CAMUNDA_JOB_EXECUTOR_MAX_WAIT_MS * 1.2));
 
       // check if camunda task got completed and therefore doesn't exist anymore
       boolean taskRetrievalSuccessful =

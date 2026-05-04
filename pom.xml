@@ -36,6 +36,7 @@
 
   <properties>
     <java.version>25</java.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -250,8 +251,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${version.maven.compiler}</version>
         <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
+          <release>${maven.compiler.release}</release>
           <showWarnings>true</showWarnings>
           <failOnWarning>true</failOnWarning>
           <compilerArgs>

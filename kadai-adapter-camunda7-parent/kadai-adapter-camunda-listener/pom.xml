@@ -13,20 +13,42 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
+  <properties>
+    <!-- Override the parent's Java 21 release target. This jar is dropped into the
+         Camunda BPM Run docker image's userlib/, which currently ships with a Java 17
+         JRE. Compiling against Java 17 keeps the artifact loadable both there and in
+         downstream consumers (Spring Boot 4 test JVM on Java 25, Camunda 7 example
+         apps on Java 21). -->
+    <maven.compiler.release>17</maven.compiler.release>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.camunda.bpm</groupId>
       <artifactId>camunda-engine</artifactId>
     </dependency>
     <dependency>
-      <groupId>tools.jackson.core</groupId>
+      <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+      <version>2.18.4</version>
+      <!-- The listener JAR is dropped into Camunda BPM Run's userlib/.
+           Camunda already ships jackson-databind-2.18.x on its internal classpath,
+           so we declare 'provided' to avoid duplicating the Jackson 2 JAR in userlib. -->
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.mybatis</groupId>
       <artifactId>mybatis</artifactId>
       <version>${version.mybatis}</version>
       <scope>provided</scope>
+    </dependency>
+    <!-- Optional: enables auto-registration of the parse-listener plugin when this jar
+         is dropped into a Camunda Spring Boot application (e.g. Camunda BPM Run). -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
@@ -39,4 +61,23 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${version.maven.jar}</version>
+        <executions>
+          <execution>
+            <id>early-jar-for-camunda-userlib</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

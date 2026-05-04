@@ -19,9 +19,15 @@
 package io.kadai.impl;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.bpm.engine.variable.Variables;
+import org.camunda.bpm.engine.variable.Variables.SerializationDataFormats;
+import org.camunda.bpm.engine.variable.value.ObjectValue;
 
 /**
  * This class is responsible for setting complex variables containing Objects on a camunda user
@@ -37,14 +43,42 @@ public class ComplexProcessVariableSetter implements JavaDelegate {
 
     String specialCharactersString =
         "\fForm feed \b Backspace \t Tab \\Backslash \n newLine \r Carriage return \" DoubleQuote";
-    ProcessVariableTestObjectTwo processVariableTestObjectTwo =
-        new ProcessVariableTestObjectTwo("stringValueObjectTwo", 2, 2.2, true, date);
-    ProcessVariableTestObject processVariableTestObject =
-        new ProcessVariableTestObject(
-            specialCharactersString, 1, 1.1, false, processVariableTestObjectTwo);
 
-    delegateExecution.setVariable("attribute1", processVariableTestObject);
-    delegateExecution.setVariable("attribute2", 5);
-    delegateExecution.setVariable("attribute3", true);
+    if (delegateExecution.getCurrentActivityName().equals("ComplexVariableSetter")) {
+      ProcessVariableTestObjectTwo processVariableTestObjectTwo =
+          new ProcessVariableTestObjectTwo("stringValueObjectTwo", 2, 2.2, true, date);
+      ProcessVariableTestObject processVariableTestObject =
+          new ProcessVariableTestObject(
+              specialCharactersString,
+              1,
+              1.1,
+              false,
+              Collections.singletonList(processVariableTestObjectTwo));
+
+      ObjectValue attribute1Value =
+          Variables.objectValue(processVariableTestObject)
+              .serializationDataFormat(SerializationDataFormats.JSON)
+              .create();
+      delegateExecution.setVariable("attribute1", attribute1Value);
+      delegateExecution.setVariable("attribute2", 5);
+      delegateExecution.setVariable("attribute3", true);
+
+    } else if (delegateExecution.getCurrentActivityName().equals("BigComplexVariableSetter")) {
+
+      List<ProcessVariableTestObjectTwo> processVariableTestObjectTwoList = new ArrayList<>();
+      for (int i = 0; i < 10000; i++) {
+        processVariableTestObjectTwoList.add(
+            new ProcessVariableTestObjectTwo("stringValueObjectTwo", 2, 2.2, true, date));
+      }
+      ProcessVariableTestObject bigProcessVariableTestObject =
+          new ProcessVariableTestObject(
+              specialCharactersString, 1, 1.1, false, processVariableTestObjectTwoList);
+
+      ObjectValue attribute1Value =
+          Variables.objectValue(bigProcessVariableTestObject)
+              .serializationDataFormat(SerializationDataFormats.JSON)
+              .create();
+      delegateExecution.setVariable("attribute1", attribute1Value);
+    }
   }
 }
