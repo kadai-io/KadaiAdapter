@@ -37,8 +37,7 @@ import org.springframework.stereotype.Component;
  * (spring-boot-starter-jersey), which natively supports Jakarta EE 11 / JAX-RS 3.
  *
  * <p>The {@link Camunda7TaskEventsController} accesses the outbox table via the JDBC URL provided
- * by {@code System.setProperty("kadai.outbox.properties", ...)} during container initialisation
- * (see {@link Camunda7TestcontainersConfiguration}).
+ * by {@code System.setProperty("kadai.outbox.properties", ...)} during container initialization.
  */
 @Component
 @ApplicationPath("/outbox-rest")
