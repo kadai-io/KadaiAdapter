@@ -76,8 +76,7 @@ public class Camunda7TaskEventsService {
     Duration lockDuration = null;
     List<Camunda7TaskEvent> camunda7TaskEvents;
     if (filterParams.containsKey(LOCK_FOR)) {
-      lockDuration =
-          Duration.of(Long.parseLong(filterParams.get(LOCK_FOR).get(0)), ChronoUnit.SECONDS);
+      lockDuration = getLockDuration(filterParams.get(LOCK_FOR));
     }
     if (filterParams.containsKey(TYPE) && filterParams.get(TYPE).contains(CREATE)) {
 
@@ -166,7 +165,7 @@ public class Camunda7TaskEventsService {
       try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
         preparedStatement.setInt(1, remainingRetries);
         if (lockDuration != null) {
-          preparedStatement.setTimestamp(1, Timestamp.from(Instant.now()));
+          preparedStatement.setTimestamp(2, Timestamp.from(Instant.now()));
         }
         ResultSet camundaTaskEventFilteredByRetriesResultSet = preparedStatement.executeQuery();
         camunda7TaskEventsFilteredByRetries =
@@ -406,6 +405,18 @@ public class Camunda7TaskEventsService {
       return Integer.parseInt(retries.get(0));
     } catch (NumberFormatException e) {
       throw new InvalidArgumentException("retries param must be of type Integer!");
+    }
+  }
+
+  private Duration getLockDuration(List<String> lockForValues) throws InvalidArgumentException {
+    try {
+      long lockForSeconds = Long.parseLong(lockForValues.get(0));
+      if (lockForSeconds < 0) {
+        throw new InvalidArgumentException("lock-for param must be of type non-negative Integer!");
+      }
+      return Duration.of(lockForSeconds, ChronoUnit.SECONDS);
+    } catch (NumberFormatException e) {
+      throw new InvalidArgumentException("lock-for param must be of type non-negative Integer!");
     }
   }
 
