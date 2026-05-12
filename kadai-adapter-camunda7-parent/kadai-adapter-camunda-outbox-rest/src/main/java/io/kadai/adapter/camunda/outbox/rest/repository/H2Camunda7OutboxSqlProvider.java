@@ -31,8 +31,8 @@ public class H2Camunda7OutboxSqlProvider implements Camunda7OutboxSqlProvider {
   @Override
   public String getAvailableEventsFilteredByRetries(String schema) {
     final String sql =
-        "select * from %s.event_store where remaining_retries = ? and lock_expire "
-            + "< ? or lock_expire is null for update skip locked";
+        "select * from %s.event_store where remaining_retries = ? and (lock_expire "
+            + "< ? or lock_expire is null) for update skip locked";
     return String.format(sql, schema);
   }
 }
