@@ -36,6 +36,7 @@ import io.kadai.task.api.models.Task;
 import io.kadai.task.api.models.TaskSummary;
 import io.kadai.workbasket.api.exceptions.NotAuthorizedOnWorkbasketException;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.camunda.bpm.engine.impl.calendar.DateTimeUtil;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -55,9 +55,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.test.context.ContextConfiguration;
 import uk.co.datumedge.hamcrest.json.SameJSONAs;
 
@@ -102,7 +102,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
             + "{\\\"stringFieldObjectTwo\\\":\\\"stringValueObjectTwo\\\","
             + "\\\"intFieldObjectTwo\\\":2,\\\"doubleFieldObjectTwo\\\":2.2,"
             + "\\\"booleanFieldObjectTwo\\\":true,"
-            + "\\\"dateFieldObjectTwo\\\":\\\"1970-01-01 13:12:11\\\"}]}\","
+            + "\\\"dateFieldObjectTwo\\\":47531000}]}\","
             + "\"valueInfo\":{\"objectTypeName\":\"io.kadai.impl.ProcessVariableTestObject\","
             + "\"serializationDataFormat\":\"application/json\"}}";
 
@@ -194,7 +194,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
             + "{\\\"stringFieldObjectTwo\\\":\\\"stringValueObjectTwo\\\","
             + "\\\"intFieldObjectTwo\\\":2,\\\"doubleFieldObjectTwo\\\":2.2,"
             + "\\\"booleanFieldObjectTwo\\\":true,"
-            + "\\\"dateFieldObjectTwo\\\":\\\"1970-01-01 13:12:11\\\"}]}\","
+            + "\\\"dateFieldObjectTwo\\\":47531000}]}\","
             + "\"valueInfo\":{\"objectTypeName\":\"io.kadai.impl.ProcessVariableTestObject\","
             + "\"serializationDataFormat\":\"application/json\"}}";
 
@@ -467,7 +467,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
             + "{\\\"stringFieldObjectTwo\\\":\\\"stringValueObjectTwo\\\","
             + "\\\"intFieldObjectTwo\\\":2,\\\"doubleFieldObjectTwo\\\":2.2,"
             + "\\\"booleanFieldObjectTwo\\\":true,"
-            + "\\\"dateFieldObjectTwo\\\":\\\"1970-01-01 13:12:11\\\"}]}\","
+            + "\\\"dateFieldObjectTwo\\\":47531000}]}\","
             + "\"valueInfo\":{\"objectTypeName\":\"io.kadai.impl.ProcessVariableTestObject\","
             + "\"serializationDataFormat\":\"application/json\"}}";
 
@@ -758,7 +758,10 @@ class TestTaskAcquisition extends AbsIntegrationTest {
     String kadaiTaskId = kadaiTaskSummaryList.get(0).getId();
     Task kadaiTask = this.taskService.getTask(kadaiTaskId);
     // Check if followUp Date from Camunda task is equal to plannedDate from Kadai task
-    Instant expectedDate = DateTimeUtil.parseDateTime("2015-06-26T09:54:00").toDate().toInstant();
+    Instant expectedDate =
+        java.time.LocalDateTime.parse("2015-06-26T09:54:00")
+            .atZone(ZoneId.systemDefault())
+            .toInstant();
     assertThat(kadaiTask.getPlanned()).isEqualTo(expectedDate);
 
     this.camundaProcessengineRequester.completeTaskWithId(camundaTaskId);

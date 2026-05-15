@@ -1,7 +1,5 @@
 package io.kadai.adapter.systemconnector.camunda.tasklistener.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.UserTaskProperties;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
@@ -14,18 +12,21 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class ReferencedTaskCreator {
 
   private static final org.slf4j.Logger LOGGER =
       org.slf4j.LoggerFactory.getLogger(ReferencedTaskCreator.class);
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+  private final JsonMapper jsonMapper;
   private final Camunda8System camunda8System;
 
   @Autowired
-  public ReferencedTaskCreator(Camunda8System camunda8System) {
+  public ReferencedTaskCreator(JsonMapper jsonMapper, Camunda8System camunda8System) {
+    this.jsonMapper = jsonMapper;
     this.camunda8System = camunda8System;
   }
 
@@ -193,9 +194,9 @@ public class ReferencedTaskCreator {
           nameOfVariableToAdd ->
               variables.put(nameOfVariableToAdd, getVariable(job, nameOfVariableToAdd)));
 
-      return OBJECT_MAPPER.writeValueAsString(variables);
+      return jsonMapper.writeValueAsString(variables);
 
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       LOGGER.error(
           "Error while trying to retrieve variables for task '{}' in ProcessDefinition '{}'",
           job.getElementId(),

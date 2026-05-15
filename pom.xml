@@ -36,6 +36,7 @@
 
   <properties>
     <java.version>25</java.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -60,10 +61,10 @@
     <version.maven-war-plugin>3.5.1</version.maven-war-plugin>
 
     <version.mybatis>3.5.19</version.mybatis>
-    <version.spring.mybatis>3.0.5</version.spring.mybatis>
+    <version.spring.mybatis>4.0.1</version.spring.mybatis>
 
     <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
-    <version.spring.boot>3.5.10</version.spring.boot>
+    <version.spring.boot>4.0.6</version.spring.boot>
 
     <version.jakarta.annotation>3.0.0</version.jakarta.annotation>
     <version.jakarta-ws-rs-api>4.0.0</version.jakarta-ws-rs-api>
@@ -250,8 +251,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${version.maven.compiler}</version>
         <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
+          <release>${maven.compiler.release}</release>
           <showWarnings>true</showWarnings>
           <failOnWarning>true</failOnWarning>
           <compilerArgs>

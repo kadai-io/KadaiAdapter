@@ -19,6 +19,7 @@
 package io.kadai.impl;
 
 import java.io.Serializable;
+import java.util.List;
 
 /** Test entity for a complex process variable. */
 public class ProcessVariableTestObject implements Serializable {
@@ -27,7 +28,7 @@ public class ProcessVariableTestObject implements Serializable {
   private int intField;
   private double doubleField;
   private boolean booleanField;
-  private ProcessVariableTestObjectTwo processVariableTestObjectTwoField;
+  private List<ProcessVariableTestObjectTwo> processVariableTestObjectTwoField;
 
   public ProcessVariableTestObject() {}
 
@@ -36,7 +37,7 @@ public class ProcessVariableTestObject implements Serializable {
       int intField,
       double doubleField,
       boolean booleanField,
-      ProcessVariableTestObjectTwo processVariableTestObjectTwoField) {
+      List<ProcessVariableTestObjectTwo> processVariableTestObjectTwoField) {
     this.stringField = stringField;
     this.intField = intField;
     this.doubleField = doubleField;
@@ -76,12 +77,12 @@ public class ProcessVariableTestObject implements Serializable {
     this.booleanField = booleanField;
   }
 
-  public ProcessVariableTestObjectTwo getProcessVariableTestObjectTwoField() {
+  public List<ProcessVariableTestObjectTwo> getProcessVariableTestObjectTwoField() {
     return processVariableTestObjectTwoField;
   }
 
   public void setProcessVariableTestObjectTwoField(
-      ProcessVariableTestObjectTwo processVariableTestObjectTwoField) {
+      List<ProcessVariableTestObjectTwo> processVariableTestObjectTwoField) {
     this.processVariableTestObjectTwoField = processVariableTestObjectTwoField;
   }
 }

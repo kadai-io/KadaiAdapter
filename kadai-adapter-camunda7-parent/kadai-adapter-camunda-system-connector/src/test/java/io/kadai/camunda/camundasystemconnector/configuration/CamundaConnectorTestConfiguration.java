@@ -18,10 +18,8 @@
 
 package io.kadai.camunda.camundasystemconnector.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.util.config.HttpComponentsClientProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -31,10 +29,4 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties(HttpComponentsClientProperties.class)
-public class CamundaConnectorTestConfiguration {
-
-  @Bean
-  ObjectMapper objectMapper() {
-    return new ObjectMapper();
-  }
-}
+public class CamundaConnectorTestConfiguration {}

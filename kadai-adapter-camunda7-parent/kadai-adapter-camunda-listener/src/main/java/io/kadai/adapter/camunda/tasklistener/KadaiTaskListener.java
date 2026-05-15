@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.variable.value.ObjectValue;
 import org.camunda.bpm.engine.variable.value.TypedValue;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.ExtensionElements;
@@ -63,10 +64,9 @@ public class KadaiTaskListener implements TaskListener {
   private static final String SQL_INSERT_EVENT =
       "INSERT INTO event_store (TYPE,CREATED,PAYLOAD,REMAINING_RETRIES,"
           + "BLOCKED_UNTIL,CAMUNDA_TASK_ID, SYSTEM_ENGINE_IDENTIFIER) VALUES (?,?,?,?,?,?,?)";
-  private static KadaiTaskListener instance = null;
   private static final String[] PREFIXES = {"kadai.", "kadai-", "taskana.", "taskana-"};
-
-  private final ObjectMapper objectMapper = JacksonConfigurator.createAndConfigureObjectMapper();
+  private static KadaiTaskListener instance = null;
+  private final ObjectMapper jsonMapper = JacksonConfigurator.createAndConfigureObjectMapper();
   private boolean gotActivated = false;
   private String outboxSchemaName = null;
 
@@ -253,7 +253,7 @@ public class KadaiTaskListener implements TaskListener {
     referencedTask.setCustomInt7(getVariableWithFallback(delegateTask, "custom-int-7", null));
     referencedTask.setCustomInt8(getVariableWithFallback(delegateTask, "custom-int-8", null));
     referencedTask.setVariables(getProcessVariables(delegateTask));
-    String referencedTaskJson = objectMapper.writeValueAsString(referencedTask);
+    String referencedTaskJson = jsonMapper.writeValueAsString(referencedTask);
     LOGGER.debug("Exit from getReferencedTaskJson. Returning {}.", referencedTaskJson);
     return referencedTaskJson;
   }
@@ -313,8 +313,7 @@ public class KadaiTaskListener implements TaskListener {
 
     variableNames.forEach(
         nameOfVariableToAdd ->
-            addToVariablesBuilder(
-                delegateTask, objectMapper, variablesBuilder, nameOfVariableToAdd));
+            addToVariablesBuilder(delegateTask, jsonMapper, variablesBuilder, nameOfVariableToAdd));
 
     if (variablesBuilder.length() > 0) {
       variablesBuilder.deleteCharAt(variablesBuilder.length() - 1).append("}");
@@ -331,7 +330,7 @@ public class KadaiTaskListener implements TaskListener {
       StringBuilder processVariablesBuilder,
       String nameOfprocessVariableToAdd) {
 
-    TypedValue processVariable = delegateTask.getVariableTyped(nameOfprocessVariableToAdd);
+    TypedValue processVariable = delegateTask.getVariableTyped(nameOfprocessVariableToAdd, false);
 
     if (processVariable != null) {
 
@@ -377,13 +376,21 @@ public class KadaiTaskListener implements TaskListener {
 
       variableValueDto.setType(processVariable.getType().getName());
 
-      String processVariableJsonString =
-          objectMapper.writeValueAsString(processVariable.getValue());
-      variableValueDto.setValue(processVariableJsonString);
-
       Map<String, Object> valueInfo = new HashMap<>();
-      valueInfo.put("serializationDataFormat", "application/json");
-      valueInfo.put("objectTypeName", processVariable.getValue().getClass());
+      if (processVariable instanceof ObjectValue) {
+        // Use the already-serialized form to avoid loading the POJO class,
+        // which may not be available on the Camunda container's classpath.
+        ObjectValue objectValue = (ObjectValue) processVariable;
+        variableValueDto.setValue(objectValue.getValueSerialized());
+        valueInfo.put("serializationDataFormat", objectValue.getSerializationDataFormat());
+        valueInfo.put("objectTypeName", objectValue.getObjectTypeName());
+      } else {
+        String processVariableJsonString =
+            objectMapper.writeValueAsString(processVariable.getValue());
+        variableValueDto.setValue(processVariableJsonString);
+        valueInfo.put("serializationDataFormat", "application/json");
+        valueInfo.put("objectTypeName", processVariable.getValue().getClass());
+      }
       variableValueDto.setValueInfo(valueInfo);
     }
 

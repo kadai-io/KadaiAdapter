@@ -31,7 +31,6 @@ public final class JacksonConfigurator {
   private JacksonConfigurator() {}
 
   public static ObjectMapper createAndConfigureObjectMapper() {
-
     ObjectMapper mapper = new ObjectMapper();
     SimpleDateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
     mapper.setDateFormat(dateFormat);

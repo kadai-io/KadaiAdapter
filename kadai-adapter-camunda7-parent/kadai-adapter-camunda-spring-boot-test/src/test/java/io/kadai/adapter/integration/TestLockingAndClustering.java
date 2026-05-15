@@ -39,9 +39,9 @@ import javax.security.auth.Subject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -55,7 +55,6 @@ import org.springframework.test.context.ContextConfiguration;
 @SuppressWarnings("checkstyle:LineLength")
 class TestLockingAndClustering extends AbsIntegrationTest {
 
-  private static final String BASIC_OUTBOX_PATH = "http://localhost:10020/outbox-rest/events";
   @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
   @Autowired KadaiTaskCompletionOrchestrator kadaiTaskTerminator;
   @Autowired private HttpHeaderProvider httpHeaderProvider;
@@ -68,7 +67,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
 
-    String url = BASIC_OUTBOX_PATH + "?lock-for=10";
+    String url = basicOutboxPath() + "?lock-for=10";
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     Camunda7TaskEventListResource answer =
@@ -123,7 +122,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     List<String> camundaTaskIds =
         this.camundaProcessengineRequester.getTaskIdsFromProcessInstanceId(processInstanceId);
     assertThat(camundaTaskIds).hasSize(1);
-    String urlWithLock = BASIC_OUTBOX_PATH + "?lock-for=10";
+    String urlWithLock = basicOutboxPath() + "?lock-for=10";
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     Camunda7TaskEventListResource answer =
@@ -137,7 +136,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     assertThat(answer).isNotNull();
     assertThat(answer.getCamunda7TaskEvents()).hasSize(1);
     int eventId = answer.getCamunda7TaskEvents().get(0).getId();
-    String urlWithUnlock = BASIC_OUTBOX_PATH + "/unlock-event/" + eventId;
+    String urlWithUnlock = basicOutboxPath() + "/unlock-event/" + eventId;
 
     restClient
         .post()
@@ -208,6 +207,10 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       assertThat(tasks).hasSize(1);
       assertThat(tasks.get(0).getState()).isEqualTo(TaskState.COMPLETED);
     }
+  }
+
+  private String basicOutboxPath() {
+    return outboxBaseUrl + "/events";
   }
 
   private Runnable getRunnableTest(List<String> accessIds, Callable<Void> action) {

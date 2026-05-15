@@ -22,7 +22,7 @@
     <!--  Java 21 LTS was introduced with 7.21, see https://docs.camunda.org/enterprise/announcement/#camunda-platform-7-21   -->
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.camunda>7.23.0</version.camunda>
+    <version.camunda>7.24.0</version.camunda>
     <version.camunda.spin>1.23.0</version.camunda.spin>
     <version.camunda.template-engines-freemarker>7.24.0
     </version.camunda.template-engines-freemarker>

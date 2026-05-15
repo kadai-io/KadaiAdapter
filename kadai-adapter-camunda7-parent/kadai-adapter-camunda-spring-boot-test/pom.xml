@@ -16,36 +16,6 @@
   </parent>
 
   <dependencies>
-    <!-- Camunda BPM -->
-    <dependency>
-      <groupId>org.camunda.bpm.springboot</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter</artifactId>
-    </dependency>
-    <!-- Camunda REST Api -->
-    <dependency>
-      <groupId>org.camunda.bpm.springboot</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter-rest</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.skyscreamer</groupId>
-          <artifactId>jsonassert</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <!-- Camunda webapps for manual debugging -->
-    <dependency>
-      <groupId>org.camunda.bpm.springboot</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine-plugin-spin</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.camunda.spin</groupId>
-      <artifactId>camunda-spin-dataformat-json-jackson</artifactId>
-    </dependency>
-    <!-- Adapter modules -->
     <dependency>
       <groupId>io.kadai</groupId>
       <artifactId>kadai-adapter</artifactId>
@@ -61,41 +31,65 @@
       <artifactId>kadai-adapter-kadai-connector</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- Build-time only: include the Camunda-side listener artifacts in the
+         reactor so process-test-resources can stage current workspace jars into
+         the external Camunda BPM Run container. Camunda itself still runs only
+         in Docker; the camunda-engine dependency is excluded so this test JVM
+         does not accidentally auto-configure an embedded Camunda engine. -->
     <dependency>
       <groupId>io.kadai</groupId>
       <artifactId>kadai-adapter-camunda-listener</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.camunda.bpm</groupId>
+          <artifactId>camunda-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
-    <!-- needed for test coverage -->
+    <dependency>
+      <groupId>io.kadai</groupId>
+      <artifactId>kadai-adapter-camunda-listener-example</artifactId>
+      <version>${project.version}</version>
+      <classifier>classes</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- ============================================================================
+         Outbox REST — runs in the test JVM via Jersey (Jakarta EE 11 / JAX-RS 3).
+         The kadai-adapter-camunda-outbox-rest classes (JAX-RS controller + service)
+         are registered with Jersey by OutboxRestJerseyConfig. The Camunda engine
+         runs in a Docker container; the listener writes events to the shared
+         PostgreSQL; the Jersey server in the test JVM reads those events.
+         ============================================================================ -->
     <dependency>
       <groupId>io.kadai</groupId>
       <artifactId>kadai-adapter-camunda-outbox-rest</artifactId>
       <version>${project.version}</version>
-      <type>war</type>
+      <!-- WAR module, use the 'classes' jar produced by attachClasses=true. -->
+      <classifier>classes</classifier>
     </dependency>
-    <!-- kadai-adapter-camunda-outbox-rest uses JAX-RS annotations therefore we need resteasy-spring-boot dependency -->
+    <!-- Jersey as the JAX-RS 3 provider in the Spring Boot 4 test JVM. -->
     <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-servlet-spring-boot-starter</artifactId>
-      <version>${version.resteasy.spring.boot}</version>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jersey</artifactId>
     </dependency>
-    <!-- testing dependencies -->
+    <!-- PostgreSQL driver: needed by the test JVM to reach the outbox table. -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+
+    <!-- ============================================================================
+         Test infrastructure
+         ============================================================================ -->
     <dependency>
       <groupId>io.kadai</groupId>
       <artifactId>kadai-common-test</artifactId>
       <version>${version.kadai}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.camunda.bpm.springboot</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-test</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -109,20 +103,18 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-webtestclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
-
-    <!-- Database Drivers -->
     <dependency>
       <groupId>com.ibm.db2</groupId>
       <artifactId>jcc</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -132,13 +124,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.kadai</groupId>
-      <artifactId>kadai-adapter-camunda-outbox-rest-spring-boot-starter</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -147,7 +139,6 @@
       <version>${version.archunit}</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>jakarta.annotation</groupId>
       <artifactId>jakarta.annotation-api</artifactId>
@@ -155,49 +146,127 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Testcontainers: external Camunda BPM Run + PostgreSQL -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>1.21.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>1.21.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>1.21.3</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- LauncherSessionListener (boots the test containers once per Surefire JVM,
+         before any test class is loaded). -->
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <!-- Stage the minimal set of JARs that must land in the Camunda BPM Run
+           container's userlib/ directory. Only the parse-listener and its runtime
+           deps are needed; the outbox REST service is served from the test JVM. -->
       <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${version.spring.boot}</version>
-        <configuration>
-          <layout>ZIP</layout>
-        </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <!-- Delete any leftover JARs from previous builds (e.g., stale jackson-* 3.x
+               jars that were removed from this POM but not from the target dir). -->
+          <execution>
+            <id>clean-stale-camunda-userlib</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+            <configuration>
+              <excludeDefaultDirectories>true</excludeDefaultDirectories>
+              <filesets>
+                <fileset>
+                  <directory>${project.build.directory}/camunda-userlib</directory>
+                  <includes>
+                    <include>**/*</include>
+                  </includes>
+                </fileset>
+              </filesets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${version.maven.dependency}</version>
         <executions>
           <execution>
+            <id>stage-camunda-userlib</id>
+            <phase>process-test-resources</phase>
             <goals>
-              <goal>repackage</goal>
+              <goal>copy</goal>
             </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/camunda-userlib</outputDirectory>
+              <stripVersion>false</stripVersion>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <artifactItems>
+                <!-- The parse-listener plugin (compiled to Java 17 target). -->
+                <artifactItem>
+                  <groupId>io.kadai</groupId>
+                  <artifactId>kadai-adapter-camunda-listener</artifactId>
+                  <version>${project.version}</version>
+                </artifactItem>
+                <!-- Java-delegate classes referenced from test BPMN models
+                     (ComplexProcessVariableSetter, WorkbasketKeySetter, etc.).
+                     listener-example is a WAR; use the 'classes' classifier jar. -->
+                <artifactItem>
+                  <groupId>io.kadai</groupId>
+                  <artifactId>kadai-adapter-camunda-listener-example</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>classes</classifier>
+                </artifactItem>
+                <!-- MyBatis: provided by the listener at runtime. -->
+                <artifactItem>
+                  <groupId>org.mybatis</groupId>
+                  <artifactId>mybatis</artifactId>
+                  <version>${version.mybatis}</version>
+                </artifactItem>
+                <!-- PostgreSQL JDBC driver. -->
+                <artifactItem>
+                  <groupId>org.postgresql</groupId>
+                  <artifactId>postgresql</artifactId>
+                  <version>42.7.8</version>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
 
-  <!--
-  <repositories>
-    <repository>
-      <id>maven.oracle.com</id>
-      <url>https://maven.oracle.com</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <layout>default</layout>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>maven.oracle.com</id>
-      <url>https://maven.oracle.com</url>
-    </pluginRepository>
-  </pluginRepositories>
-  -->
-
 </project>
+
+
+
+
+
+
+
+
+
+
+
+

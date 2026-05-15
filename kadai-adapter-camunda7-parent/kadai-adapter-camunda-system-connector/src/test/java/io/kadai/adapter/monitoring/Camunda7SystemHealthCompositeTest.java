@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.actuate.health.NamedContributor;
+import org.springframework.boot.health.contributor.HealthContributors.Entry;
 import org.springframework.web.client.RestClient;
 
 class Camunda7SystemHealthCompositeTest {
@@ -60,7 +60,7 @@ class Camunda7SystemHealthCompositeTest {
     assertThat(count).isEqualTo(2);
 
     List<String> contributorNames =
-        composite.stream().map(NamedContributor::getName).collect(Collectors.toList());
+        composite.stream().map(Entry::name).collect(Collectors.toList());
 
     assertThat(contributorNames).containsExactly("camundaSystem1", "camundaSystem2");
   }

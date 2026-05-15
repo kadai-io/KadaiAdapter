@@ -38,7 +38,6 @@ import io.kadai.workbasket.api.models.Workbasket;
 import io.kadai.workbasket.api.models.WorkbasketAccessItem;
 import jakarta.annotation.Resource;
 import javax.sql.DataSource;
-import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,18 +72,21 @@ abstract class AbsIntegrationTest {
 
   @Value("${adapter.polling.interval.adjustment.factor}")
   protected double adapterPollingIntervalAdjustmentFactor;
-
   @Value("${kadai-adapter.kernel.scheduler.retries-and-blocking-task-events-interval}")
   protected long adapterRetryAndBlockingInterval;
 
+  protected String outboxBaseUrl;
   protected CamundaProcessengineRequester camundaProcessengineRequester;
   protected KadaiOutboxRequester kadaiOutboxRequester;
   protected TaskService taskService;
   @Resource(name = "camundaBpmDataSource")
   protected DataSource camundaBpmDataSource;
   protected RestClient restClient;
+
+  @Value("${kadai-adapter.plugin.camunda7.systems[0].system-rest-url}")
+  private String camundaRestUrl;
+
   @LocalServerPort private Integer port;
-  @Autowired private ProcessEngineConfiguration processEngineConfiguration;
 
   @Autowired private HttpHeaderProvider httpHeaderProvider;
 
@@ -120,13 +122,17 @@ abstract class AbsIntegrationTest {
             .baseUrl("http://localhost:" + port)
             .requestFactory(new HttpComponentsClientHttpRequestFactory())
             .build();
-    // set up camunda requester and kadaiEngine-Taskservice
+    this.outboxBaseUrl = "/outbox-rest";
+
+    RestClient camundaRestClient =
+        RestClient.builder()
+            .baseUrl(getCamundaBaseUrl())
+            .requestFactory(new HttpComponentsClientHttpRequestFactory())
+            .build();
     this.camundaProcessengineRequester =
-        new CamundaProcessengineRequester(
-            this.processEngineConfiguration.getProcessEngineName(),
-            this.restClient,
-            this.httpHeaderProvider);
-    this.kadaiOutboxRequester = new KadaiOutboxRequester(this.restClient, this.httpHeaderProvider);
+        new CamundaProcessengineRequester("default", camundaRestClient, this.httpHeaderProvider);
+    this.kadaiOutboxRequester =
+        new KadaiOutboxRequester(this.outboxBaseUrl, this.restClient, this.httpHeaderProvider);
     this.taskService = kadaiEngine.getTaskService();
 
     // adjust polling interval, give adapter a little more time
@@ -176,6 +182,12 @@ abstract class AbsIntegrationTest {
       wb = workbasketService.createWorkbasket(wb);
       createWorkbasketAccessList(engine, wb);
     }
+  }
+
+  private String getCamundaBaseUrl() {
+    return camundaRestUrl.endsWith("/engine-rest")
+        ? camundaRestUrl.substring(0, camundaRestUrl.length() - "/engine-rest".length())
+        : camundaRestUrl;
   }
 
   private void createWorkbasketAccessList(KadaiEngine engine, Workbasket wb) throws Exception {

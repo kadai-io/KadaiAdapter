@@ -20,7 +20,6 @@ package io.kadai.adapter.test;
 
 import io.kadai.adapter.configuration.AdapterConfiguration;
 import io.kadai.adapter.test.configuration.Camunda7Configuration;
-import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
@@ -28,12 +27,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-/** Application to test the integration of Camunda BPM with REST API with the KADAI Adapter. */
+/**
+ * Application to test the integration of an externally hosted Camunda 7 BPM engine (started in a
+ * Docker container by {@code Camunda7TestcontainersConfiguration}) with the KADAI Adapter. The
+ * Camunda engine no longer runs in this JVM; this application only hosts the kadai-adapter
+ * scheduler and the kadai-outbox REST API.
+ */
 @EnableScheduling
 @ComponentScan("io.kadai.adapter")
 @Import({AdapterConfiguration.class, Camunda7Configuration.class})
 @SpringBootApplication
-@EnableProcessApplication
 @EnableTransactionManagement
 public class KadaiAdapterTestApplication {
 
