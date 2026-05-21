@@ -45,7 +45,11 @@ public class Camunda8TestUtil {
   }
   
   public void waitUntil(Callable<Boolean> condition) {
-    await().atMost(15, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).until(condition);
+    await()
+        .pollInSameThread()
+        .atMost(15, TimeUnit.SECONDS)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .until(condition);
   }
 
   public UserTask getCamundaTask(long taskKey) {
