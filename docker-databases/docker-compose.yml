@@ -3,6 +3,6 @@ services:
   kadai-postgres_14:
     build: postgres_14
     ports:
-      - 50102:5432
+      - 55432:5432
     environment:
       - POSTGRES_PASSWORD=postgres
