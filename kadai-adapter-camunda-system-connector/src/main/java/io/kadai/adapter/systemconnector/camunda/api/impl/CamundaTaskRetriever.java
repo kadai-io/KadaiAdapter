@@ -59,8 +59,6 @@ public class CamundaTaskRetriever {
       String camundaSystemEngineIdentifier,
       Duration lockDuration) {
 
-    LOGGER.debug("entry to retrieveNewStartedCamundaTasks.");
-
     List<CamundaTaskEvent> camundaTaskEvents =
         getCamundaTaskEvents(
             camundaSystemTaskEventUrl,
@@ -70,15 +68,13 @@ public class CamundaTaskRetriever {
     List<ReferencedTask> referencedTasks =
         getReferencedTasksFromCamundaTaskEvents(camundaTaskEvents, camundaSystemEngineIdentifier);
 
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("exit from retrieveActiveCamundaTasks. Retrieved Tasks: {}", referencedTasks);
-    }
+    LOGGER.debug(referencedTasks.stream().map(t -> t.getOutboxEventId()).toList().toString());
+
     return referencedTasks;
   }
 
   public List<ReferencedTask> retrieveFinishedCamundaTasks(
       String camundaSystemUrl, String camundaSystemEngineIdentifier, Duration lockDuration) {
-    LOGGER.debug("entry to retrieveFinishedCamundaTasks. CamundSystemURL = {} ", camundaSystemUrl);
 
     List<CamundaTaskEvent> camundaTaskEvents =
         getCamundaTaskEvents(
@@ -89,9 +85,6 @@ public class CamundaTaskRetriever {
     List<ReferencedTask> referencedTasks =
         getReferencedTasksFromCamundaTaskEvents(camundaTaskEvents, camundaSystemEngineIdentifier);
 
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("exit from retrieveFinishedCamundaTasks. Retrieved Tasks: {}", referencedTasks);
-    }
     return referencedTasks;
   }
 
@@ -102,8 +95,6 @@ public class CamundaTaskRetriever {
     String requestUrl = camundaSystemTaskEventUrl + eventSelector + durationParameter;
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    LOGGER.debug(
-        "retrieving camunda task event resources with url {} and headers {}", requestUrl, headers);
 
     CamundaTaskEventListResource camundaTaskEventListResource = new CamundaTaskEventListResource();
     camundaTaskEventListResource.setCamundaTaskEvents(new ArrayList<>());
@@ -121,9 +112,7 @@ public class CamundaTaskRetriever {
 
       List<CamundaTaskEvent> retrievedEvents = camundaTaskEventListResource.getCamundaTaskEvents();
 
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("retrieved camunda task events {}", retrievedEvents);
-      }
+      if (LOGGER.isDebugEnabled()) {}
 
       return retrievedEvents;
 
@@ -166,9 +155,7 @@ public class CamundaTaskRetriever {
               referencedTaskJson);
         }
       }
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("retrieved reference tasks {}", referencedTasks);
-      }
+      if (LOGGER.isDebugEnabled()) {}
     }
     return referencedTasks;
   }
