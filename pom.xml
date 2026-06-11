@@ -64,7 +64,7 @@
     <version.spring.mybatis>4.0.1</version.spring.mybatis>
 
     <version.spring.plugin.core>3.0.0</version.spring.plugin.core>
-    <version.spring.boot>4.0.6</version.spring.boot>
+    <version.spring.boot>4.1.0</version.spring.boot>
 
     <version.jakarta.annotation>3.0.0</version.jakarta.annotation>
     <version.jakarta-ws-rs-api>4.0.0</version.jakarta-ws-rs-api>
@@ -332,8 +332,8 @@
       <url>https://repository.jboss.org/nexus/content/groups/public</url>
     </repository>
     <repository>
-      <name>Central Portal Snapshots</name>
       <id>central-portal-snapshots</id>
+      <name>Central Portal Snapshots</name>
       <url>https://central.sonatype.com/repository/maven-snapshots/</url>
       <releases>
         <enabled>false</enabled>
