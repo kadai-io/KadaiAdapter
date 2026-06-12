@@ -68,7 +68,7 @@ public class CamundaTaskRetriever {
     List<ReferencedTask> referencedTasks =
         getReferencedTasksFromCamundaTaskEvents(camundaTaskEvents, camundaSystemEngineIdentifier);
 
-    LOGGER.debug(referencedTasks.stream().map(t -> t.getOutboxEventId()).toList().toString());
+    logFirstAttemptOutboxEventIds(camundaTaskEvents, camundaSystemEngineIdentifier);
 
     return referencedTasks;
   }
@@ -112,8 +112,6 @@ public class CamundaTaskRetriever {
 
       List<CamundaTaskEvent> retrievedEvents = camundaTaskEventListResource.getCamundaTaskEvents();
 
-      if (LOGGER.isDebugEnabled()) {}
-
       return retrievedEvents;
 
     } catch (Exception e) {
@@ -133,9 +131,7 @@ public class CamundaTaskRetriever {
 
     for (CamundaTaskEvent camundaTaskEvent : camundaTaskEvents) {
 
-      if (systemEngineIdentifier == null
-          || Objects.equals(camundaTaskEvent.getSystemEngineIdentifier(), systemEngineIdentifier)) {
-
+      if (belongsToConfiguredEngine(camundaTaskEvent, systemEngineIdentifier)) {
         String referencedTaskJson = camundaTaskEvent.getPayload();
 
         try {
@@ -155,8 +151,32 @@ public class CamundaTaskRetriever {
               referencedTaskJson);
         }
       }
-      if (LOGGER.isDebugEnabled()) {}
     }
     return referencedTasks;
+  }
+
+  private void logFirstAttemptOutboxEventIds(
+      List<CamundaTaskEvent> camundaTaskEvents, String systemEngineIdentifier) {
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(
+          camundaTaskEvents.stream()
+              .filter(camundaTaskEvent -> belongsToConfiguredEngine(
+                  camundaTaskEvent, systemEngineIdentifier))
+              .filter(CamundaTaskRetriever::isFirstAttempt)
+              .map(CamundaTaskEvent::getId)
+              .toList()
+              .toString());
+    }
+  }
+
+  private boolean belongsToConfiguredEngine(
+      CamundaTaskEvent camundaTaskEvent, String systemEngineIdentifier) {
+    return systemEngineIdentifier == null
+        || Objects.equals(camundaTaskEvent.getSystemEngineIdentifier(), systemEngineIdentifier);
+  }
+
+  private static boolean isFirstAttempt(CamundaTaskEvent camundaTaskEvent) {
+    String error = camundaTaskEvent.getError();
+    return error == null || error.trim().isEmpty() || "null".equalsIgnoreCase(error.trim());
   }
 }
