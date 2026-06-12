@@ -71,7 +71,7 @@ public class KadaiAdapterApplication implements ApplicationRunner {
   private static final String CREATE_EVENT_TYPE = "create";
   private static final String OUTBOX_SCHEMA = "kadai_tables";
   private static final String OUTBOX_SCHEMA_VERSION = "1.12.0";
-  private static final int MANUAL_OUTBOX_EVENT_COUNT = 10000;
+  private static final int MANUAL_OUTBOX_EVENT_COUNT = 50000;
   private static final int INITIAL_REMAINING_RETRIES = 5;
   private static final String WORKBASKET_OWNER = "taskadmin";
 
