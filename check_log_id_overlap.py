@@ -3,11 +3,23 @@ import argparse
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 
 ARRAY_PATTERN = re.compile(r"\[(\d+(?:\s*,\s*\d+)*)\]")
 ID_PATTERN = re.compile(r"\d+")
+TIMESTAMP_PATTERN = re.compile(
+    r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2})"
+)
+
+
+@dataclass(frozen=True)
+class LoggedIdOccurrence:
+    line_number: int
+    timestamp: Optional[datetime]
 
 
 def parse_logged_ids(log_path):
@@ -15,16 +27,50 @@ def parse_logged_ids(log_path):
 
     with log_path.open(encoding="utf-8", errors="replace") as log_file:
         for line_number, line in enumerate(log_file, start=1):
+            timestamp = parse_timestamp(line)
             for array_match in ARRAY_PATTERN.finditer(line):
                 for id_match in ID_PATTERN.finditer(array_match.group(1)):
-                    ids_by_line[int(id_match.group(0))].append(line_number)
+                    ids_by_line[int(id_match.group(0))].append(
+                        LoggedIdOccurrence(line_number, timestamp)
+                    )
 
     return ids_by_line
 
 
-def format_lines(line_numbers):
-    unique_lines = sorted(set(line_numbers))
+def parse_timestamp(line):
+    timestamp_match = TIMESTAMP_PATTERN.match(line)
+    if not timestamp_match:
+        return None
+    return datetime.fromisoformat(timestamp_match.group(1))
+
+
+def format_lines(occurrences):
+    unique_lines = sorted(
+        {occurrence.line_number for occurrence in occurrences}
+    )
     return ",".join(str(line_number) for line_number in unique_lines)
+
+
+def format_time_differences(log1_occurrences, log2_occurrences):
+    differences = []
+    for log1_occurrence in log1_occurrences:
+        for log2_occurrence in log2_occurrences:
+            if log1_occurrence.timestamp is None or log2_occurrence.timestamp is None:
+                differences.append(
+                    f"{log1_occurrence.line_number}<->{log2_occurrence.line_number}:n/a"
+                )
+                continue
+
+            diff_ms = round(
+                abs(
+                    (log2_occurrence.timestamp - log1_occurrence.timestamp).total_seconds()
+                    * 1000
+                )
+            )
+            differences.append(
+                f"{log1_occurrence.line_number}<->{log2_occurrence.line_number}:{diff_ms}ms"
+            )
+    return ", ".join(differences)
 
 
 def main():
@@ -56,7 +102,8 @@ def main():
         print(
             f"{task_id} "
             f"({args.log1}:{format_lines(log1_ids[task_id])}; "
-            f"{args.log2}:{format_lines(log2_ids[task_id])})"
+            f"{args.log2}:{format_lines(log2_ids[task_id])}; "
+            f"diff_ms:{format_time_differences(log1_ids[task_id], log2_ids[task_id])})"
         )
 
     return 1
