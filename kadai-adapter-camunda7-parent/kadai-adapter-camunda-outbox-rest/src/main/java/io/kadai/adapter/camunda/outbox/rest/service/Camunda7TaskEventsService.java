@@ -51,7 +51,6 @@ import spinjar.com.fasterxml.jackson.databind.json.JsonMapper;
 public class Camunda7TaskEventsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda7TaskEventsService.class);
-  private static final JsonMapper JSON_MAPPER = new JsonMapper();
   private static final String CREATE = "create";
   private static final String COMPLETE = "complete";
   private static final String DELETE = "delete";
