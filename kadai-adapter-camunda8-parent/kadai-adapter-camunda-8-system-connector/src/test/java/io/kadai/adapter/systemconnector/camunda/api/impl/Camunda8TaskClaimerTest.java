@@ -27,7 +27,7 @@ import org.springframework.test.annotation.DirtiesContext;
 @KadaiAdapterCamunda8SpringBootTest
 class Camunda8TaskClaimerTest {
 
-  @Autowired Camunda8TestUtil camunda8TestUtil;
+  @Autowired private Camunda8TestUtil camunda8TestUtil;
   @Autowired private CamundaClient client;
   @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
   @Autowired private KadaiEngine kadaiEngine;
