@@ -53,8 +53,8 @@
       <groupId>io.kadai</groupId>
       <artifactId>kadai-adapter-camunda-listener-example</artifactId>
       <version>${project.version}</version>
-      <classifier>classes</classifier>
       <scope>test</scope>
+      <classifier>classes</classifier>
     </dependency>
 
     <!-- ============================================================================
@@ -256,17 +256,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>
-
-
-
-
-
-
-
-
-
-
-
-
