@@ -51,6 +51,7 @@ import spinjar.com.fasterxml.jackson.databind.json.JsonMapper;
 public class Camunda7TaskEventsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Camunda7TaskEventsService.class);
+  private static final JsonMapper JSON_MAPPER = new JsonMapper();
   private static final String CREATE = "create";
   private static final String COMPLETE = "complete";
   private static final String DELETE = "delete";
@@ -510,11 +511,10 @@ public class Camunda7TaskEventsService {
   }
 
   private List<Integer> getIdsAsIntegers(String idsAsJsonArray) {
-    JsonMapper objectMapper = new JsonMapper();
     List<Integer> idsAsIntegers = new ArrayList<>();
 
     try {
-      JsonNode idsAsJsonArrayNode = objectMapper.readTree(idsAsJsonArray).get("taskCreationIds");
+      JsonNode idsAsJsonArrayNode = JSON_MAPPER.readTree(idsAsJsonArray).get("taskCreationIds");
       if (idsAsJsonArrayNode != null) {
         idsAsJsonArrayNode.forEach(id -> idsAsIntegers.add(id.asInt()));
       }

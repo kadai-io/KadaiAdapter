@@ -24,6 +24,8 @@ import tools.jackson.databind.json.JsonMapper;
 
 class ReferencedTaskCreatorTest {
 
+  private static final JsonMapper JSON_MAPPER = new JsonMapper();
+
   @CsvSource(
       delimiter = ',',
       value = {
@@ -118,7 +120,7 @@ class ReferencedTaskCreatorTest {
     when(activatedJob.getVariablesAsMap()).thenReturn(variables);
 
     final ReferencedTaskCreator referencedTaskCreator =
-        new ReferencedTaskCreator(new JsonMapper(), camunda8System);
+        new ReferencedTaskCreator(JSON_MAPPER, camunda8System);
     final ReferencedTask actual = referencedTaskCreator.createReferencedTaskFromJob(activatedJob);
 
     assertThat(actual).isEqualTo(expected);
@@ -189,7 +191,7 @@ class ReferencedTaskCreatorTest {
     when(activatedJob.getVariablesAsMap()).thenReturn(variables);
 
     final ReferencedTaskCreator referencedTaskCreator =
-        new ReferencedTaskCreator(new JsonMapper(), camunda8System);
+        new ReferencedTaskCreator(JSON_MAPPER, camunda8System);
     final ReferencedTask actual = referencedTaskCreator.createReferencedTaskFromJob(activatedJob);
 
     assertThat(actual).isEqualTo(expected);
