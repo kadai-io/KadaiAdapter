@@ -102,7 +102,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
             + "{\\\"stringFieldObjectTwo\\\":\\\"stringValueObjectTwo\\\","
             + "\\\"intFieldObjectTwo\\\":2,\\\"doubleFieldObjectTwo\\\":2.2,"
             + "\\\"booleanFieldObjectTwo\\\":true,"
-            + "\\\"dateFieldObjectTwo\\\":47531000}]}\","
+            + "\\\"dateFieldObjectTwo\\\":\\\"1970-01-01 13:12:11\\\"}]}\","
             + "\"valueInfo\":{\"objectTypeName\":\"io.kadai.impl.ProcessVariableTestObject\","
             + "\"serializationDataFormat\":\"application/json\"}}";
 
@@ -194,7 +194,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
             + "{\\\"stringFieldObjectTwo\\\":\\\"stringValueObjectTwo\\\","
             + "\\\"intFieldObjectTwo\\\":2,\\\"doubleFieldObjectTwo\\\":2.2,"
             + "\\\"booleanFieldObjectTwo\\\":true,"
-            + "\\\"dateFieldObjectTwo\\\":47531000}]}\","
+            + "\\\"dateFieldObjectTwo\\\":\\\"1970-01-01 13:12:11\\\"}]}\","
             + "\"valueInfo\":{\"objectTypeName\":\"io.kadai.impl.ProcessVariableTestObject\","
             + "\"serializationDataFormat\":\"application/json\"}}";
 
@@ -467,7 +467,7 @@ class TestTaskAcquisition extends AbsIntegrationTest {
             + "{\\\"stringFieldObjectTwo\\\":\\\"stringValueObjectTwo\\\","
             + "\\\"intFieldObjectTwo\\\":2,\\\"doubleFieldObjectTwo\\\":2.2,"
             + "\\\"booleanFieldObjectTwo\\\":true,"
-            + "\\\"dateFieldObjectTwo\\\":47531000}]}\","
+            + "\\\"dateFieldObjectTwo\\\":\\\"1970-01-01 13:12:11\\\"}]}\","
             + "\"valueInfo\":{\"objectTypeName\":\"io.kadai.impl.ProcessVariableTestObject\","
             + "\"serializationDataFormat\":\"application/json\"}}";
 
