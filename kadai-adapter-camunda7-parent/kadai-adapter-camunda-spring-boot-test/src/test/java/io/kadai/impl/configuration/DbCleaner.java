@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,12 +64,18 @@ public class DbCleaner {
       for (String sql : statements) {
         String trimmed = sql.trim();
         if (!trimmed.isEmpty() && !trimmed.startsWith("--")) {
+          Savepoint savepoint = conn.setSavepoint();
           try (Statement stmt = conn.createStatement()) {
             LOGGER.debug("Executing: {}", trimmed);
             stmt.executeUpdate(trimmed);
+            conn.releaseSavepoint(savepoint);
           } catch (SQLException e) {
-            // Ignore "table does not exist" errors (the table may not have been created yet)
-            LOGGER.warn("Ignoring SQL error while clearing db: {}", e.getMessage());
+            if (isMissingTableError(e)) {
+              conn.rollback(savepoint);
+              LOGGER.warn("Ignoring missing table while clearing db: {}", e.getMessage());
+            } else {
+              throw new RuntimeException("Failed to clear database (" + type + ")", e);
+            }
           }
         }
       }
@@ -111,6 +118,12 @@ public class DbCleaner {
       throw new RuntimeException("Failed to read SQL script: " + resource, e);
     }
     return stmts;
+  }
+
+  private boolean isMissingTableError(SQLException e) {
+    return "42P01".equals(e.getSQLState())
+        || "42S02".equals(e.getSQLState())
+        || e.getErrorCode() == 42102;
   }
 
   public enum ApplicationDatabaseType {
