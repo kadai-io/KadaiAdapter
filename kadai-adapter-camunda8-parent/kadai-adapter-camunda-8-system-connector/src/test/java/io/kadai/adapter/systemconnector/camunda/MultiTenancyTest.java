@@ -49,7 +49,7 @@ class MultiTenancyTest {
 
   @Test
   @WithAccessId(user = "admin")
-  void should_SynchronizeTenantSpecificTasksEndToEndWithRealWorkers() throws Exception {
+  void should_SynchronizeTenantSpecificTasksEndToEndWithManuallyActivatedJobs() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
     registerTenant(TENANT_1);
