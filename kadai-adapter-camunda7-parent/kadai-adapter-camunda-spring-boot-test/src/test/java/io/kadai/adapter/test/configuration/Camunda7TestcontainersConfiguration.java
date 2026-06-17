@@ -208,7 +208,10 @@ public final class Camunda7TestcontainersConfiguration {
       throw new IllegalStateException(
           "Userlib staging dir not found: "
               + USERLIB_DIR
-              + ". Did the maven-dependency-plugin 'stage-camunda-userlib' execution run?");
+              + ". Did the maven-dependency-plugin 'stage-camunda-userlib' execution run? "
+              + "You can run it with: "
+              + "mvn -pl kadai-adapter-camunda7-parent/kadai-adapter-camunda-spring-boot-test "
+              + "-am process-test-resources -DskipTests");
     }
     try (Stream<Path> jars = Files.list(USERLIB_DIR)) {
       jars.filter(p -> p.toString().endsWith(".jar"))
