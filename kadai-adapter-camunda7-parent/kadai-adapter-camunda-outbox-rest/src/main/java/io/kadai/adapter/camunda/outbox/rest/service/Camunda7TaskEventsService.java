@@ -430,7 +430,7 @@ public class Camunda7TaskEventsService {
     List<Camunda7TaskEvent> camunda7TaskEvents = new ArrayList<>();
     List<Integer> ids = null;
 
-    try (Connection connection = getConnection()) {
+    try (Connection connection = getConnection(false)) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql =
@@ -448,6 +448,7 @@ public class Camunda7TaskEventsService {
         ids =
             camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
+        connection.commit();
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
               "Events locked: {}",
@@ -458,6 +459,7 @@ public class Camunda7TaskEventsService {
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
+            connection.commit();
             if (LOGGER.isDebugEnabled()) {
               LOGGER.debug(
                   "Events unlocked: {}",
@@ -467,6 +469,7 @@ public class Camunda7TaskEventsService {
             LOGGER.error("Failed to unlock events", ex);
           }
         }
+        connection.rollback();
       }
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn("Caught Exception while trying to retrieve create events from the outbox", e);
@@ -580,9 +583,19 @@ public class Camunda7TaskEventsService {
   }
 
   private Connection getConnection() {
+    return getConnection(true);
+  }
+
+  private Connection getConnection(boolean autoCommit) {
     Connection connection = null;
     try {
       connection = OutboxDataSource.get().getConnection();
+      if (!connection.getAutoCommit()) {
+        LOGGER.warn(
+            "Connection may already be participating in transaction provided by surrounding "
+                + "transaction-manager. Transaction may not behave correctly.");
+      }
+      connection.setAutoCommit(autoCommit);
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn(
           "Caught {} while trying to retrieve a connection from the provided datasource",
