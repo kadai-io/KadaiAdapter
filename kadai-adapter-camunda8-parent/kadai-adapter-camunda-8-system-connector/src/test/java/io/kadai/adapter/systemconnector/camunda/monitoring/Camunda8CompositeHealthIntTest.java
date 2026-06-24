@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import io.camunda.client.CamundaClient;
 import io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
+import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
 import io.kadai.common.test.security.WithAccessId;
 import java.util.Map;
@@ -96,6 +97,9 @@ class Camunda8CompositeHealthIntTest {
   @Nested
   @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
   class Camunda8CompositeDown {
+
+    @Autowired private UserTaskCreation userTaskCreationJobWorker;
+
     @Test
     @WithAccessId(user = "admin")
     void should_ReturnDown_When_AnyJobWorkerRanWithError() {
@@ -107,6 +111,8 @@ class Camunda8CompositeHealthIntTest {
 
       // workbasket doesn't exist => failure
       client.newCreateInstanceCommand().bpmnProcessId("Test_Process").latestVersion().send().join();
+
+      camunda8TestUtil.waitUntil(() -> userTaskCreationJobWorker.getLastRun().getEnd() != null);
 
       RestClient restClient =
           RestClient.builder()

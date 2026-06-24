@@ -8,7 +8,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Utility class for Camunda 8 test operations. Similar to KadaiAdapterTestUtil but for Camunda 8
@@ -17,7 +16,6 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 @Component
 public class Camunda8TestUtil {
 
-  private final ObjectMapper mapper = new ObjectMapper();
   @Autowired private CamundaClient camundaClient;
 
   public String getCamundaTaskAssignee(long taskKey) {
@@ -47,7 +45,11 @@ public class Camunda8TestUtil {
   }
   
   public void waitUntil(Callable<Boolean> condition) {
-    await().atMost(15, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).until(condition);
+    await()
+        .pollInSameThread()
+        .atMost(15, TimeUnit.SECONDS)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .until(condition);
   }
 
   public UserTask getCamundaTask(long taskKey) {

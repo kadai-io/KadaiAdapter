@@ -17,6 +17,9 @@
 
   <properties>
     <failOnMissingWebXml>false</failOnMissingWebXml>
+    <!-- Java delegates from this module are copied into the Camunda BPM Run
+         container userlib. The 7.23 Run image currently runs on Java 17. -->
+    <maven.compiler.release>17</maven.compiler.release>
     <version.camunda>7.19.0</version.camunda>
   </properties>
 
@@ -92,6 +95,23 @@
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${version.maven.jar}</version>
+        <executions>
+          <execution>
+            <id>early-classes-jar-for-camunda-userlib</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>classes</classifier>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-war-plugin</artifactId>
         <version>${version.maven-war-plugin}</version>
