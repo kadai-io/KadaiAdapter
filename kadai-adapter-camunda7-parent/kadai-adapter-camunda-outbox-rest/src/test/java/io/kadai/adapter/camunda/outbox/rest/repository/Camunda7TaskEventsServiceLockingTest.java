@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,8 +62,7 @@ class Camunda7TaskEventsServiceLockingTest {
 
     List<Integer> retrievedEventIds = retrieveLockedCreateEventIdsConcurrently(12);
 
-    assertThat(retrievedEventIds).hasSize(eventCount);
-    assertThat(retrievedEventIds).doesNotHaveDuplicates();
+    assertThat(retrievedEventIds).hasSize(eventCount).doesNotHaveDuplicates();
   }
 
   @Test
@@ -118,9 +116,7 @@ class Camunda7TaskEventsServiceLockingTest {
     requestParams.add("type", "create");
     requestParams.add("lock-for", "30");
 
-    return service.getEvents(requestParams).stream()
-        .map(Camunda7TaskEvent::getId)
-        .collect(Collectors.toList());
+    return service.getEvents(requestParams).stream().map(Camunda7TaskEvent::getId).toList();
   }
 
   private void insertCreateEvents(int eventCount, int remainingRetries) throws SQLException {
