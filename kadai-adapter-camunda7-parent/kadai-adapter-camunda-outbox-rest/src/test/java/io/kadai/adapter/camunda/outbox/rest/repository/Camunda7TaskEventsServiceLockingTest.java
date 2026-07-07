@@ -36,6 +36,7 @@ class Camunda7TaskEventsServiceLockingTest {
   void setUp() throws SQLException {
     try (Connection connection = OutboxDataSource.get().getConnection();
         Statement statement = connection.createStatement()) {
+      connection.setAutoCommit(true);
       statement.execute("drop schema if exists " + OUTBOX_SCHEMA + " cascade");
       statement.execute("create schema " + OUTBOX_SCHEMA);
       statement.execute(
@@ -132,6 +133,7 @@ class Camunda7TaskEventsServiceLockingTest {
 
     try (Connection connection = OutboxDataSource.get().getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      connection.setAutoCommit(true);
       Timestamp availableSince = Timestamp.from(Instant.now().minusSeconds(5));
       for (int i = 0; i < eventCount; i++) {
         preparedStatement.setString(1, "create");
