@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import javax.security.auth.Subject;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
 import org.springframework.scheduling.config.ScheduledTask;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -65,6 +67,7 @@ import org.springframework.web.client.RestClientResponseException;
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
 @ContextConfiguration
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SuppressWarnings("checkstyle:LineLength")
 class TestLockingAndClustering extends AbsIntegrationTest {
 
@@ -78,6 +81,12 @@ class TestLockingAndClustering extends AbsIntegrationTest {
   @Autowired KadaiTaskCompletionOrchestrator kadaiTaskTerminator;
   @Autowired private HttpHeaderProvider httpHeaderProvider;
   @Autowired private ScheduledAnnotationBeanPostProcessor scheduledAnnotationBeanPostProcessor;
+
+  @AfterAll
+  static void resetSharedKadaiEngine() {
+    kadaiEngine = null;
+    isInitialised = false;
+  }
 
   @BeforeEach
   @WithAccessId(user = "taskadmin")
