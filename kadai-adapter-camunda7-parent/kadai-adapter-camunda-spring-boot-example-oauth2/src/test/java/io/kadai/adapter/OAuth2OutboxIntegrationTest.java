@@ -22,6 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxDataSource;
+import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
+import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimCanceler;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimer;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
 import java.sql.Timestamp;
@@ -35,6 +40,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
@@ -75,6 +81,11 @@ class OAuth2OutboxIntegrationTest {
   @Autowired private HttpHeaderProvider httpHeaderProvider;
   @Autowired private Camunda7SystemConnectorConfiguration config;
   @Autowired private RestClient restClient;
+  @MockitoBean private KadaiTaskStarterOrchestrator kadaiTaskStarterOrchestrator;
+  @MockitoBean private KadaiTaskCompletionOrchestrator kadaiTaskCompletionOrchestrator;
+  @MockitoBean private ReferencedTaskCompleter referencedTaskCompleter;
+  @MockitoBean private ReferencedTaskClaimer referencedTaskClaimer;
+  @MockitoBean private ReferencedTaskClaimCanceler referencedTaskClaimCanceler;
   private JdbcTemplate jdbcTemplate;
   private String outboxEventsUrl;
 
