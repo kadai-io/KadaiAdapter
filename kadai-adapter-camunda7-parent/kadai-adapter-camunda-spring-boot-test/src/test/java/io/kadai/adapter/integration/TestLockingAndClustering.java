@@ -48,9 +48,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
@@ -96,7 +96,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
   void should_LockEventsForTheCorrectTime_When_Getting() {
     insertEvent("create", "lock-timing", 0, Instant.now().plusSeconds(3600));
 
-    String url = BASIC_OUTBOX_PATH + "?lock-for=1";
+    String url = basicOutboxPath() + "?lock-for=1";
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     Camunda7TaskEventListResource answer =
@@ -146,7 +146,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
   @Test
   void should_UnlockTheEvent() {
     insertEvent("create", "unlock-test", 0, Instant.now().plusSeconds(3600));
-    String urlWithLock = BASIC_OUTBOX_PATH + "?lock-for=10";
+    String urlWithLock = basicOutboxPath() + "?lock-for=10";
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     Camunda7TaskEventListResource answer =
@@ -160,7 +160,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     assertThat(answer).isNotNull();
     assertThat(answer.getCamunda7TaskEvents()).hasSize(1);
     int eventId = answer.getCamunda7TaskEvents().getFirst().getId();
-    String urlWithUnlock = BASIC_OUTBOX_PATH + "/unlock-event/" + eventId;
+    String urlWithUnlock = basicOutboxPath() + "/unlock-event/" + eventId;
 
     restClient
         .post()
@@ -341,6 +341,10 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       assertThat(tasks).hasSize(1);
       assertThat(tasks.getFirst().getState()).isEqualTo(TaskState.COMPLETED);
     }
+  }
+
+  private String basicOutboxPath() {
+    return outboxBaseUrl + "/events";
   }
 
   private Runnable getRunnableTest(List<String> accessIds, Callable<Void> action) {

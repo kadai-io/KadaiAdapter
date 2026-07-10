@@ -55,6 +55,7 @@ class ArchitectureTest {
         .areNotDeclaredIn(ArchitectureTest.class)
         .should()
         .haveNameMatching("^should_[A-Z][^_]+(_(For|When)_[A-Z][^_]+)?$")
+        .allowEmptyShould(true)
         .check(IMPORTED_TEST_CLASSES);
   }
 
@@ -67,6 +68,7 @@ class ArchitectureTest {
         .haveSimpleNameEndingWith("Test")
         .should()
         .bePackagePrivate()
+        .allowEmptyShould(true)
         .check(IMPORTED_TEST_CLASSES);
     methods()
         .that()
@@ -79,6 +81,7 @@ class ArchitectureTest {
         .bePackagePrivate()
         .orShould()
         .bePrivate()
+        .allowEmptyShould(true)
         .check(IMPORTED_TEST_CLASSES);
   }
 

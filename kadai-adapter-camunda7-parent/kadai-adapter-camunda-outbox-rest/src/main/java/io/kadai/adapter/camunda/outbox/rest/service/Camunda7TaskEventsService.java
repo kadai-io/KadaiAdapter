@@ -45,7 +45,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spinjar.com.fasterxml.jackson.databind.JsonNode;
-import spinjar.com.fasterxml.jackson.databind.ObjectMapper;
+import spinjar.com.fasterxml.jackson.databind.json.JsonMapper;
 
 /** Implementation of the Outbox REST service. */
 public class Camunda7TaskEventsService {
@@ -60,7 +60,7 @@ public class Camunda7TaskEventsService {
   private static final List<String> ALLOWED_PARAMS =
       Stream.of(TYPE, RETRIES, LOCK_FOR).collect(Collectors.toList());
   private static final String OUTBOX_SCHEMA = OutboxRestConfiguration.getOutboxSchema();
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final JsonMapper JSON_MAPPER = new JsonMapper();
   private static int maxNumberOfEventsReturned = 0;
 
   static {
@@ -133,8 +133,8 @@ public class Camunda7TaskEventsService {
       String sql = sqlProvider.decreaseRemainingRetries(OUTBOX_SCHEMA);
 
       try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-        JsonNode id = OBJECT_MAPPER.readTree(eventIdAndErrorLog).get("taskEventId");
-        JsonNode errorLog = OBJECT_MAPPER.readTree(eventIdAndErrorLog).get("errorLog");
+        JsonNode id = JSON_MAPPER.readTree(eventIdAndErrorLog).get("taskEventId");
+        JsonNode errorLog = JSON_MAPPER.readTree(eventIdAndErrorLog).get("errorLog");
 
         Instant blockedUntil = getBlockedUntil();
         preparedStatement.setTimestamp(1, Timestamp.from(blockedUntil));
@@ -521,11 +521,10 @@ public class Camunda7TaskEventsService {
   }
 
   private List<Integer> getIdsAsIntegers(String idsAsJsonArray) {
-    ObjectMapper objectMapper = new ObjectMapper();
     List<Integer> idsAsIntegers = new ArrayList<>();
 
     try {
-      JsonNode idsAsJsonArrayNode = objectMapper.readTree(idsAsJsonArray).get("taskCreationIds");
+      JsonNode idsAsJsonArrayNode = JSON_MAPPER.readTree(idsAsJsonArray).get("taskCreationIds");
       if (idsAsJsonArrayNode != null) {
         idsAsJsonArrayNode.forEach(id -> idsAsIntegers.add(id.asInt()));
       }

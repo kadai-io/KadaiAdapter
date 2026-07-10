@@ -63,9 +63,8 @@ public class KadaiTaskListener implements TaskListener {
   private static final String SQL_INSERT_EVENT =
       "INSERT INTO event_store (TYPE,CREATED,PAYLOAD,REMAINING_RETRIES,"
           + "BLOCKED_UNTIL,CAMUNDA_TASK_ID, SYSTEM_ENGINE_IDENTIFIER) VALUES (?,?,?,?,?,?,?)";
-  private static KadaiTaskListener instance = null;
   private static final String[] PREFIXES = {"kadai.", "kadai-", "taskana.", "taskana-"};
-
+  private static KadaiTaskListener instance = null;
   private final ObjectMapper objectMapper = JacksonConfigurator.createAndConfigureObjectMapper();
   private boolean gotActivated = false;
   private String outboxSchemaName = null;

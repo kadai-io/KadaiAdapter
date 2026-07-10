@@ -33,6 +33,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,6 +46,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = {CamundaConnectorTestConfiguration.class})
 @SpringBootTest(
     classes = {
+      JacksonAutoConfiguration.class,
       Camunda7TaskRetriever.class,
       HttpHeaderProvider.class,
       Camunda7SystemConnectorConfiguration.class,
@@ -128,7 +130,7 @@ class RetrieveCamunda7TaskAccTest {
             + "            \\\"customInt6\\\":\\\"6\\\","
             + "            \\\"customInt7\\\":\\\"7\\\","
             + "            \\\"customInt8\\\":\\\"8\\\""
-            + "           },\"\n"
+            + "           }\"\n"
             + " }\n"
             + "]"
             + "}";

@@ -8,15 +8,13 @@ import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimCanceler;
 import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimer;
 import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
-import org.springframework.boot.actuate.health.CompositeHealthContributor;
-import org.springframework.boot.actuate.health.HealthContributor;
-import org.springframework.boot.actuate.health.NamedContributor;
-import org.springframework.lang.NonNull;
+import org.springframework.boot.health.autoconfigure.contributor.ConditionalOnEnabledHealthIndicator;
+import org.springframework.boot.health.contributor.CompositeHealthContributor;
+import org.springframework.boot.health.contributor.HealthContributor;
 import org.springframework.stereotype.Component;
 
 /** Root Health-Contributor for all Kadai-Adapter components. */
@@ -57,11 +55,9 @@ public class KadaiAdapterHealth implements CompositeHealthContributor {
     return healthContributors.get(name);
   }
 
-  @NonNull
   @Override
-  public Iterator<NamedContributor<HealthContributor>> iterator() {
+  public Stream<Entry> stream() {
     return healthContributors.entrySet().stream()
-        .map(entry -> NamedContributor.of(entry.getKey(), entry.getValue()))
-        .iterator();
+        .map(entry -> new Entry(entry.getKey(), entry.getValue()));
   }
 }

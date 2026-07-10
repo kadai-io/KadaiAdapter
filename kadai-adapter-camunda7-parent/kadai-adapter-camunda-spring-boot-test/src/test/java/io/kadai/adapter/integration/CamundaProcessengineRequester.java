@@ -21,6 +21,7 @@ package io.kadai.adapter.integration;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -262,9 +263,11 @@ public class CamundaProcessengineRequester {
     if (taskHistoryRetrievalAnswerJson.isEmpty()) {
       return false;
     } else {
+      JSONObject taskJson = (JSONObject) taskHistoryRetrievalAnswerJson.get(0);
+      // JSONObject.get() returns JSONObject.NULL (not null) when the field is JSON null,
       String camundaTaskAssignee =
-          (String) ((JSONObject) taskHistoryRetrievalAnswerJson.get(0)).get("assignee");
-      return assignee.equals(camundaTaskAssignee);
+          taskJson.isNull("assignee") ? null : taskJson.getString("assignee");
+      return Objects.equals(assignee, camundaTaskAssignee);
     }
   }
 
