@@ -30,7 +30,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.18.4</version>
+      <version>2.18.9</version>
       <!-- The listener JAR is dropped into Camunda BPM Run's userlib/.
            Camunda already ships jackson-databind-2.18.x on its internal classpath,
            so we declare 'provided' to avoid duplicating the Jackson 2 JAR in userlib. -->
