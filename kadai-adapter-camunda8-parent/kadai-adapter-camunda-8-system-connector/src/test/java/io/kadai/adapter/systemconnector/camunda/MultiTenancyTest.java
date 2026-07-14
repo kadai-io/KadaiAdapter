@@ -7,7 +7,6 @@ import static io.kadai.adapter.systemconnector.camunda.tasklistener.util.Referen
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
-import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.client.api.search.response.UserTask;
 import io.camunda.process.test.api.CamundaAssert;
@@ -19,8 +18,6 @@ import io.kadai.common.api.KadaiEngine;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
-import java.time.Duration;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;

@@ -21,15 +21,9 @@ import io.camunda.client.api.search.enums.PermissionType;
 import io.camunda.process.test.api.CamundaAssert;
 import io.camunda.process.test.api.CamundaProcessTestContext;
 import io.camunda.process.test.api.TestDeployment;
-import io.kadai.adapter.manager.AdapterManager;
+import io.camunda.process.test.impl.proxy.CamundaClientProxy;
 import io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8SystemConnectorImpl;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TaskClaimCanceler;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TaskClaimer;
-import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda8TaskCompleter;
-import io.kadai.adapter.systemconnector.camunda.config.Camunda8System;
-import io.kadai.adapter.systemconnector.camunda.config.Camunda8SystemConnectorConfiguration;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCancellation;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
@@ -66,11 +60,8 @@ class MinimalPermissionsAccTest {
   private static final String RESTRICTED_USERNAME = "kadai-adapter";
   private static final String RESTRICTED_PASSWORD = "kadai-adapter";
 
-  @Autowired private AdapterManager adapterManager;
-  @Autowired private Camunda8System camunda8System;
-  @Autowired private Camunda8SystemConnectorConfiguration connectorConfiguration;
+  @Autowired private CamundaClientProxy camundaClientProxy;
   @Autowired private Camunda8TestUtil camunda8TestUtil;
-  @Autowired private CamundaClient adminClient;
   @Autowired private CamundaProcessTestContext processTestContext;
   @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
   @Autowired private KadaiEngine kadaiEngine;
@@ -83,29 +74,34 @@ class MinimalPermissionsAccTest {
   @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_RunAllAdapterFlowsSuccessfully_WhenMinimalCamunda8PermissionsAreConfigured()
       throws Exception {
-    createKadaiMasterData();
-    createRestrictedCamundaUser();
-    grantMinimalAdapterPermissions();
+    CamundaClient adminClient =
+        processTestContext.createClient(builder -> builder.defaultTenantId(DEFAULT_TENANT));
 
-    try (CamundaClient restrictedClient = createRestrictedClient()) {
-      registerRestrictedOutboundConnector(restrictedClient);
+    kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
+    kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
+    createRestrictedCamundaUser(adminClient);
+    grantMinimalAdapterPermissions(adminClient);
 
-      Task claimAndCompleteTask = createKadaiTaskViaRestrictedCreatedListener(restrictedClient);
+    CamundaClient restrictedClient = createRestrictedClient();
+    camundaClientProxy.setDelegate(restrictedClient);
+    try {
+      Task claimAndCompleteTask =
+          createKadaiTaskViaRestrictedCreatedListener(adminClient, restrictedClient);
+
       claimCamundaTaskViaRestrictedOutboundConnector(claimAndCompleteTask);
       cancelCamundaTaskClaimViaRestrictedOutboundConnector(claimAndCompleteTask);
       completeCamundaTaskViaRestrictedOutboundConnector(restrictedClient, claimAndCompleteTask);
 
-      Task cancelledTask = createKadaiTaskViaRestrictedCreatedListener(restrictedClient);
-      cancelProcessAndKadaiTaskViaRestrictedCancelledListener(restrictedClient, cancelledTask);
+      Task cancelledTask =
+          createKadaiTaskViaRestrictedCreatedListener(adminClient, restrictedClient);
+      cancelProcessAndKadaiTaskViaRestrictedCancelledListener(
+          adminClient, restrictedClient, cancelledTask);
+    } finally {
+      camundaClientProxy.setDelegate(adminClient);
     }
   }
 
-  private void createKadaiMasterData() throws Exception {
-    kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
-    kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-  }
-
-  private void createRestrictedCamundaUser() {
+  private void createRestrictedCamundaUser(CamundaClient adminClient) {
     adminClient
         .newCreateUserCommand()
         .username(RESTRICTED_USERNAME)
@@ -122,12 +118,13 @@ class MinimalPermissionsAccTest {
         .join();
   }
 
-  private void grantMinimalAdapterPermissions() {
-    createAuthorization(UPDATE_PROCESS_INSTANCE);
-    createAuthorization(READ_USER_TASK, CLAIM_USER_TASK, UPDATE_USER_TASK, COMPLETE_USER_TASK);
+  private void grantMinimalAdapterPermissions(CamundaClient adminClient) {
+    createAuthorization(adminClient, UPDATE_PROCESS_INSTANCE);
+    createAuthorization(
+        adminClient, READ_USER_TASK, CLAIM_USER_TASK, UPDATE_USER_TASK, COMPLETE_USER_TASK);
   }
 
-  private void createAuthorization(PermissionType... permissionTypes) {
+  private void createAuthorization(CamundaClient adminClient, PermissionType... permissionTypes) {
     adminClient
         .newCreateAuthorizationCommand()
         .ownerId(RESTRICTED_USERNAME)
@@ -151,19 +148,9 @@ class MinimalPermissionsAccTest {
                 .defaultTenantId(DEFAULT_TENANT));
   }
 
-  private void registerRestrictedOutboundConnector(CamundaClient restrictedClient) {
-    Camunda8SystemConnectorImpl connector =
-        new Camunda8SystemConnectorImpl(
-            camunda8System,
-            new Camunda8TaskClaimer(restrictedClient, connectorConfiguration),
-            new Camunda8TaskCompleter(restrictedClient, connectorConfiguration),
-            new Camunda8TaskClaimCanceler(restrictedClient, connectorConfiguration));
-
-    adapterManager.getOutboundSystemConnectors().put(camunda8System.getRestAddress(), connector);
-  }
-
-  private Task createKadaiTaskViaRestrictedCreatedListener(CamundaClient restrictedClient) {
-    ProcessInstanceEvent processInstance = startProcessInstance();
+  private Task createKadaiTaskViaRestrictedCreatedListener(
+      CamundaClient adminClient, CamundaClient restrictedClient) {
+    ProcessInstanceEvent processInstance = startProcessInstance(adminClient);
     CamundaAssert.assertThat(processInstance).isActive();
 
     camunda8TestUtil.waitUntil(
@@ -185,7 +172,7 @@ class MinimalPermissionsAccTest {
     return task;
   }
 
-  private ProcessInstanceEvent startProcessInstance() {
+  private ProcessInstanceEvent startProcessInstance(CamundaClient adminClient) {
     return adminClient
         .newCreateInstanceCommand()
         .bpmnProcessId(PROCESS_ID)
@@ -242,7 +229,7 @@ class MinimalPermissionsAccTest {
   }
 
   private void cancelProcessAndKadaiTaskViaRestrictedCancelledListener(
-      CamundaClient restrictedClient, Task kadaiTask) throws Exception {
+      CamundaClient adminClient, CamundaClient restrictedClient, Task kadaiTask) throws Exception {
     adminClient
         .newCancelInstanceCommand(Long.parseLong(kadaiTask.getBusinessProcessId()))
         .send()
