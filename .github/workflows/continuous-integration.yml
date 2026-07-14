@@ -25,7 +25,7 @@ env:
   ARTIFACTS_KADAI_ADAPTER_JARS_PATH: ~/.m2/repository/io/kadai
   ARTIFACTS_JACOCO_REPORTS_NAME: jacoco-reports
   ARTIFACTS_JACOCO_REPORTS_PATH: '**/jacoco.exec'
-  MAVEN_JAVA_21_ARGS: -Djava.version=21 -Dmaven.compiler.release=21 -Dmaven.compiler.source=21 -Dmaven.compiler.target=21
+  MAVEN_JAVA_21_ARGS: -Djava.version=21
 
 permissions:
   contents: read
