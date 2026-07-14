@@ -7,6 +7,7 @@ import io.camunda.client.CamundaClient;
 import io.camunda.client.api.command.ProblemException;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.process.test.api.CamundaAssert;
+import io.camunda.process.test.api.TestDeployment;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
@@ -30,15 +31,10 @@ class UserTaskCompletionTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_CompleteKadaiTask_When_CamundaTaskIsCompleted() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -68,15 +64,10 @@ class UserTaskCompletionTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_BeIdempotent_When_TaskCompletedTwice() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client

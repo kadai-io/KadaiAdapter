@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.process.test.api.CamundaAssert;
+import io.camunda.process.test.api.TestDeployment;
 import io.kadai.adapter.impl.util.UserContext;
 import io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
@@ -30,15 +31,10 @@ class UserTaskCancellationTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_CancelKadaiTask_When_CamundaTaskIsCompleted() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client

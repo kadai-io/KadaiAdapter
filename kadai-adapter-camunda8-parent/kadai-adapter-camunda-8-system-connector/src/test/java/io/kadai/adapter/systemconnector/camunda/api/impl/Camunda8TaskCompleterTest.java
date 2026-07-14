@@ -10,6 +10,7 @@ import io.camunda.client.api.search.response.Variable;
 import io.camunda.client.api.worker.JobHandler;
 import io.camunda.client.api.worker.JobWorker;
 import io.camunda.process.test.api.CamundaAssert;
+import io.camunda.process.test.api.TestDeployment;
 import io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
@@ -39,14 +40,10 @@ class Camunda8TaskCompleterTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_CompleteCamundaTask_When_KadaiTaskIsCompleted() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -79,14 +76,10 @@ class Camunda8TaskCompleterTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHelloThenBye.bpmn")
   void should_PropagateNewVariablesToProcessContext_When_KadaiTaskIsCompleted() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHelloThenBye.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -144,6 +137,7 @@ class Camunda8TaskCompleterTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_SetCompletedByKadaiAction_When_KadaiTaskIsCompleted() throws Exception {
     final JobHandler verificationHandler =
         (jobClient, job) -> {
@@ -160,11 +154,6 @@ class Camunda8TaskCompleterTest {
             .open()) {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
       kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-      client
-          .newDeployResourceCommand()
-          .addResourceFromClasspath("processes/sayHello.bpmn")
-          .send()
-          .join();
 
       final ProcessInstanceEvent processInstance =
           client
@@ -194,14 +183,10 @@ class Camunda8TaskCompleterTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_CancelCamundaTask_When_KadaiTaskIsCancelled() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -233,6 +218,7 @@ class Camunda8TaskCompleterTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_SetCompletedByKadaiAction_When_KadaiTaskIsCancelled() throws Exception {
     final JobHandler verificationHandler =
         (jobClient, job) -> {
@@ -249,11 +235,6 @@ class Camunda8TaskCompleterTest {
             .open()) {
       kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
       kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-      client
-          .newDeployResourceCommand()
-          .addResourceFromClasspath("processes/sayHello.bpmn")
-          .send()
-          .join();
 
       final ProcessInstanceEvent processInstance =
           client

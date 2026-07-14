@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.process.test.api.CamundaAssert;
+import io.camunda.process.test.api.TestDeployment;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
 import io.kadai.adapter.test.KadaiAdapterTestUtil;
 import io.kadai.common.api.KadaiEngine;
@@ -26,14 +27,10 @@ class UserTaskCreationTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_CreateKadaiTask_When_KadaiDomainIsDeclaredInUserTask() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -56,14 +53,10 @@ class UserTaskCreationTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHelloNoKadaiDomainOnUserTask.bpmn")
   void should_CreateKadaiTask_When_KadaiDomainIsDeclaredInProcessInstance() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHelloNoKadaiDomainOnUserTask.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -93,14 +86,10 @@ class UserTaskCreationTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_NotCreateKadaiTask_When_WorkbasketNotFound() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_UNKNOWN", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
