@@ -207,7 +207,7 @@ jobs:
   build:
     name: Compile all Maven modules with Java 21
     runs-on: ubuntu-22.04
-    needs: [detect_changes]
+    needs: [ detect_changes ]
     if: needs.detect_changes.outputs.code_changed == 'true' || startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Start Eco CI Measurement
@@ -268,7 +268,7 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     name: Test ${{ matrix.module }} with Java ${{ matrix.java_version }}
-    needs: [detect_changes, build]
+    needs: [ detect_changes, build ]
     if: needs.detect_changes.outputs.code_changed == 'true' || startsWith(github.ref, 'refs/tags/')
     strategy:
       fail-fast: false
@@ -342,7 +342,7 @@ jobs:
   release_artifacts:
     runs-on: ubuntu-22.04
     name: Release artifacts to Sonatype-Central
-    needs: [detect_changes, test]
+    needs: [ detect_changes, test ]
     if: |
       always() &&
       github.repository == 'kadai-io/KadaiAdapter' &&
@@ -458,7 +458,7 @@ jobs:
   upload_to_sonar:
     runs-on: ubuntu-22.04
     name: Upload SonarQube analysis to SonarCloud
-    needs: [detect_changes, test]
+    needs: [ detect_changes, test ]
     if: |
       always() &&
       github.repository == 'kadai-io/KadaiAdapter' &&

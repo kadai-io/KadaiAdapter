@@ -6,6 +6,7 @@ import static io.camunda.client.api.search.enums.PermissionType.READ_USER_TASK;
 import static io.camunda.client.api.search.enums.PermissionType.UPDATE_PROCESS_INSTANCE;
 import static io.camunda.client.api.search.enums.PermissionType.UPDATE_USER_TASK;
 import static io.camunda.client.api.search.enums.ResourceType.PROCESS_DEFINITION;
+import static io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil.handleNextJob;
 import static io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCancellation.USER_TASK_CANCELLED_JOB_WORKER_TYPE;
 import static io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion.USER_TASK_COMPLETED_JOB_WORKER_TYPE;
 import static io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation.USER_TASK_CREATED_JOB_WORKER_TYPE;
@@ -14,7 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.CredentialsProvider;
-import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.client.api.search.enums.OwnerType;
 import io.camunda.client.api.search.enums.PermissionType;
@@ -38,10 +38,7 @@ import io.kadai.common.api.KadaiEngine;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
-import java.time.Duration;
 import java.util.List;
-
-import org.assertj.core.api.ThrowingConsumer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -174,6 +171,7 @@ class MinimalPermissionsAccTest {
             handleNextJob(
                 restrictedClient,
                 "kadai-adapter-create",
+                DEFAULT_TENANT,
                 USER_TASK_CREATED_JOB_WORKER_TYPE,
                 userTaskCreation::receiveTaskCreatedEvent));
 
@@ -195,38 +193,6 @@ class MinimalPermissionsAccTest {
         .tenantId(DEFAULT_TENANT)
         .send()
         .join();
-  }
-
-  private boolean handleNextJob(
-      CamundaClient workerClient,
-      String workerName,
-      String jobType,
-      ThrowingConsumer<ActivatedJob> handler) {
-    List<ActivatedJob> jobs =
-        workerClient
-            .newActivateJobsCommand()
-            .jobType(jobType)
-            .maxJobsToActivate(1)
-            .workerName(workerName)
-            .timeout(Duration.ofSeconds(30))
-            .tenantId(DEFAULT_TENANT)
-            .requestTimeout(Duration.ofSeconds(1))
-            .send()
-            .join()
-            .getJobs();
-
-    if (jobs.isEmpty()) {
-      return false;
-    }
-
-    ActivatedJob job = jobs.get(0);
-    try {
-      handler.accept(job);
-      workerClient.newCompleteCommand(job).send().join();
-      return true;
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to handle job type '" + jobType + "'", e);
-    }
   }
 
   private void claimCamundaTaskViaRestrictedOutboundConnector(Task kadaiTask) throws Exception {
@@ -265,6 +231,7 @@ class MinimalPermissionsAccTest {
             handleNextJob(
                 restrictedClient,
                 "kadai-adapter-complete",
+                DEFAULT_TENANT,
                 USER_TASK_COMPLETED_JOB_WORKER_TYPE,
                 userTaskCompletion::receiveTaskCompletedEvent));
 
@@ -286,6 +253,7 @@ class MinimalPermissionsAccTest {
             handleNextJob(
                 restrictedClient,
                 "kadai-adapter-cancel",
+                DEFAULT_TENANT,
                 USER_TASK_CANCELLED_JOB_WORKER_TYPE,
                 userTaskCancellation::receiveTaskCancelledEvent));
 
