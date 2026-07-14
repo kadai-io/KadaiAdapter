@@ -1,12 +1,12 @@
 package io.kadai.adapter.systemconnector.camunda;
 
+import static io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil.handleNextJob;
 import static io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion.USER_TASK_COMPLETED_JOB_WORKER_TYPE;
 import static io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation.USER_TASK_CREATED_JOB_WORKER_TYPE;
 import static io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator.extractUserTaskKeyFromTaskId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.client.CamundaClient;
-import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.client.api.search.response.UserTask;
 import io.camunda.process.test.api.CamundaAssert;
@@ -18,8 +18,6 @@ import io.kadai.common.api.KadaiEngine;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
-import java.time.Duration;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -143,40 +141,6 @@ class MultiTenancyTest {
     }
   }
 
-  private boolean handleNextJob(
-      CamundaClient workerClient,
-      String workerName,
-      String tenantId,
-      String jobType,
-      ThrowingActivatedJobConsumer handler) {
-    final List<ActivatedJob> jobs =
-        workerClient
-            .newActivateJobsCommand()
-            .jobType(jobType)
-            .maxJobsToActivate(1)
-            .workerName(workerName)
-            .timeout(Duration.ofSeconds(30))
-            .tenantId(tenantId)
-            .requestTimeout(Duration.ofSeconds(1))
-            .send()
-            .join()
-            .getJobs();
-
-    if (jobs.isEmpty()) {
-      return false;
-    }
-
-    final ActivatedJob job = jobs.get(0);
-    try {
-      handler.accept(job);
-      workerClient.newCompleteCommand(job).send().join();
-      return true;
-    } catch (Exception e) {
-      throw new RuntimeException(
-          "Failed to handle job type '" + jobType + "' for tenant '" + tenantId + "'", e);
-    }
-  }
-
   private Task getKadaiTask(String taskId) {
     try {
       return kadaiEngine.getTaskService().getTask(taskId);
@@ -247,10 +211,5 @@ class MultiTenancyTest {
         .tenantId(tenantId)
         .send()
         .join();
-  }
-
-  @FunctionalInterface
-  private interface ThrowingActivatedJobConsumer {
-    void accept(ActivatedJob job) throws Exception;
   }
 }
