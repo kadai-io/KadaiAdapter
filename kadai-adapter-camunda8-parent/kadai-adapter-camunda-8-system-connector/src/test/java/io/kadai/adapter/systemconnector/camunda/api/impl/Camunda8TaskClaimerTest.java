@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.process.test.api.CamundaAssert;
+import io.camunda.process.test.api.TestDeployment;
 import io.kadai.adapter.systemconnector.camunda.Camunda8TestUtil;
 import io.kadai.adapter.systemconnector.camunda.KadaiAdapterCamunda8SpringBootTest;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
@@ -34,14 +35,10 @@ class Camunda8TaskClaimerTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_ClaimCamundaTask_When_KadaiTaskIsClaimed() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -72,15 +69,10 @@ class Camunda8TaskClaimerTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_ClaimAlreadyClaimedCamundaTask_When_ClaimKadaiTask() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -117,14 +109,10 @@ class Camunda8TaskClaimerTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_CancelClaimCamundaTask_When_KadaiTaskIsCancelClaimed() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
@@ -162,15 +150,10 @@ class Camunda8TaskClaimerTest {
 
   @Test
   @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/sayHello.bpmn")
   void should_ClaimCamundaTaskAgain_When_ClaimKadaiTaskAfterCancelClaim() throws Exception {
     kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
-
-    client
-        .newDeployResourceCommand()
-        .addResourceFromClasspath("processes/sayHello.bpmn")
-        .send()
-        .join();
 
     final ProcessInstanceEvent processInstance =
         client
