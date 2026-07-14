@@ -1,9 +1,10 @@
 name: CI KADAI adapter
+
 on:
   workflow_dispatch:
   push:
-    branches-ignore:
-      - dependabot/**
+    branches:
+      - master
     tags:
       - '[0-9]+\.[0-9]+\.[0-9]+/[0-9]+\.[0-9]+\.[0-9]+'
   pull_request:
@@ -13,27 +14,209 @@ on:
     - cron: '0 3 * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.repository }}-${{ github.event_name }}/${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 env:
-  JAVA_VERSION: 25
-  CACHE_MAVEN_NAME: ma2aen
+  JAVA_VERSION: 21
+  CACHE_MAVEN_NAME: maven
   CACHE_SONAR_NAME: sonar
-  ARTIFACTS_KADAI_ADAPTER_JARS_NAME: kadai-jars
+  ARTIFACTS_KADAI_ADAPTER_JARS_NAME: kadai-adapter-jars
   ARTIFACTS_KADAI_ADAPTER_JARS_PATH: ~/.m2/repository/io/kadai
   ARTIFACTS_JACOCO_REPORTS_NAME: jacoco-reports
   ARTIFACTS_JACOCO_REPORTS_PATH: '**/jacoco.exec'
+  MAVEN_JAVA_21_ARGS: -Djava.version=21
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  detect_changes:
+    name: Detect changed files and modules
+    runs-on: ubuntu-22.04
+    outputs:
+      code_changed: ${{ steps.detect.outputs.code_changed }}
+      test_modules: ${{ steps.detect.outputs.test_modules }}
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Detect affected modules
+        id: detect
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_REF: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import subprocess
+
+          modules = [
+              "kadai-adapter",
+              "kadai-adapter-kadai-connector",
+              "kadai-adapter-spring-boot-test",
+              "kadai-adapter-camunda-system-connector",
+              "kadai-adapter-camunda-listener",
+              "kadai-adapter-camunda-outbox-rest",
+              "kadai-adapter-camunda-outbox-rest-spring-boot-starter",
+              "kadai-adapter-camunda-spring-boot-test",
+              "camunda-outbox-example-boot",
+              "kadai-adapter-camunda-listener-example",
+              "kadai-adapter-camunda-spring-boot-example",
+              "kadai-adapter-camunda-spring-boot-example-oauth2",
+              "kadai-adapter-camunda-8-system-connector",
+              "kadai-adapter-camunda-8-spring-boot-example",
+              "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
+          ]
+
+          module_paths = {
+              "kadai-adapter": "kadai-adapter/",
+              "kadai-adapter-kadai-connector": "kadai-adapter-kadai-connector/",
+              "kadai-adapter-spring-boot-test": "kadai-adapter-spring-boot-test/",
+              "kadai-adapter-camunda-system-connector": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-system-connector/",
+              "kadai-adapter-camunda-listener": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-listener/",
+              "kadai-adapter-camunda-outbox-rest": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-outbox-rest/",
+              "kadai-adapter-camunda-outbox-rest-spring-boot-starter": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-outbox-rest-spring-boot-starter/",
+              "kadai-adapter-camunda-spring-boot-test": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-spring-boot-test/",
+              "camunda-outbox-example-boot": "kadai-adapter-camunda7-parent/camunda-outbox-example-boot/",
+              "kadai-adapter-camunda-listener-example": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-listener-example/",
+              "kadai-adapter-camunda-spring-boot-example": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-spring-boot-example/",
+              "kadai-adapter-camunda-spring-boot-example-oauth2": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-spring-boot-example-oauth2/",
+              "kadai-adapter-camunda-8-system-connector": "kadai-adapter-camunda8-parent/kadai-adapter-camunda-8-system-connector/",
+              "kadai-adapter-camunda-8-spring-boot-example": "kadai-adapter-camunda8-parent/kadai-adapter-camunda-8-spring-boot-example/",
+              "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example": "kadai-adapter-camunda8-parent/kadai-adapter-camunda-8-spring-boot-multi-tenancy-example/",
+          }
+
+          dependents = {
+              "kadai-adapter": [
+                  "kadai-adapter-kadai-connector",
+                  "kadai-adapter-spring-boot-test",
+                  "kadai-adapter-camunda-system-connector",
+                  "kadai-adapter-camunda-spring-boot-test",
+                  "kadai-adapter-camunda-spring-boot-example",
+                  "kadai-adapter-camunda-spring-boot-example-oauth2",
+                  "kadai-adapter-camunda-8-system-connector",
+                  "kadai-adapter-camunda-8-spring-boot-example",
+                  "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
+              ],
+              "kadai-adapter-kadai-connector": [
+                  "kadai-adapter-spring-boot-test",
+                  "kadai-adapter-camunda-spring-boot-test",
+                  "kadai-adapter-camunda-spring-boot-example",
+                  "kadai-adapter-camunda-spring-boot-example-oauth2",
+                  "kadai-adapter-camunda-8-spring-boot-example",
+                  "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
+              ],
+              "kadai-adapter-spring-boot-test": [
+                  "kadai-adapter-camunda-spring-boot-test",
+                  "kadai-adapter-camunda-8-system-connector",
+              ],
+              "kadai-adapter-camunda-system-connector": [
+                  "kadai-adapter-camunda-spring-boot-test",
+                  "kadai-adapter-camunda-spring-boot-example",
+                  "kadai-adapter-camunda-spring-boot-example-oauth2",
+              ],
+              "kadai-adapter-camunda-listener": [
+                  "kadai-adapter-camunda-outbox-rest-spring-boot-starter",
+                  "kadai-adapter-camunda-spring-boot-test",
+              ],
+              "kadai-adapter-camunda-outbox-rest": [
+                  "kadai-adapter-camunda-outbox-rest-spring-boot-starter",
+                  "kadai-adapter-camunda-spring-boot-test",
+                  "kadai-adapter-camunda-spring-boot-example-oauth2",
+                  "camunda-outbox-example-boot",
+              ],
+              "kadai-adapter-camunda-outbox-rest-spring-boot-starter": [
+                  "camunda-outbox-example-boot",
+              ],
+              "kadai-adapter-camunda-listener-example": [
+                  "kadai-adapter-camunda-spring-boot-test",
+              ],
+              "kadai-adapter-camunda-8-system-connector": [
+                  "kadai-adapter-camunda-8-spring-boot-example",
+                  "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
+              ],
+          }
+
+          def run(command):
+              return subprocess.check_output(command, text=True).splitlines()
+
+          event_name = os.environ["EVENT_NAME"]
+          full_run = event_name in {"workflow_dispatch", "schedule"} or os.environ["GITHUB_REF_NAME"].startswith("refs/tags/")
+
+          if full_run:
+              changed_files = ["<full-run>"]
+          else:
+              base_ref = os.environ.get("BASE_REF") or "HEAD~1"
+              head_ref = os.environ.get("HEAD_REF") or "HEAD"
+              try:
+                  subprocess.run(["git", "rev-parse", "--verify", base_ref], check=True, stdout=subprocess.DEVNULL)
+              except subprocess.CalledProcessError:
+                  base_ref = "HEAD~1"
+              changed_files = run(["git", "diff", "--name-only", f"{base_ref}...{head_ref}"])
+
+          global_patterns = (
+              ".github/workflows/continuous-integration.yml",
+              ".mvn/",
+              "ci/",
+              "mvnw",
+              "pom.xml",
+          )
+
+          affected = set()
+          if full_run or any(path == "pom.xml" or path.startswith(global_patterns) for path in changed_files):
+              affected = set(modules)
+          else:
+              for path in changed_files:
+                  if path == "kadai-adapter-camunda7-parent/pom.xml":
+                      affected.update(module for module in modules if module_paths[module].startswith("kadai-adapter-camunda7-parent/"))
+                  elif path == "kadai-adapter-camunda8-parent/pom.xml":
+                      affected.update(module for module in modules if module_paths[module].startswith("kadai-adapter-camunda8-parent/"))
+                  else:
+                      for module, module_path in module_paths.items():
+                          if path.startswith(module_path):
+                              affected.add(module)
+
+          queue = list(affected)
+          while queue:
+              module = queue.pop()
+              for dependent in dependents.get(module, []):
+                  if dependent not in affected:
+                      affected.add(dependent)
+                      queue.append(dependent)
+
+          ordered = [module for module in modules if module in affected]
+          matrix = [
+              {"module": module, "java_version": java_version}
+              for java_version in (21, 25)
+              for module in ordered
+          ]
+
+          code_changed = "true" if ordered else "false"
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"code_changed={code_changed}\n")
+              output.write(f"test_modules={json.dumps(matrix, separators=(',', ':'))}\n")
+          print(f"Changed files: {changed_files}")
+          print(f"Affected modules: {ordered}")
+          PY
 
   build:
-    name: Compile all maven modules
+    name: Compile all Maven modules with Java 21
     runs-on: ubuntu-22.04
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.code_changed == 'true' || startsWith(github.ref, 'refs/tags/')
     steps:
+      - name: Start Eco CI Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: start-measurement
+          project: KADAI Adapter
+          tags: CI/CD, Build Backend
+        continue-on-error: true
       - name: Git checkout
         uses: actions/checkout@v7
       - name: Set up JDK ${{ env.JAVA_VERSION }}
@@ -41,75 +224,112 @@ jobs:
         with:
           distribution: adopt
           java-version: ${{ env.JAVA_VERSION }}
-      - name: Cache maven dependencies
+      - name: Cache Maven dependencies
         id: cache
         uses: actions/cache@v6
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            !~/.m2/repository/io/kadai
           key: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}
-      - name: Compile & build
-        run: ./mvnw -B install -DskipTests -Djacoco.skip
+      - name: Change versions to match tag
+        run: ci/change_version.sh -m .
+      - name: Compile and build
+        run: ./mvnw -B install -DskipTests -Djacoco.skip -T 1C ${{ env.MAVEN_JAVA_21_ARGS }}
+      - name: Eco CI Measurement of mvn install
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: get-measurement
+          label: 'build: mvn install'
+        continue-on-error: true
+      - name: Show Eco CI Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: display-results
+          display-badge: true
+          pr-comment: false
+        continue-on-error: true
       - name: Populate cache
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          ./mvnw -B dependency:go-offline
-          ./mvnw -B test -Dtest=GibtEsNet -Dsurefire.failIfNoSpecifiedTests=false
-      - name: Upload Kadai-Adapter artifacts
+          ./mvnw -B dependency:go-offline -T 1C ${{ env.MAVEN_JAVA_21_ARGS }}
+          ./mvnw -B test -Dtest=GibtEsNet -Dsurefire.failIfNoSpecifiedTests=false -T 1C ${{ env.MAVEN_JAVA_21_ARGS }}
+      - name: Upload KADAI Adapter artifacts
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACTS_KADAI_ADAPTER_JARS_NAME }}
           path: ${{ env.ARTIFACTS_KADAI_ADAPTER_JARS_PATH }}
           if-no-files-found: error
-      - name: Remove kadai artifacts from cache
-        run: rm -rf ${{ env.ARTIFACTS_KADAI_ADAPTER_JARS_PATH }}
       - name: Cancel workflow
         if: failure()
         uses: andymckay/cancel-action@0.5
 
   test:
     runs-on: ubuntu-22.04
-    name: Test ${{ matrix.module }}
-    needs: [ build ]
+    name: Test ${{ matrix.module }} with Java ${{ matrix.java_version }}
+    needs: [detect_changes, build]
+    if: needs.detect_changes.outputs.code_changed == 'true' || startsWith(github.ref, 'refs/tags/')
     strategy:
+      fail-fast: false
       matrix:
-        module:
-          - kadai-adapter
-          - kadai-adapter-kadai-connector
-          - kadai-adapter-spring-boot-test
-          - kadai-adapter-camunda-system-connector
-          - kadai-adapter-camunda-listener
-          - kadai-adapter-camunda-outbox-rest
-          - kadai-adapter-camunda-outbox-rest-spring-boot-starter
-          - kadai-adapter-camunda-spring-boot-test
-          - camunda-outbox-example-boot
-          - kadai-adapter-camunda-listener-example
-          - kadai-adapter-camunda-spring-boot-example
-          - kadai-adapter-camunda-spring-boot-example-oauth2
-          - kadai-adapter-camunda-8-system-connector
-          - kadai-adapter-camunda-8-spring-boot-example
+        include: ${{ fromJSON(needs.detect_changes.outputs.test_modules) }}
     steps:
+      - name: Start Eco CI Measurement
+        if: matrix.java_version == 21
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: start-measurement
+          project: KADAI Adapter
+          tags: CI/CD, Test Backend
+        continue-on-error: true
       - name: Git checkout
         uses: actions/checkout@v7
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
+      - name: Set up JDK ${{ matrix.java_version }}
         uses: actions/setup-java@v5
         with:
           distribution: adopt
-          java-version: ${{ env.JAVA_VERSION }}
-      - name: Cache maven dependencies
+          java-version: ${{ matrix.java_version }}
+      - name: Cache Maven dependencies
         uses: actions/cache@v6
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            !~/.m2/repository/io/kadai
           key: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}
-      - name: Download Kadai-Adapter artifacts
+      - name: Download KADAI Adapter artifacts
         uses: actions/download-artifact@v8
         with:
           name: ${{ env.ARTIFACTS_KADAI_ADAPTER_JARS_NAME }}
           path: ${{ env.ARTIFACTS_KADAI_ADAPTER_JARS_PATH }}
+      - name: Change versions to match tag
+        run: ci/change_version.sh -m .
       - name: Test
-        run: ./mvnw -B verify -pl :${{matrix.module}} -Dcheckstyle.skip
+        run: |
+          if [[ '${{ matrix.java_version }}' == '21' ]]; then
+            EXTRA_ARGS="${{ env.MAVEN_JAVA_21_ARGS }}"
+          else
+            EXTRA_ARGS=""
+          fi
+          ./mvnw -B verify -pl :${{ matrix.module }} -Dcheckstyle.skip -T 1C ${EXTRA_ARGS}
+      - name: Eco CI Measurement of ${{ matrix.module }}
+        if: matrix.java_version == 21
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: get-measurement
+          label: 'test: ${{ matrix.module }}'
+        continue-on-error: true
+      - name: Show Eco CI Results
+        if: matrix.java_version == 21
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: display-results
+          display-badge: true
+          pr-comment: false
+        continue-on-error: true
       - name: Upload JaCoCo Report
+        if: matrix.java_version == 21
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACTS_JACOCO_REPORTS_NAME }}-${{ matrix.module }}
@@ -122,30 +342,44 @@ jobs:
   release_artifacts:
     runs-on: ubuntu-22.04
     name: Release artifacts to Sonatype-Central
-    if: github.repository == 'kadai-io/KadaiAdapter' && ( startsWith(github.ref, 'refs/tags') || github.ref == 'refs/heads/master' ) && github.head_ref == ''
+    needs: [detect_changes, test]
+    if: |
+      always() &&
+      github.repository == 'kadai-io/KadaiAdapter' &&
+      (startsWith(github.ref, 'refs/tags') || github.ref == 'refs/heads/master') &&
+      github.head_ref == '' &&
+      (needs.detect_changes.outputs.code_changed == 'true' || startsWith(github.ref, 'refs/tags')) &&
+      needs.test.result != 'failure' &&
+      needs.test.result != 'cancelled'
     permissions:
       contents: write
       pull-requests: write
-    needs: [ test ]
-    # as documented in the gpg manual (https://www.gnupg.org/documentation/manuals/gnupg/Invoking-GPG_002dAGENT.html)
-    # we should execute this command before interacting with gpg (otherwise gpg won't work)
     env:
       GPG_TTY: $(tty)
     steps:
+      - name: Start Eco CI Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: start-measurement
+          project: KADAI Adapter
+          tags: CI/CD, Release
+        continue-on-error: true
       - name: Git checkout
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0 # necessary for push back
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v5
         with:
           distribution: adopt
           java-version: ${{ env.JAVA_VERSION }}
-      - name: Cache maven dependencies
+      - name: Cache Maven dependencies
         uses: actions/cache@v6
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            !~/.m2/repository/io/kadai
           key: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}
       - name: Import GPG Key
@@ -158,19 +392,16 @@ jobs:
         run: |
           VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "Detected version: '$VERSION'"
-          
+
           if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
             echo "CRITICAL ERROR: Version is empty or null!"
             echo "   Detected version: '$VERSION'"
             echo "   Expected:"
             echo "     - Master branch: x.x.x-SNAPSHOT"
             echo "     - Tag (x.x.x/x.x.x): x.x.x"
-            echo "   Possible causes:"
-            echo "     - Incorrect tag format"
-            echo "     - Missing or invalid <version> in pom.xml"
             exit 1
           fi
-          
+
           if [[ "$GITHUB_REF" == "refs/heads/master" && "$VERSION" == *-SNAPSHOT ]]; then
             echo "Deploying as SNAPSHOT"
             PROFILE="snapshot"
@@ -186,46 +417,69 @@ jobs:
             echo "     - Tag (x.x.x/x.x.x) + RELEASE version (x.x.x)"
             exit 1
           fi
-          ./mvnw -B deploy -P $PROFILE \
+          ./mvnw -B deploy -P "$PROFILE" \
           --settings ci/mvnsettings.xml -DskipTests -Dcheckstyle.skip -Djacoco.skip \
           -pl :kadai-adapter-parent,:kadai-adapter-camunda7-parent,:kadai-adapter-camunda8-parent,\
           :kadai-adapter,:kadai-adapter-camunda-system-connector,:kadai-adapter-kadai-connector,\
           :kadai-adapter-camunda-listener,:kadai-adapter-camunda-outbox-rest,\
           :kadai-adapter-camunda-outbox-rest-spring-boot-starter,\
           :kadai-adapter-spring-boot-test,\
-          :kadai-adapter-camunda-8-system-connector
+          :kadai-adapter-camunda-8-system-connector \
+          ${{ env.MAVEN_JAVA_21_ARGS }}
         env:
           GPG_KEY_NAME: ${{ secrets.GPG_KEY_NAME }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+      - name: Eco CI Measurement of release deploy
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: get-measurement
+          label: 'release_artifacts: mvn deploy'
+        continue-on-error: true
+      - name: Show Eco CI Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: display-results
+          display-badge: true
+          pr-comment: false
+        continue-on-error: true
       - name: Update version to next snapshot and create PR
+        if: startsWith(github.ref, 'refs/tags')
         run: |
           ci/change_version.sh -i -m .
           ci/commitPoms.sh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Remove kadai artifacts from cache
-        run: rm -rf ~/.m2/repository/io/kadai
       - name: Cancel workflow
         if: failure()
         uses: andymckay/cancel-action@0.5
 
   upload_to_sonar:
     runs-on: ubuntu-22.04
-    name: Upload SonarQube analysis to sonarcloud
-    # neither on release nor forks nor dependabot
+    name: Upload SonarQube analysis to SonarCloud
+    needs: [detect_changes, test]
     if: |
+      always() &&
       github.repository == 'kadai-io/KadaiAdapter' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
       !startsWith(github.ref, 'refs/tags') &&
       !startsWith(github.head_ref || github.ref_name, 'dependabot/') &&
-      github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request'
-    needs: [ test ]
+      needs.detect_changes.outputs.code_changed == 'true' &&
+      needs.test.result != 'failure' &&
+      needs.test.result != 'cancelled'
     steps:
+      - name: Start Eco CI Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: start-measurement
+          project: KADAI Adapter
+          tags: CI/CD, Sonar
+        continue-on-error: true
       - name: Git checkout
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v5
         with:
@@ -237,10 +491,12 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-${{ env.CACHE_SONAR_NAME }}
           restore-keys: ${{ runner.os }}-${{ env.CACHE_SONAR_NAME }}
-      - name: Cache maven dependencies
+      - name: Cache Maven dependencies
         uses: actions/cache@v6
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            !~/.m2/repository/io/kadai
           key: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-${{ env.CACHE_MAVEN_NAME }}
       - name: Download JaCoCo reports
@@ -248,16 +504,27 @@ jobs:
         with:
           pattern: ${{ env.ARTIFACTS_JACOCO_REPORTS_NAME }}-*
           merge-multiple: true
-      - name: Install kadai adapter
-        run: ./mvnw -B install -DskipTests -Dcheckstyle.skip -Dmaven.javadoc.skip
+      - name: Install KADAI Adapter
+        run: ./mvnw -B install -DskipTests -Dcheckstyle.skip -Dmaven.javadoc.skip -T 1C ${{ env.MAVEN_JAVA_21_ARGS }}
       - name: Upload SonarQube analysis
-        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -DskipTests
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -DskipTests ${{ env.MAVEN_JAVA_21_ARGS }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-      - name: Remove kadai artifacts from cache
-        run: rm -rf ~/.m2/repository/io/kadai
+      - name: Eco CI Measurement of sonar verify
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: get-measurement
+          label: 'upload_to_sonar: mvn verify + sonar'
+        continue-on-error: true
+      - name: Show Eco CI Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v5
+        with:
+          task: display-results
+          display-badge: true
+          pr-comment: false
+        continue-on-error: true
       - name: Cancel workflow
         if: failure()
         uses: andymckay/cancel-action@0.5
