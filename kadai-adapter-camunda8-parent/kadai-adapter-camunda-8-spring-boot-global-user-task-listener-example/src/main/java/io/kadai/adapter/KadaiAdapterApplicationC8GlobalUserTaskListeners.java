@@ -63,6 +63,10 @@ public class KadaiAdapterApplicationC8GlobalUserTaskListeners {
                   "kadai-complete-task",
                   UserTaskCompletion.USER_TASK_COMPLETED_JOB_WORKER_TYPE,
                   COMPLETING),
+              // Camunda 8.9 currently has a known defect:
+              // https://github.com/camunda/camunda/issues/51630
+              // Global canceling listeners are not triggered unless a model-level canceling
+              // listener also exists (which unfortunately attempts to cancel twice).
               new GlobalUserTaskListenerDefinition(
                   "kadai-cancel-task",
                   UserTaskCancellation.USER_TASK_CANCELLED_JOB_WORKER_TYPE,
