@@ -95,7 +95,7 @@ public final class Camunda7TestcontainersConfiguration {
       return;
     }
 
-    TestDatabase database = TestDatabase.fromEnvironment();
+    TargetDatabase database = TargetDatabase.fromEnvironment();
     LOGGER.info("Starting Camunda BPM Run test infrastructure with {} database", database);
 
     network = Network.newNetwork();
@@ -216,7 +216,7 @@ public final class Camunda7TestcontainersConfiguration {
     initialised = false;
   }
 
-  private static JdbcCoordinates startDatabase(TestDatabase database) {
+  private static JdbcCoordinates startDatabase(TargetDatabase database) {
     return switch (database) {
       case H2 -> startH2();
       case POSTGRES -> startPostgres();
@@ -357,24 +357,24 @@ public final class Camunda7TestcontainersConfiguration {
     return sb.toString();
   }
 
-  private enum TestDatabase {
+  private enum TargetDatabase {
     H2("h2"),
     POSTGRES("postgres"),
     ORACLE("oracle");
 
     private final String camundaDatabaseType;
 
-    TestDatabase(String camundaDatabaseType) {
+    TargetDatabase(String camundaDatabaseType) {
       this.camundaDatabaseType = camundaDatabaseType;
     }
 
-    private static TestDatabase fromEnvironment() {
+    private static TargetDatabase fromEnvironment() {
       String value = System.getenv("DB");
       if (value == null || value.isBlank()) {
         return H2;
       }
       try {
-        return TestDatabase.valueOf(value.trim().toUpperCase(Locale.ROOT));
+        return TargetDatabase.valueOf(value.trim().toUpperCase(Locale.ROOT));
       } catch (IllegalArgumentException e) {
         LOGGER.warn("Unsupported DB value '{}'; falling back to H2", value);
         return H2;
