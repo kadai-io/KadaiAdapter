@@ -68,7 +68,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
 
   private static final String BASIC_OUTBOX_PATH = "http://localhost:10020/outbox-rest/events";
   private static final String INSERT_EVENT =
-      "INSERT INTO kadai_tables.event_store "
+      "INSERT INTO %s.EVENT_STORE "
           + "(TYPE, CREATED, PAYLOAD, REMAINING_RETRIES, BLOCKED_UNTIL, CAMUNDA_TASK_ID, LOCK_EXPIRE) "
           + "VALUES (?, ?, ?, ?, ?, ?, ?)";
   @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
@@ -361,7 +361,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     Timestamp blockedUntilTimestamp = Timestamp.from(blockedUntil);
 
     outboxJdbcTemplate.update(
-        INSERT_EVENT,
+        INSERT_EVENT.formatted(System.getProperty("kadai.adapter.outbox.schema", "kadai_tables")),
         type,
         created,
         "{\"id\":\"" + camundaTaskId + "\"}",
