@@ -191,10 +191,22 @@ jobs:
 
           ordered = [module for module in modules if module in affected]
           matrix = [
-              {"module": module, "java_version": java_version}
+              {"module": module, "java_version": java_version, "database": "H2"}
               for java_version in (21, 25)
               for module in ordered
           ]
+
+          if "kadai-adapter-camunda-spring-boot-test" in affected:
+              matrix.extend(
+                  [
+                      {
+                          "module": "kadai-adapter-camunda-spring-boot-test",
+                          "java_version": 21,
+                          "database": database,
+                      }
+                      for database in ("POSTGRES", "ORACLE")
+                  ]
+              )
 
           code_changed = "true" if ordered else "false"
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
@@ -267,7 +279,7 @@ jobs:
 
   test:
     runs-on: ubuntu-22.04
-    name: Test ${{ matrix.module }} with Java ${{ matrix.java_version }}
+    name: Test ${{ matrix.module }} on ${{ matrix.database }} with Java ${{ matrix.java_version }}
     needs: [ detect_changes, build ]
     if: needs.detect_changes.outputs.code_changed == 'true' || startsWith(github.ref, 'refs/tags/')
     strategy:
@@ -276,7 +288,7 @@ jobs:
         include: ${{ fromJSON(needs.detect_changes.outputs.test_modules) }}
     steps:
       - name: Start Eco CI Measurement
-        if: matrix.java_version == 21
+        if: matrix.java_version == 21 && matrix.database == 'H2'
         uses: green-coding-solutions/eco-ci-energy-estimation@v5
         with:
           task: start-measurement
@@ -313,15 +325,17 @@ jobs:
             EXTRA_ARGS=""
           fi
           ./mvnw -B verify -pl :${{ matrix.module }} -Dcheckstyle.skip -T 1C ${EXTRA_ARGS}
+        env:
+          DB: ${{ matrix.database }}
       - name: Eco CI Measurement of ${{ matrix.module }}
-        if: matrix.java_version == 21
+        if: matrix.java_version == 21 && matrix.database == 'H2'
         uses: green-coding-solutions/eco-ci-energy-estimation@v5
         with:
           task: get-measurement
           label: 'test: ${{ matrix.module }}'
         continue-on-error: true
       - name: Show Eco CI Results
-        if: matrix.java_version == 21
+        if: matrix.java_version == 21 && matrix.database == 'H2'
         uses: green-coding-solutions/eco-ci-energy-estimation@v5
         with:
           task: display-results
@@ -329,7 +343,7 @@ jobs:
           pr-comment: false
         continue-on-error: true
       - name: Upload JaCoCo Report
-        if: matrix.java_version == 21
+        if: matrix.java_version == 21 && matrix.database == 'H2'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACTS_JACOCO_REPORTS_NAME }}-${{ matrix.module }}

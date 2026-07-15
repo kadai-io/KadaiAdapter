@@ -35,9 +35,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Utility class that clears the test databases between test runs.
  *
- * <p>Executes the SQL scripts from {@code sql/clear-kadai-db.sql}, {@code
- * sql/clear-camunda-db.sql}, or {@code sql/clear-outbox-db-postgres.sql} depending on the {@link
- * ApplicationDatabaseType}.
+ * <p>Executes the SQL scripts from {@code sql/clear-kadai-db.sql} or {@code
+ * sql/clear-camunda-db.sql}. For the outbox database it uses the runtime
+ * {@code kadai.adapter.outbox.schema} property because the schema differs across H2, Postgres, and
+ * Oracle.
  */
 public class DbCleaner {
 
@@ -51,14 +52,12 @@ public class DbCleaner {
    * @throws RuntimeException if a top-level SQLException prevents the cleanup
    */
   public void clearDb(DataSource dataSource, ApplicationDatabaseType type) {
-    String sqlFile =
+    List<String> statements =
         switch (type) {
-          case KADAI -> "sql/clear-kadai-db.sql";
-          case CAMUNDA -> "sql/clear-camunda-db.sql";
-          case OUTBOX -> "sql/clear-outbox-db-postgres.sql";
+          case KADAI -> readSqlStatements("sql/clear-kadai-db.sql");
+          case CAMUNDA -> readSqlStatements("sql/clear-camunda-db.sql");
+          case OUTBOX -> List.of("DELETE FROM " + getOutboxSchema() + ".EVENT_STORE");
         };
-
-    List<String> statements = readSqlStatements(sqlFile);
     try (Connection conn = dataSource.getConnection()) {
       conn.setAutoCommit(false);
       for (String sql : statements) {
@@ -68,7 +67,6 @@ public class DbCleaner {
           try (Statement stmt = conn.createStatement()) {
             LOGGER.debug("Executing: {}", trimmed);
             stmt.executeUpdate(trimmed);
-            conn.releaseSavepoint(savepoint);
           } catch (SQLException e) {
             if (isMissingTableError(e)) {
               conn.rollback(savepoint);
@@ -123,7 +121,12 @@ public class DbCleaner {
   private boolean isMissingTableError(SQLException e) {
     return "42P01".equals(e.getSQLState())
         || "42S02".equals(e.getSQLState())
+        || e.getErrorCode() == 942
         || e.getErrorCode() == 42102;
+  }
+
+  private String getOutboxSchema() {
+    return System.getProperty("kadai.adapter.outbox.schema", "kadai_tables");
   }
 
   public enum ApplicationDatabaseType {
