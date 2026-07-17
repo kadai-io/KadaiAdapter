@@ -160,8 +160,6 @@ public class CamundaTaskRetriever {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug(
           camundaTaskEvents.stream()
-              .filter(camundaTaskEvent -> belongsToConfiguredEngine(
-                  camundaTaskEvent, systemEngineIdentifier))
               .filter(CamundaTaskRetriever::isFirstAttempt)
               .map(CamundaTaskEvent::getId)
               .toList()

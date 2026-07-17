@@ -34,8 +34,8 @@ public class KadaiAdapterApplication2 {
     System.setProperty("manual.camunda.outbox.seed.system-url", "http://localhost:8071/example-context-root/engine-rest");
     System.setProperty("kadai-system-connector-camundaSystemURLs", "http://localhost:8071/example-context-root/engine-rest | http://localhost:8071/example-context-root/outbox-rest");
     System.setProperty("camundaOutboxService.port", "8071");
-//    System.setProperty(
-//        "kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds.port", "169");
+    System.setProperty(
+        "kadai.adapter.scheduler.run.interval.for.start.kadai.tasks.in.milliseconds.port", "513");
     SpringApplication.run(KadaiAdapterApplication2.class, args);
   }
 }
