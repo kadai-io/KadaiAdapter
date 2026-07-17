@@ -309,7 +309,7 @@ public class KadaiAdapterApplication implements ApplicationRunner {
         preparedStatement.setTimestamp(2, Timestamp.from(created.toInstant()));
         preparedStatement.setString(3, createReferencedTaskPayload(i, camundaTaskId, created));
         preparedStatement.setInt(4, INITIAL_REMAINING_RETRIES);
-        preparedStatement.setTimestamp(5, Timestamp.from(created.minusSeconds(1).toInstant()));
+        preparedStatement.setTimestamp(5, Timestamp.from(created.minusDays(1).toInstant()));
         preparedStatement.setString(6, camundaTaskId);
         preparedStatement.setString(7, getSystemEngineIdentifierOrNull());
         preparedStatement.executeUpdate();
