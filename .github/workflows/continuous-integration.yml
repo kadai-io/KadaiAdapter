@@ -204,7 +204,7 @@ jobs:
                           "java_version": 21,
                           "database": database,
                       }
-                      for database in ("POSTGRES", "ORACLE")
+                      for database in ("POSTGRES", "ORACLE", "DB2")
                   ]
               )
 

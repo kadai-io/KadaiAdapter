@@ -23,7 +23,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Properties;
@@ -32,6 +35,7 @@ import org.h2.tools.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.Testcontainers;
+import org.testcontainers.containers.Db2Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.Network;
@@ -47,7 +51,8 @@ import org.testcontainers.utility.MountableFile;
  * Boots singleton database and Camunda BPM Run containers used by every integration test.
  *
  * <p>The database is selected via the {@code DB} environment variable. Supported values are {@code
- * H2}, {@code POSTGRES}, and {@code ORACLE}. Missing or unsupported values fall back to {@code H2}.
+ * H2}, {@code POSTGRES}, {@code ORACLE}, and {@code DB2}. Missing or unsupported values fall back
+ * to {@code H2}.
  *
  * <p>The Camunda BPM Run container executes BPM processes and, via the {@link
  * io.kadai.adapter.camunda.parselistener.KadaiParseListenerProcessEnginePlugin} dropped into its
@@ -58,12 +63,15 @@ import org.testcontainers.utility.MountableFile;
 public final class Camunda7TestcontainersConfiguration {
 
   public static final String POSTGRES_IMAGE = "postgres:16-alpine";
+  public static final String DB2_IMAGE = "ibmcom/db2:11.5.0.0a";
   public static final String ORACLE_IMAGE = "gvenzl/oracle-xe:21-slim-faststart";
   public static final String CAMUNDA_IMAGE = "camunda/camunda-bpm-platform:run-7.24.0";
   public static final String DB_ALIAS = "db";
   public static final String DB_NAME = "camunda";
   public static final String POSTGRES_USER = "camunda";
   public static final String POSTGRES_PASS = "camunda";
+  public static final String DB2_USER = "db2inst1";
+  public static final String DB2_PASS = "camundaPwd1";
   public static final String ORACLE_USER = "camunda";
   public static final String ORACLE_PASS = "camundaPwd1";
   public static final String DEFAULT_OUTBOX_SCHEMA = "kadai_tables";
@@ -150,6 +158,7 @@ public final class Camunda7TestcontainersConfiguration {
       camunda.dependsOn(databaseContainer);
     }
     camunda.start();
+    adjustCamundaSchema(database, jdbc);
 
     String camundaHost = camunda.getHost();
     Integer camundaPort = camunda.getMappedPort(8080);
@@ -216,10 +225,29 @@ public final class Camunda7TestcontainersConfiguration {
     initialised = false;
   }
 
+  private static void adjustCamundaSchema(TargetDatabase database, JdbcCoordinates jdbc) {
+    if (database != TargetDatabase.DB2) {
+      return;
+    }
+
+    // outbox schema script runs before Camunda creates ACT_GE_BYTEARRAY
+    // default is too small for the large variable test
+    String sql = "ALTER TABLE ACT_GE_BYTEARRAY ALTER COLUMN BYTES_ SET DATA TYPE BLOB(10M)";
+    try (Connection connection =
+            DriverManager.getConnection(jdbc.hostJdbcUrl(), jdbc.username(), jdbc.password());
+        Statement statement = connection.createStatement()) {
+      statement.execute(sql);
+      LOGGER.info("Adjusted DB2 Camunda byte-array column for large variable tests");
+    } catch (SQLException e) {
+      throw new RuntimeException("Failed to adjust DB2 Camunda schema", e);
+    }
+  }
+
   private static JdbcCoordinates startDatabase(TargetDatabase database) {
     return switch (database) {
       case H2 -> startH2();
       case POSTGRES -> startPostgres();
+      case DB2 -> startDb2();
       case ORACLE -> startOracle();
     };
   }
@@ -264,6 +292,27 @@ public final class Camunda7TestcontainersConfiguration {
         POSTGRES_USER,
         POSTGRES_PASS,
         DEFAULT_OUTBOX_SCHEMA);
+  }
+
+  private static JdbcCoordinates startDb2() {
+    Db2Container db2 =
+        new Db2Container(DockerImageName.parse(DB2_IMAGE))
+            .acceptLicense()
+            .withNetwork(network)
+            .withNetworkAliases(DB_ALIAS)
+            .withDatabaseName(DB_NAME)
+            .withUsername(DB2_USER)
+            .withPassword(DB2_PASS);
+    db2.start();
+    databaseContainer = db2;
+
+    return new JdbcCoordinates(
+        "jdbc:db2://" + DB_ALIAS + ":50000/" + db2.getDatabaseName(),
+        db2.getJdbcUrl(),
+        db2.getDriverClassName(),
+        db2.getUsername(),
+        db2.getPassword(),
+        db2.getUsername().toUpperCase(Locale.ROOT));
   }
 
   private static JdbcCoordinates startOracle() {
@@ -360,6 +409,7 @@ public final class Camunda7TestcontainersConfiguration {
   private enum TargetDatabase {
     H2("h2"),
     POSTGRES("postgres"),
+    DB2("db2"),
     ORACLE("oracle");
 
     private final String camundaDatabaseType;

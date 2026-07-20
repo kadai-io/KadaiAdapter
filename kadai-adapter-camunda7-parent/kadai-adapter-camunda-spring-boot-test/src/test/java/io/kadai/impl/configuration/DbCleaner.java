@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Executes the SQL scripts from {@code sql/clear-kadai-db.sql} or {@code
  * sql/clear-camunda-db.sql}. For the outbox database it uses the runtime
- * {@code kadai.adapter.outbox.schema} property because the schema differs across H2, Postgres, and
- * Oracle.
+ * {@code kadai.adapter.outbox.schema} property because the schema differs across H2, Postgres,
+ * Oracle, and DB2.
  */
 public class DbCleaner {
 
@@ -119,10 +119,12 @@ public class DbCleaner {
   }
 
   private boolean isMissingTableError(SQLException e) {
-    return "42P01".equals(e.getSQLState())
-        || "42S02".equals(e.getSQLState())
-        || e.getErrorCode() == 942
-        || e.getErrorCode() == 42102;
+    return "42P01".equals(e.getSQLState()) // Postgres
+        || "42S02".equals(e.getSQLState()) // H2
+        || "42704".equals(e.getSQLState()) // DB2
+        || e.getErrorCode() == 942 // Oracle
+        || e.getErrorCode() == -204 // DB2
+        || e.getErrorCode() == 42102; // H2
   }
 
   private String getOutboxSchema() {
