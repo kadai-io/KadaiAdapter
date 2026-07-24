@@ -20,8 +20,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import tools.jackson.databind.json.JsonMapper;
 
 class ReferencedTaskCreatorTest {
+
+  private static final JsonMapper JSON_MAPPER = new JsonMapper();
 
   @CsvSource(
       delimiter = ',',
@@ -116,7 +119,8 @@ class ReferencedTaskCreatorTest {
     variables.put("grrr", "girr");
     when(activatedJob.getVariablesAsMap()).thenReturn(variables);
 
-    final ReferencedTaskCreator referencedTaskCreator = new ReferencedTaskCreator(camunda8System);
+    final ReferencedTaskCreator referencedTaskCreator =
+        new ReferencedTaskCreator(JSON_MAPPER, camunda8System);
     final ReferencedTask actual = referencedTaskCreator.createReferencedTaskFromJob(activatedJob);
 
     assertThat(actual).isEqualTo(expected);
@@ -186,7 +190,8 @@ class ReferencedTaskCreatorTest {
     variables.put("grrr", "girr");
     when(activatedJob.getVariablesAsMap()).thenReturn(variables);
 
-    final ReferencedTaskCreator referencedTaskCreator = new ReferencedTaskCreator(camunda8System);
+    final ReferencedTaskCreator referencedTaskCreator =
+        new ReferencedTaskCreator(JSON_MAPPER, camunda8System);
     final ReferencedTask actual = referencedTaskCreator.createReferencedTaskFromJob(activatedJob);
 
     assertThat(actual).isEqualTo(expected);

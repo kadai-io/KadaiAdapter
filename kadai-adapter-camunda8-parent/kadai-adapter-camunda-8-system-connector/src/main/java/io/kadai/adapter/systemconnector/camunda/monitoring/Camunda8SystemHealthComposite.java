@@ -5,12 +5,10 @@ import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCancellatio
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCreation;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import org.springframework.boot.actuate.health.CompositeHealthContributor;
-import org.springframework.boot.actuate.health.HealthContributor;
-import org.springframework.boot.actuate.health.NamedContributor;
-import org.springframework.lang.NonNull;
+import java.util.stream.Stream;
+import org.springframework.boot.health.contributor.CompositeHealthContributor;
+import org.springframework.boot.health.contributor.HealthContributor;
 
 public class Camunda8SystemHealthComposite implements CompositeHealthContributor {
 
@@ -38,10 +36,8 @@ public class Camunda8SystemHealthComposite implements CompositeHealthContributor
   }
 
   @Override
-  @NonNull
-  public Iterator<NamedContributor<HealthContributor>> iterator() {
+  public Stream<Entry> stream() {
     return healthContributors.entrySet().stream()
-        .map(entry -> NamedContributor.of(entry.getKey(), entry.getValue()))
-        .iterator();
+        .map(entry -> new Entry(entry.getKey(), entry.getValue()));
   }
 }

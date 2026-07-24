@@ -1,13 +1,11 @@
 package io.kadai.adapter.monitoring;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.springframework.boot.actuate.health.CompositeHealthContributor;
-import org.springframework.boot.actuate.health.HealthContributor;
-import org.springframework.boot.actuate.health.NamedContributor;
-import org.springframework.lang.NonNull;
+import java.util.stream.Stream;
+import org.springframework.boot.health.contributor.CompositeHealthContributor;
+import org.springframework.boot.health.contributor.HealthContributor;
 
 /**
  * Health-Contributor for the entirety of <b>all</b> plugins.
@@ -34,11 +32,9 @@ public class PluginHealth implements CompositeHealthContributor {
     return healthContributors.get(name);
   }
 
-  @NonNull
   @Override
-  public Iterator<NamedContributor<HealthContributor>> iterator() {
+  public Stream<Entry> stream() {
     return healthContributors.entrySet().stream()
-        .map(entry -> NamedContributor.of(entry.getKey(), entry.getValue()))
-        .iterator();
+        .map(entry -> new Entry(entry.getKey(), entry.getValue()));
   }
 }

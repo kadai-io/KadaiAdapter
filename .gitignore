@@ -35,3 +35,4 @@ Thumbs.db
 
 # java-format
 .java-format-cache
+/.ai/mcp/mcp.json
