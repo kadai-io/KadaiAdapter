@@ -2,8 +2,7 @@ package io.kadai.adapter.camunda.outbox.rest.repository;
 
 public class Db2Camunda7OutboxSqlProvider implements Camunda7OutboxSqlProvider {
 
-  private static final String LOCK_CLAUSE =
-      " for read only with rs use and keep update locks skip locked data";
+  private static final String LOCK_CLAUSE = " for read only with rs use and keep update locks";
 
   @Override
   public String getAvailableCreateEvents(String schema, int maxRows) {
