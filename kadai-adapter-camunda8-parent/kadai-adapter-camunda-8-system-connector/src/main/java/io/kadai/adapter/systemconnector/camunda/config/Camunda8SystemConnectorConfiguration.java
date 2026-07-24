@@ -34,7 +34,7 @@ public class Camunda8SystemConnectorConfiguration {
      * Flag for enabling or disabling Claiming as part of the KadaiAdapter synchronization with
      * Camunda 8.
      */
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     public boolean isEnabled() {
       return enabled;
