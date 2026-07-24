@@ -155,7 +155,7 @@ public class Camunda7TaskEventsService {
     List<Camunda7TaskEvent> camunda7TaskEventsFilteredByRetries = new ArrayList<>();
     List<Integer> ids = null;
 
-    try (Connection connection = getConnection()) {
+    try (Connection connection = getConnection(lockDuration == null)) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql =
@@ -175,6 +175,7 @@ public class Camunda7TaskEventsService {
                 .map(Camunda7TaskEvent::getId)
                 .collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
+        commitTransactionIfNecessary(connection, lockDuration);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
               "Events locked: {}",
@@ -185,6 +186,7 @@ public class Camunda7TaskEventsService {
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
+            commitTransactionIfNecessary(connection, lockDuration);
             if (LOGGER.isDebugEnabled()) {
               LOGGER.debug(
                   "Events unlocked: {}",
@@ -192,7 +194,10 @@ public class Camunda7TaskEventsService {
             }
           } catch (Exception ex) {
             LOGGER.error("Failed to unlock events", ex);
+            rollbackTransactionIfNecessary(connection, lockDuration);
           }
+        } else {
+          rollbackTransactionIfNecessary(connection, lockDuration);
         }
       }
     } catch (Exception e) {
@@ -331,7 +336,7 @@ public class Camunda7TaskEventsService {
   public List<Camunda7TaskEvent> getAllEvents(Duration lockDuration) {
     List<Camunda7TaskEvent> camunda7TaskEvents = new ArrayList<>();
     List<Integer> ids = null;
-    try (Connection connection = getConnection()) {
+    try (Connection connection = getConnection(lockDuration == null)) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql =
@@ -347,6 +352,7 @@ public class Camunda7TaskEventsService {
         ids =
             camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
+        commitTransactionIfNecessary(connection, lockDuration);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
               "Events locked: {}",
@@ -357,6 +363,7 @@ public class Camunda7TaskEventsService {
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
+            commitTransactionIfNecessary(connection, lockDuration);
             if (LOGGER.isDebugEnabled()) {
               LOGGER.debug(
                   "Events unlocked: {}",
@@ -364,7 +371,10 @@ public class Camunda7TaskEventsService {
             }
           } catch (Exception ex) {
             LOGGER.error("Failed to unlock events", ex);
+            rollbackTransactionIfNecessary(connection, lockDuration);
           }
+        } else {
+          rollbackTransactionIfNecessary(connection, lockDuration);
         }
       }
     } catch (Exception e) {
@@ -441,7 +451,7 @@ public class Camunda7TaskEventsService {
     List<Camunda7TaskEvent> camunda7TaskEvents = new ArrayList<>();
     List<Integer> ids = null;
 
-    try (Connection connection = getConnection(false)) {
+    try (Connection connection = getConnection(lockDuration == null)) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql =
@@ -459,7 +469,7 @@ public class Camunda7TaskEventsService {
         ids =
             camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
         lockEvents(ids, lockDuration, connection);
-        connection.commit();
+        commitTransactionIfNecessary(connection, lockDuration);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
               "Events locked: {}",
@@ -470,7 +480,7 @@ public class Camunda7TaskEventsService {
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
-            connection.commit();
+            commitTransactionIfNecessary(connection, lockDuration);
             if (LOGGER.isDebugEnabled()) {
               LOGGER.debug(
                   "Events unlocked: {}",
@@ -478,9 +488,11 @@ public class Camunda7TaskEventsService {
             }
           } catch (Exception ex) {
             LOGGER.error("Failed to unlock events", ex);
+            rollbackTransactionIfNecessary(connection, lockDuration);
           }
+        } else {
+          rollbackTransactionIfNecessary(connection, lockDuration);
         }
-        connection.rollback();
       }
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn("Caught Exception while trying to retrieve create events from the outbox", e);
@@ -544,7 +556,7 @@ public class Camunda7TaskEventsService {
 
     List<Camunda7TaskEvent> camunda7TaskEvents = new ArrayList<>();
     List<Integer> ids = null;
-    try (Connection connection = getConnection()) {
+    try (Connection connection = getConnection(lockDuration == null)) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql =
@@ -564,6 +576,7 @@ public class Camunda7TaskEventsService {
             camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
 
         lockEvents(ids, lockDuration, connection);
+        commitTransactionIfNecessary(connection, lockDuration);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(
               "Events locked: {}",
@@ -574,6 +587,7 @@ public class Camunda7TaskEventsService {
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
+            commitTransactionIfNecessary(connection, lockDuration);
             if (LOGGER.isDebugEnabled()) {
               LOGGER.debug(
                   "Events unlocked: {}",
@@ -581,7 +595,10 @@ public class Camunda7TaskEventsService {
             }
           } catch (Exception ex) {
             LOGGER.error("Failed to unlock events", ex);
+            rollbackTransactionIfNecessary(connection, lockDuration);
           }
+        } else {
+          rollbackTransactionIfNecessary(connection, lockDuration);
         }
       }
     } catch (SQLException | NullPointerException e) {
@@ -618,6 +635,23 @@ public class Camunda7TaskEventsService {
           "Retrieved connection was NULL. Please make sure to provide a valid datasource.");
     }
     return connection;
+  }
+
+  private void commitTransactionIfNecessary(Connection connection, Duration lockDuration)
+      throws SQLException {
+    if (lockDuration != null) {
+      connection.commit();
+    }
+  }
+
+  private void rollbackTransactionIfNecessary(Connection connection, Duration lockDuration) {
+    if (lockDuration != null) {
+      try {
+        connection.rollback();
+      } catch (SQLException e) {
+        LOGGER.error("Failed to rollback event locking transaction", e);
+      }
+    }
   }
 
   private void unlockEvents(List<Integer> ids, Connection connection) throws SQLException {
