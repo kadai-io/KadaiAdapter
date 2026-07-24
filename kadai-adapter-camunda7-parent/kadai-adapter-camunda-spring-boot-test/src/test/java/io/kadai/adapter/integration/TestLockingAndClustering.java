@@ -32,17 +32,24 @@ import io.kadai.common.api.security.UserPrincipal;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
 import io.kadai.common.test.util.ParallelThreadHelper;
-import io.kadai.impl.configuration.DbCleaner;
-import io.kadai.impl.configuration.DbCleaner.ApplicationDatabaseType;
 import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.TaskSummary;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import javax.security.auth.Subject;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,7 +59,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.http.HttpHeaders;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
+import org.springframework.scheduling.config.ScheduledTask;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -63,6 +72,7 @@ import org.springframework.web.client.RestClientResponseException;
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
 @ContextConfiguration
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SuppressWarnings("checkstyle:LineLength")
 class TestLockingAndClustering extends AbsIntegrationTest {
 
@@ -71,21 +81,28 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       "INSERT INTO kadai_tables.event_store "
           + "(TYPE, CREATED, PAYLOAD, REMAINING_RETRIES, BLOCKED_UNTIL, CAMUNDA_TASK_ID, LOCK_EXPIRE) "
           + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+  private static final String DELETE_ALL_EVENTS = "DELETE FROM kadai_tables.event_store";
   @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
   @Autowired KadaiTaskCompletionOrchestrator kadaiTaskTerminator;
   @Autowired private HttpHeaderProvider httpHeaderProvider;
-  private JdbcTemplate outboxJdbcTemplate;
+  @Autowired private ScheduledAnnotationBeanPostProcessor scheduledAnnotationBeanPostProcessor;
+
+  @AfterAll
+  static void resetSharedKadaiEngine() {
+    kadaiEngine = null;
+    isInitialised = false;
+  }
 
   @BeforeEach
   @WithAccessId(user = "taskadmin")
-  void initializeOutbox() {
-    outboxJdbcTemplate = new JdbcTemplate(OutboxDataSource.get());
+  void initializeOutbox() throws SQLException {
+    cancelScheduledAdapterTasks();
     clearOutbox();
   }
 
   @AfterEach
   @WithAccessId(user = "taskadmin")
-  void resetOutbox() {
+  void resetOutbox() throws SQLException {
     clearOutbox();
   }
 
@@ -123,7 +140,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     assertThat(answer.getCamunda7TaskEvents()).isEmpty();
 
     try {
-      Thread.sleep(1200);
+      Thread.sleep(1500);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
@@ -255,6 +272,42 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
+  void should_ReturnEachLockedEventOnlyOnce_When_OutboxRestRequestsRunConcurrently()
+      throws Exception {
+    insertEvents("create", "all-create", 10, 3);
+    insertEvents("complete", "all-complete", 10, 3);
+    insertEvents("delete", "all-delete", 10, 3);
+
+    List<Integer> allEventIds =
+        retrieveLockedEventIdsConcurrently(BASIC_OUTBOX_PATH + "?lock-for=10", 8);
+
+    assertThat(allEventIds).hasSize(30).doesNotHaveDuplicates();
+
+    clearOutbox();
+    insertEvents("create", "retry-matching", 30, 2);
+    insertEvents("complete", "retry-other", 5, 1);
+
+    List<Integer> retryEventIds =
+        retrieveLockedEventIdsConcurrently(BASIC_OUTBOX_PATH + "?retries=2&lock-for=10", 8);
+
+    assertThat(retryEventIds).hasSize(30).doesNotHaveDuplicates();
+
+    clearOutbox();
+    insertEvents("create", "typed-create", 5, 3);
+    insertEvents("complete", "typed-complete", 15, 3);
+    insertEvents("delete", "typed-delete", 15, 3);
+
+    List<Integer> completeAndDeleteEventIds =
+        retrieveLockedEventIdsConcurrently(
+            BASIC_OUTBOX_PATH + "?type=complete&type=delete&lock-for=10", 8);
+
+    assertThat(completeAndDeleteEventIds).hasSize(30).doesNotHaveDuplicates();
+  }
+
+  @WithAccessId(
+      user = "teamlead_1",
+      groups = {"taskadmin"})
+  @Test
   void should_RejectUnknownFilterParameters() {
     assertThatThrownBy(() -> executeGet(BASIC_OUTBOX_PATH + "?unexpected=value"))
         .isInstanceOfSatisfying(
@@ -322,7 +375,7 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     List<String> camundaTaskIds =
         this.camundaProcessengineRequester.getTaskIdsFromProcessInstanceId(processInstanceId);
     assertThat(camundaTaskIds).hasSize(3);
-    Thread.sleep((long) (this.adapterTaskPollingInterval * 1.2));
+    kadaiTaskStarter.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     for (String camundaTaskId : camundaTaskIds) {
       this.camundaProcessengineRequester.completeTaskWithId(camundaTaskId);
@@ -360,15 +413,61 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     Timestamp created = Timestamp.from(Instant.now().minusSeconds(60));
     Timestamp blockedUntilTimestamp = Timestamp.from(blockedUntil);
 
-    outboxJdbcTemplate.update(
-        INSERT_EVENT,
-        type,
-        created,
-        "{\"id\":\"" + camundaTaskId + "\"}",
-        remainingRetries,
-        blockedUntilTimestamp,
-        camundaTaskId,
-        null);
+    try (Connection connection = OutboxDataSource.get().getConnection();
+        PreparedStatement statement = connection.prepareStatement(INSERT_EVENT)) {
+      connection.setAutoCommit(true);
+      statement.setString(1, type);
+      statement.setTimestamp(2, created);
+      statement.setString(3, "{\"id\":\"" + camundaTaskId + "\"}");
+      statement.setInt(4, remainingRetries);
+      statement.setTimestamp(5, blockedUntilTimestamp);
+      statement.setString(6, camundaTaskId);
+      statement.setTimestamp(7, null);
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      throw new IllegalStateException("Failed to insert outbox test event", e);
+    }
+  }
+
+  private void insertEvents(String type, String camundaTaskIdPrefix, int count, int retries) {
+    for (int i = 0; i < count; i++) {
+      insertEvent(type, camundaTaskIdPrefix + "-" + i, retries, Instant.now().minusSeconds(60));
+    }
+  }
+
+  private List<Integer> retrieveLockedEventIdsConcurrently(String url, int readers)
+      throws Exception {
+    ExecutorService executorService = Executors.newFixedThreadPool(readers);
+    CountDownLatch ready = new CountDownLatch(readers);
+    CountDownLatch start = new CountDownLatch(1);
+    List<Future<List<Integer>>> futures = new ArrayList<>();
+
+    try {
+      for (int i = 0; i < readers; i++) {
+        futures.add(
+            executorService.submit(
+                () -> {
+                  ready.countDown();
+                  assertThat(start.await(10, TimeUnit.SECONDS)).isTrue();
+                  Camunda7TaskEventListResource answer = getEventListResource(url);
+                  assertThat(answer).isNotNull();
+                  return answer.getCamunda7TaskEvents().stream()
+                      .map(Camunda7TaskEvent::getId)
+                      .toList();
+                }));
+      }
+
+      assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+      start.countDown();
+
+      List<Integer> eventIds = new ArrayList<>();
+      for (Future<List<Integer>> future : futures) {
+        eventIds.addAll(future.get(10, TimeUnit.SECONDS));
+      }
+      return eventIds;
+    } finally {
+      executorService.shutdownNow();
+    }
   }
 
   private Camunda7TaskEventListResource getEventListResource(String url) {
@@ -392,8 +491,15 @@ class TestLockingAndClustering extends AbsIntegrationTest {
         .body(String.class);
   }
 
-  private void clearOutbox() {
-    DbCleaner cleaner = new DbCleaner();
-    cleaner.clearDb(camundaBpmDataSource, ApplicationDatabaseType.OUTBOX);
+  private void clearOutbox() throws SQLException {
+    try (Connection connection = OutboxDataSource.get().getConnection();
+        PreparedStatement statement = connection.prepareStatement(DELETE_ALL_EVENTS)) {
+      connection.setAutoCommit(true);
+      statement.executeUpdate();
+    }
+  }
+
+  private void cancelScheduledAdapterTasks() {
+    scheduledAnnotationBeanPostProcessor.getScheduledTasks().forEach(ScheduledTask::cancel);
   }
 }

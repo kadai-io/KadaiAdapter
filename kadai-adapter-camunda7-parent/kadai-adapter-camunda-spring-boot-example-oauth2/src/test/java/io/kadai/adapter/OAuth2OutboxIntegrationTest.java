@@ -22,8 +22,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxDataSource;
+import io.kadai.adapter.impl.scheduled.KadaiTaskCompletionOrchestrator;
+import io.kadai.adapter.impl.scheduled.KadaiTaskStarterOrchestrator;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimCanceler;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskClaimer;
+import io.kadai.adapter.impl.scheduled.ReferencedTaskCompleter;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
@@ -35,6 +44,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
@@ -75,19 +85,22 @@ class OAuth2OutboxIntegrationTest {
   @Autowired private HttpHeaderProvider httpHeaderProvider;
   @Autowired private Camunda7SystemConnectorConfiguration config;
   @Autowired private RestClient restClient;
-  private JdbcTemplate jdbcTemplate;
+  @MockitoBean private KadaiTaskStarterOrchestrator kadaiTaskStarterOrchestrator;
+  @MockitoBean private KadaiTaskCompletionOrchestrator kadaiTaskCompletionOrchestrator;
+  @MockitoBean private ReferencedTaskCompleter referencedTaskCompleter;
+  @MockitoBean private ReferencedTaskClaimer referencedTaskClaimer;
+  @MockitoBean private ReferencedTaskClaimCanceler referencedTaskClaimCanceler;
   private String outboxEventsUrl;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws SQLException {
     outboxEventsUrl = "http://localhost:" + serverPort + "/outbox-rest/events";
-    jdbcTemplate = new JdbcTemplate(OutboxDataSource.get());
-    jdbcTemplate.execute(DELETE_ALL_EVENTS);
+    deleteAllEvents();
   }
 
   @AfterEach
-  void tearDown() {
-    jdbcTemplate.execute(DELETE_ALL_EVENTS);
+  void tearDown() throws SQLException {
+    deleteAllEvents();
   }
 
   @Test
@@ -117,12 +130,12 @@ class OAuth2OutboxIntegrationTest {
   }
 
   @Test
-  void should_FetchPersistedEventsFromRealOutbox_When_UsingValidOAuth2Token() {
+  void should_FetchPersistedEventsFromRealOutbox_When_UsingValidOAuth2Token() throws SQLException {
     Timestamp now = Timestamp.from(Instant.now().minusSeconds(60));
-    jdbcTemplate.update(
-        INSERT_EVENT, "create", now, "{\"id\":\"task-001\"}", 3, now, "task-001");
-    jdbcTemplate.update(
-        INSERT_EVENT, "create", now, "{\"id\":\"task-002\"}", 3, now, "task-002");
+    insertEvent("oauth2-test", now, "{\"id\":\"task-001\"}", 3, now, "task-001");
+    insertEvent("oauth2-test", now, "{\"id\":\"task-002\"}", 3, now, "task-002");
+
+    assertThat(countEvents("task-001", "task-002")).isEqualTo(2);
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     String response =
@@ -137,11 +150,10 @@ class OAuth2OutboxIntegrationTest {
   }
 
   @Test
-  void should_ReturnOnlyMatchingEvents_When_FilteringByRetries() {
+  void should_ReturnOnlyMatchingEvents_When_FilteringByRetries() throws SQLException {
     Timestamp now = Timestamp.from(Instant.now().minusSeconds(60));
-    jdbcTemplate.update(INSERT_EVENT, "create", now, "{\"id\":\"c1\"}", 3, now, "c1");
-    jdbcTemplate.update(
-        INSERT_EVENT, "complete", now, "{\"id\":\"d1\"}", 1, now, "d1");
+    insertEvent("create", now, "{\"id\":\"c1\"}", 3, now, "c1");
+    insertEvent("complete", now, "{\"id\":\"d1\"}", 1, now, "d1");
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     String response =
@@ -239,5 +251,51 @@ class OAuth2OutboxIntegrationTest {
         .body(String.class);
 
     assertThat(headers1.getFirst("Authorization")).isEqualTo(headers2.getFirst("Authorization"));
+  }
+
+  private void deleteAllEvents() throws SQLException {
+    try (Connection connection = OutboxDataSource.get().getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ALL_EVENTS)) {
+      connection.setAutoCommit(true);
+      preparedStatement.executeUpdate();
+    }
+  }
+
+  private void insertEvent(
+      String type,
+      Timestamp created,
+      String payload,
+      int remainingRetries,
+      Timestamp blockedUntil,
+      String camundaTaskId)
+      throws SQLException {
+    try (Connection connection = OutboxDataSource.get().getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(INSERT_EVENT)) {
+      connection.setAutoCommit(true);
+      preparedStatement.setString(1, type);
+      preparedStatement.setTimestamp(2, created);
+      preparedStatement.setString(3, payload);
+      preparedStatement.setInt(4, remainingRetries);
+      preparedStatement.setTimestamp(5, blockedUntil);
+      preparedStatement.setString(6, camundaTaskId);
+      preparedStatement.executeUpdate();
+    }
+  }
+
+  private int countEvents(String firstCamundaTaskId, String secondCamundaTaskId)
+      throws SQLException {
+    String sql = "SELECT COUNT(*) FROM kadai_tables.event_store WHERE CAMUNDA_TASK_ID IN (?, ?)";
+
+    try (Connection connection = OutboxDataSource.get().getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      connection.setAutoCommit(true);
+      preparedStatement.setString(1, firstCamundaTaskId);
+      preparedStatement.setString(2, secondCamundaTaskId);
+
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        resultSet.next();
+        return resultSet.getInt(1);
+      }
+    }
   }
 }
