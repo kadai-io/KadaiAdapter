@@ -78,10 +78,10 @@ class TestLockingAndClustering extends AbsIntegrationTest {
 
   private static final String BASIC_OUTBOX_PATH = "http://localhost:10020/outbox-rest/events";
   private static final String INSERT_EVENT =
-      "INSERT INTO kadai_tables.event_store "
+      "INSERT INTO %s.EVENT_STORE "
           + "(TYPE, CREATED, PAYLOAD, REMAINING_RETRIES, BLOCKED_UNTIL, CAMUNDA_TASK_ID, LOCK_EXPIRE) "
           + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-  private static final String DELETE_ALL_EVENTS = "DELETE FROM kadai_tables.event_store";
+  private static final String DELETE_ALL_EVENTS = "DELETE FROM %s.EVENT_STORE";
   @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
   @Autowired KadaiTaskCompletionOrchestrator kadaiTaskTerminator;
   @Autowired private HttpHeaderProvider httpHeaderProvider;
@@ -414,7 +414,10 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     Timestamp blockedUntilTimestamp = Timestamp.from(blockedUntil);
 
     try (Connection connection = OutboxDataSource.get().getConnection();
-        PreparedStatement statement = connection.prepareStatement(INSERT_EVENT)) {
+        PreparedStatement statement =
+            connection.prepareStatement(
+                INSERT_EVENT.formatted(
+                    System.getProperty("kadai.adapter.outbox.schema", "kadai_tables")))) {
       connection.setAutoCommit(true);
       statement.setString(1, type);
       statement.setTimestamp(2, created);
@@ -493,7 +496,10 @@ class TestLockingAndClustering extends AbsIntegrationTest {
 
   private void clearOutbox() throws SQLException {
     try (Connection connection = OutboxDataSource.get().getConnection();
-        PreparedStatement statement = connection.prepareStatement(DELETE_ALL_EVENTS)) {
+        PreparedStatement statement =
+            connection.prepareStatement(
+                DELETE_ALL_EVENTS.formatted(
+                    System.getProperty("kadai.adapter.outbox.schema", "kadai_tables")))) {
       connection.setAutoCommit(true);
       statement.executeUpdate();
     }

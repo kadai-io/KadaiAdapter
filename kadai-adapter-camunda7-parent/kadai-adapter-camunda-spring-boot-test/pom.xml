@@ -15,6 +15,13 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
+  <properties>
+    <version.h2>2.4.240</version.h2>
+    <version.db2>12.1.5.0</version.db2>
+    <version.oracle.jdbc>23.26.2.0.0</version.oracle.jdbc>
+    <version.testcontainers>1.21.4</version.testcontainers>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>io.kadai</groupId>
@@ -81,6 +88,12 @@
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ojdbc11</artifactId>
+      <version>${version.oracle.jdbc}</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- ============================================================================
          Test infrastructure
@@ -110,11 +123,13 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
+      <version>${version.h2}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.ibm.db2</groupId>
       <artifactId>jcc</artifactId>
+      <version>${version.db2}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -146,23 +161,35 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Testcontainers: external Camunda BPM Run + PostgreSQL -->
+    <!-- Testcontainers: external Camunda BPM Run + selected test databases -->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>2.0.5</version>
+      <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>1.21.4</version>
+      <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>1.21.4</version>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>db2</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>oracle-xe</artifactId>
+      <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>
     <!-- LauncherSessionListener (boots the test containers once per Surefire JVM,
@@ -248,6 +275,24 @@
                   <groupId>org.postgresql</groupId>
                   <artifactId>postgresql</artifactId>
                   <version>42.7.13</version>
+                </artifactItem>
+                <!-- DB2 JDBC driver. -->
+                <artifactItem>
+                  <groupId>com.ibm.db2</groupId>
+                  <artifactId>jcc</artifactId>
+                  <version>${version.db2}</version>
+                </artifactItem>
+                <!-- H2 JDBC driver. -->
+                <artifactItem>
+                  <groupId>com.h2database</groupId>
+                  <artifactId>h2</artifactId>
+                  <version>${version.h2}</version>
+                </artifactItem>
+                <!-- Oracle JDBC driver. -->
+                <artifactItem>
+                  <groupId>com.oracle.database.jdbc</groupId>
+                  <artifactId>ojdbc11</artifactId>
+                  <version>${version.oracle.jdbc}</version>
                 </artifactItem>
               </artifactItems>
             </configuration>
