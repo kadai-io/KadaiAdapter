@@ -66,10 +66,51 @@ class Camunda7TaskEventsServiceLockingTest {
   }
 
   @Test
+  void should_ReturnEachEventOnlyOnce_When_LockedReadersRetrieveAllEventsConcurrently()
+      throws Exception {
+    int eventCountPerType = MAX_EVENTS_PER_REQUEST * 4;
+    insertEvents("create", eventCountPerType, 3);
+    insertEvents("complete", eventCountPerType, 3);
+    insertEvents("delete", eventCountPerType, 3);
+
+    List<Integer> retrievedEventIds =
+        retrieveLockedEventIdsConcurrently(12, this::retrieveLockedEventIds);
+
+    assertThat(retrievedEventIds).hasSize(eventCountPerType * 3).doesNotHaveDuplicates();
+  }
+
+  @Test
+  void should_ReturnEachRetryEventOnlyOnce_When_LockedReadersRetrieveRetryEventsConcurrently()
+      throws Exception {
+    int eventCount = MAX_EVENTS_PER_REQUEST * 8;
+    insertEvents("create", eventCount, 2);
+    insertEvents("complete", 3, 1);
+
+    List<Integer> retrievedEventIds =
+        retrieveLockedEventIdsConcurrently(12, () -> retrieveLockedRetryEventIds(2));
+
+    assertThat(retrievedEventIds).hasSize(eventCount).doesNotHaveDuplicates();
+  }
+
+  @Test
+  void should_ReturnEachCompleteAndDeleteEventOnlyOnce_When_LockedReadersRunConcurrently()
+      throws Exception {
+    int eventCountPerType = MAX_EVENTS_PER_REQUEST * 4;
+    insertEvents("create", 3, 3);
+    insertEvents("complete", eventCountPerType, 3);
+    insertEvents("delete", eventCountPerType, 3);
+
+    List<Integer> retrievedEventIds =
+        retrieveLockedEventIdsConcurrently(12, this::retrieveLockedCompleteAndDeleteEventIds);
+
+    assertThat(retrievedEventIds).hasSize(eventCountPerType * 2).doesNotHaveDuplicates();
+  }
+
+  @Test
   void should_FilterByRetries_When_LockedRetryQueryIsUsed()
       throws SQLException, InvalidArgumentException {
-    insertCreateEvents(3, 2);
-    insertCreateEvents(2, 1);
+    insertEvents("create", 3, 2);
+    insertEvents("create", 2, 1);
 
     MultivaluedMap<String, String> requestParams = new MultivaluedHashMap<>();
     requestParams.add("retries", "2");
@@ -82,6 +123,11 @@ class Camunda7TaskEventsServiceLockingTest {
   }
 
   private List<Integer> retrieveLockedCreateEventIdsConcurrently(int readers) throws Exception {
+    return retrieveLockedEventIdsConcurrently(readers, this::retrieveLockedCreateEventIds);
+  }
+
+  private List<Integer> retrieveLockedEventIdsConcurrently(
+      int readers, LockedEventRetriever lockedEventRetriever) throws Exception {
     ExecutorService executorService = Executors.newFixedThreadPool(readers);
     CountDownLatch ready = new CountDownLatch(readers);
     CountDownLatch start = new CountDownLatch(1);
@@ -94,7 +140,7 @@ class Camunda7TaskEventsServiceLockingTest {
                 () -> {
                   ready.countDown();
                   assertThat(start.await(10, TimeUnit.SECONDS)).isTrue();
-                  return retrieveLockedCreateEventIds();
+                  return lockedEventRetriever.retrieve();
                 }));
       }
 
@@ -119,7 +165,36 @@ class Camunda7TaskEventsServiceLockingTest {
     return service.getEvents(requestParams).stream().map(Camunda7TaskEvent::getId).toList();
   }
 
+  private List<Integer> retrieveLockedEventIds() throws InvalidArgumentException {
+    MultivaluedMap<String, String> requestParams = new MultivaluedHashMap<>();
+    requestParams.add("lock-for", "30");
+
+    return service.getEvents(requestParams).stream().map(Camunda7TaskEvent::getId).toList();
+  }
+
+  private List<Integer> retrieveLockedRetryEventIds(int remainingRetries)
+      throws InvalidArgumentException {
+    MultivaluedMap<String, String> requestParams = new MultivaluedHashMap<>();
+    requestParams.add("retries", String.valueOf(remainingRetries));
+    requestParams.add("lock-for", "30");
+
+    return service.getEvents(requestParams).stream().map(Camunda7TaskEvent::getId).toList();
+  }
+
+  private List<Integer> retrieveLockedCompleteAndDeleteEventIds() throws InvalidArgumentException {
+    MultivaluedMap<String, String> requestParams = new MultivaluedHashMap<>();
+    requestParams.add("type", "complete");
+    requestParams.add("type", "delete");
+    requestParams.add("lock-for", "30");
+
+    return service.getEvents(requestParams).stream().map(Camunda7TaskEvent::getId).toList();
+  }
+
   private void insertCreateEvents(int eventCount, int remainingRetries) throws SQLException {
+    insertEvents("create", eventCount, remainingRetries);
+  }
+
+  private void insertEvents(String type, int eventCount, int remainingRetries) throws SQLException {
     String sql =
         "insert into "
             + OUTBOX_SCHEMA
@@ -132,15 +207,20 @@ class Camunda7TaskEventsServiceLockingTest {
       connection.setAutoCommit(true);
       Timestamp availableSince = Timestamp.from(Instant.now().minusSeconds(5));
       for (int i = 0; i < eventCount; i++) {
-        preparedStatement.setString(1, "create");
+        preparedStatement.setString(1, type);
         preparedStatement.setTimestamp(2, availableSince);
         preparedStatement.setString(3, "{}");
         preparedStatement.setInt(4, remainingRetries);
         preparedStatement.setTimestamp(5, availableSince);
-        preparedStatement.setString(6, "task-" + remainingRetries + "-" + i);
+        preparedStatement.setString(6, "task-" + type + "-" + remainingRetries + "-" + i);
         preparedStatement.addBatch();
       }
       preparedStatement.executeBatch();
     }
+  }
+
+  @FunctionalInterface
+  private interface LockedEventRetriever {
+    List<Integer> retrieve() throws InvalidArgumentException;
   }
 }

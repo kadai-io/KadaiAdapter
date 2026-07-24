@@ -43,6 +43,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import javax.security.auth.Subject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -267,6 +272,42 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       user = "teamlead_1",
       groups = {"taskadmin"})
   @Test
+  void should_ReturnEachLockedEventOnlyOnce_When_OutboxRestRequestsRunConcurrently()
+      throws Exception {
+    insertEvents("create", "all-create", 10, 3);
+    insertEvents("complete", "all-complete", 10, 3);
+    insertEvents("delete", "all-delete", 10, 3);
+
+    List<Integer> allEventIds =
+        retrieveLockedEventIdsConcurrently(BASIC_OUTBOX_PATH + "?lock-for=10", 8);
+
+    assertThat(allEventIds).hasSize(30).doesNotHaveDuplicates();
+
+    clearOutbox();
+    insertEvents("create", "retry-matching", 30, 2);
+    insertEvents("complete", "retry-other", 5, 1);
+
+    List<Integer> retryEventIds =
+        retrieveLockedEventIdsConcurrently(BASIC_OUTBOX_PATH + "?retries=2&lock-for=10", 8);
+
+    assertThat(retryEventIds).hasSize(30).doesNotHaveDuplicates();
+
+    clearOutbox();
+    insertEvents("create", "typed-create", 5, 3);
+    insertEvents("complete", "typed-complete", 15, 3);
+    insertEvents("delete", "typed-delete", 15, 3);
+
+    List<Integer> completeAndDeleteEventIds =
+        retrieveLockedEventIdsConcurrently(
+            BASIC_OUTBOX_PATH + "?type=complete&type=delete&lock-for=10", 8);
+
+    assertThat(completeAndDeleteEventIds).hasSize(30).doesNotHaveDuplicates();
+  }
+
+  @WithAccessId(
+      user = "teamlead_1",
+      groups = {"taskadmin"})
+  @Test
   void should_RejectUnknownFilterParameters() {
     assertThatThrownBy(() -> executeGet(BASIC_OUTBOX_PATH + "?unexpected=value"))
         .isInstanceOfSatisfying(
@@ -381,6 +422,47 @@ class TestLockingAndClustering extends AbsIntegrationTest {
       statement.executeUpdate();
     } catch (SQLException e) {
       throw new IllegalStateException("Failed to insert outbox test event", e);
+    }
+  }
+
+  private void insertEvents(String type, String camundaTaskIdPrefix, int count, int retries) {
+    for (int i = 0; i < count; i++) {
+      insertEvent(type, camundaTaskIdPrefix + "-" + i, retries, Instant.now().minusSeconds(60));
+    }
+  }
+
+  private List<Integer> retrieveLockedEventIdsConcurrently(String url, int readers)
+      throws Exception {
+    ExecutorService executorService = Executors.newFixedThreadPool(readers);
+    CountDownLatch ready = new CountDownLatch(readers);
+    CountDownLatch start = new CountDownLatch(1);
+    List<Future<List<Integer>>> futures = new ArrayList<>();
+
+    try {
+      for (int i = 0; i < readers; i++) {
+        futures.add(
+            executorService.submit(
+                () -> {
+                  ready.countDown();
+                  assertThat(start.await(10, TimeUnit.SECONDS)).isTrue();
+                  Camunda7TaskEventListResource answer = getEventListResource(url);
+                  assertThat(answer).isNotNull();
+                  return answer.getCamunda7TaskEvents().stream()
+                      .map(Camunda7TaskEvent::getId)
+                      .toList();
+                }));
+      }
+
+      assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+      start.countDown();
+
+      List<Integer> eventIds = new ArrayList<>();
+      for (Future<List<Integer>> future : futures) {
+        eventIds.addAll(future.get(10, TimeUnit.SECONDS));
+      }
+      return eventIds;
+    } finally {
+      executorService.shutdownNow();
     }
   }
 
