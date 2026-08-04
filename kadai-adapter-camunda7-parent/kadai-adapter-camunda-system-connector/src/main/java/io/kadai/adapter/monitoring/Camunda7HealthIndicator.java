@@ -43,7 +43,7 @@ public class Camunda7HealthIndicator implements HealthIndicator {
       if (engines == null || engines.length == 0) {
         return Health.down()
             .withDetail("camundaEngineError", "No engines found")
-            .withDetail(BASE_URL, camunda7System.getSystemRestUrl())
+            .withDetail(BASE_URL, url)
             .build();
       }
       if (expectedEngineName != null && !containsEngine(engines, expectedEngineName)) {
