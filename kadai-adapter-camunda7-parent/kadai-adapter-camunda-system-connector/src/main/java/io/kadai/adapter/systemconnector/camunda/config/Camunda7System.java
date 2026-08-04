@@ -10,6 +10,15 @@ public class Camunda7System {
   private String systemTaskEventUrl;
   private String camunda7EngineIdentifier;
 
+  public Camunda7System() {}
+
+  public Camunda7System(
+      String systemRestUrl, String systemTaskEventUrl, String camunda7EngineIdentifier) {
+    this.systemRestUrl = systemRestUrl;
+    this.systemTaskEventUrl = systemTaskEventUrl;
+    this.camunda7EngineIdentifier = camunda7EngineIdentifier;
+  }
+
   public String getSystemRestUrl() {
     return systemRestUrl;
   }

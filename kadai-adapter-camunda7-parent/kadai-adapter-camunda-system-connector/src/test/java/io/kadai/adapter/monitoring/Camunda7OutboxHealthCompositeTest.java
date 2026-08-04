@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 
 import io.kadai.adapter.configuration.health.CompositeHealthContributorConfigurationProperties;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
+import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,7 +22,8 @@ class Camunda7OutboxHealthCompositeTest {
     final Camunda7OutboxHealthComposite camundaOutboxHealthComposite =
         new Camunda7OutboxHealthComposite(
             mock(),
-            "http://localhost:10020/engine-rest",
+            new Camunda7System(
+                "http://localhost:10020/engine-rest", "http://localhost:10020/outbox-rest", null),
             "http://localhost:10020/outbox-rest",
             properties,
             mock(HttpHeaderProvider.class));
@@ -37,7 +39,8 @@ class Camunda7OutboxHealthCompositeTest {
     final Camunda7OutboxHealthComposite camundaOutboxHealthComposite =
         new Camunda7OutboxHealthComposite(
             mock(),
-            "http://localhost:10020/engine-rest",
+            new Camunda7System(
+                "http://localhost:10020/engine-rest", "http://localhost:10020/outbox-rest", null),
             "http://localhost:10020/outbox-rest",
             new Camunda7HealthConfigurationProperties(),
             mock(HttpHeaderProvider.class));

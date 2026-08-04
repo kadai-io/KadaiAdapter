@@ -28,7 +28,7 @@ public class Camunda7SystemsHealthComposite implements CompositeHealthContributo
             "camundaSystem" + ++i,
             new Camunda7OutboxHealthComposite(
                 restClient,
-                camunda7System.getSystemRestUrl(),
+                camunda7System,
                 camunda7System.getSystemTaskEventUrl(),
                 properties,
                 httpHeaderProvider));
