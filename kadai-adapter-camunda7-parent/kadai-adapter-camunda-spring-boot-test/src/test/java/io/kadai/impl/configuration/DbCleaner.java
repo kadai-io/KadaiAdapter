@@ -67,6 +67,7 @@ public class DbCleaner {
           try (Statement stmt = conn.createStatement()) {
             LOGGER.debug("Executing: {}", trimmed);
             stmt.executeUpdate(trimmed);
+            conn.releaseSavepoint(savepoint);
           } catch (SQLException e) {
             if (isMissingTableError(e)) {
               conn.rollback(savepoint);
