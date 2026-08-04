@@ -27,7 +27,8 @@ import org.springframework.web.client.RestClient;
       "kadai-adapter.plugin.camunda7.systems[0].system-rest-url="
           + "${camunda7.testcontainers.rest-url}/engine/default",
       "kadai-adapter.plugin.camunda7.systems[0].system-task-event-url="
-          + "${camunda7.testcontainers.outbox-url}"
+          + "${camunda7.testcontainers.outbox-url}",
+      "kadai-adapter.plugin.camunda7.systems[0].camunda7-engine-identifier=default"
     })
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
@@ -61,7 +62,7 @@ class Camunda7EngineScopedHealthIntegrationTest {
     ResponseEntity<Map> response =
         restClient
             .get()
-            .uri("/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1/camunda")
+            .uri("/actuator/health/kadaiAdapter/plugin/camunda7/default/camunda")
             .retrieve()
             .toEntity(Map.class);
     Map<String, Object> body = response.getBody();

@@ -40,9 +40,9 @@ class KadaiAdapterHealthTest extends AbsIntegrationTest {
   @ValueSource(
       strings = {
         "/actuator/health/kadaiAdapter/plugin/camunda7",
-        "/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1",
-        "/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1/camunda",
-        "/actuator/health/kadaiAdapter/plugin/camunda7/camundaSystem1/outbox"
+        "/actuator/health/kadaiAdapter/plugin/camunda7/default",
+        "/actuator/health/kadaiAdapter/plugin/camunda7/default/camunda",
+        "/actuator/health/kadaiAdapter/plugin/camunda7/default/outbox"
       })
   void should_ReturnUp_ForCamunda7HealthContributors(String uri) {
     ResponseEntity<Map> response = restClient.get().uri(uri).retrieve().toEntity(Map.class);
