@@ -19,63 +19,62 @@ package io.kadai.adapter.test.configuration;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.stream.Stream;
+import org.h2.tools.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.Testcontainers;
+import org.testcontainers.containers.Db2Container;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.Transferable;
+import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * Boots a singleton PostgreSQL and Camunda BPM Run container pair used by every integration test.
+ * Boots singleton database and Camunda BPM Run containers used by every integration test.
  *
- * <p>The {@link #initialize()} method is invoked from a static initializer of {@code
- * AbsIntegrationTest} so it runs once per Surefire JVM, before Spring loads.
- *
- * <p>Topology:
- *
- * <pre>
- *   ┌──────────── Docker Network ────────────┐
- *   │                                        │
- *   │  ┌────────────────┐  ┌──────────────┐  │
- *   │  │  PostgreSQL    │  │  Camunda     │  │
- *   │  │  alias=db      │◄─┤  BPM Run     │  │
- *   │  │  port 5432     │  │  port 8080   │  │
- *   │  └─────▲──────────┘  └──────────────┘  │
- *   │        │                               │
- *   └────────┼───────────────────────────────┘
- *            │ mapped on host
- *   ┌────────┴────────────────────────────────┐
- *   │   Test JVM                              │
- *   │   - kadai-adapter  (calls engine-rest)  │
- *   │   - outbox REST (Jersey on port 10020)  │
- *   └─────────────────────────────────────────┘
- * </pre>
+ * <p>The database is selected via the {@code DB} environment variable. Supported values are {@code
+ * H2}, {@code POSTGRES}, {@code ORACLE}, and {@code DB2}. Missing or unsupported values fall back
+ * to {@code H2}.
  *
  * <p>The Camunda BPM Run container executes BPM processes and, via the {@link
  * io.kadai.adapter.camunda.parselistener.KadaiParseListenerProcessEnginePlugin} dropped into its
- * userlib, writes outbox events to the shared PostgreSQL database. The test JVM acts as the REST
- * consumer: it reads those events directly through a Jersey JAX-RS server at {@code
+ * userlib, writes outbox events to the selected database. The test JVM acts as the REST consumer:
+ * it reads those events directly through a Jersey JAX-RS server at {@code
  * http://localhost:10020/outbox-rest} (served by OutboxRestJerseyConfig).
  */
 public final class Camunda7TestcontainersConfiguration {
 
   public static final String POSTGRES_IMAGE = "postgres:16-alpine";
-  public static final String CAMUNDA_IMAGE = "camunda/camunda-bpm-platform:run-7.23.0";
+  public static final String DB2_IMAGE = "ibmcom/db2:11.5.0.0a";
+  public static final String ORACLE_IMAGE = "gvenzl/oracle-xe:21-slim-faststart";
+  public static final String CAMUNDA_IMAGE = "camunda/camunda-bpm-platform:run-7.24.0";
   public static final String DB_ALIAS = "db";
   public static final String DB_NAME = "camunda";
-  public static final String DB_USER = "camunda";
-  public static final String DB_PASS = "camunda";
-  public static final String OUTBOX_SCHEMA = "kadai_tables";
+  public static final String POSTGRES_USER = "camunda";
+  public static final String POSTGRES_PASS = "camunda";
+  public static final String DB2_USER = "db2inst1";
+  public static final String DB2_PASS = "camundaPwd1";
+  public static final String ORACLE_USER = "camunda";
+  public static final String ORACLE_PASS = "camundaPwd1";
+  public static final String DEFAULT_OUTBOX_SCHEMA = "kadai_tables";
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(Camunda7TestcontainersConfiguration.class);
@@ -87,7 +86,8 @@ public final class Camunda7TestcontainersConfiguration {
   private static volatile boolean initialised = false;
 
   private static Network network;
-  private static PostgreSQLContainer<?> postgres;
+  private static Server h2Server;
+  private static JdbcDatabaseContainer<?> databaseContainer;
   private static GenericContainer<?> camunda;
 
   private Camunda7TestcontainersConfiguration() {
@@ -102,34 +102,34 @@ public final class Camunda7TestcontainersConfiguration {
     if (initialised) {
       return;
     }
-    LOGGER.info("Starting Camunda BPM Run + PostgreSQL test containers");
+
+    TargetDatabase database = TargetDatabase.fromEnvironment();
+    LOGGER.info("Starting Camunda BPM Run test infrastructure with {} database", database);
 
     network = Network.newNetwork();
 
-    postgres =
-        new PostgreSQLContainer<>(POSTGRES_IMAGE)
-            .withNetwork(network)
-            .withNetworkAliases(DB_ALIAS)
-            .withDatabaseName(DB_NAME)
-            .withUsername(DB_USER)
-            .withPassword(DB_PASS);
-    postgres.start();
+    JdbcCoordinates jdbc = startDatabase(database);
 
     // Properties file used by the listener inside the Camunda container. The listener
     // looks at -Dkadai.outbox.properties first, falling back to the bundled classpath
-    // resource. We give it the in-network Postgres URL.
+    // resource. We give it the container/network-side JDBC URL.
     String outboxPropsForContainer =
-        toPropertiesString("jdbc:postgresql://" + DB_ALIAS + ":5432/" + DB_NAME, DB_USER, DB_PASS);
+        toPropertiesString(
+            jdbc.containerJdbcUrl(),
+            jdbc.driverClassName(),
+            jdbc.username(),
+            jdbc.password(),
+            jdbc.outboxSchema());
 
     camunda =
         new GenericContainer<>(CAMUNDA_IMAGE)
             .withNetwork(network)
             .withExposedPorts(8080)
-            .withEnv("SPRING_DATASOURCE_URL", "jdbc:postgresql://" + DB_ALIAS + ":5432/" + DB_NAME)
-            .withEnv("SPRING_DATASOURCE_USERNAME", DB_USER)
-            .withEnv("SPRING_DATASOURCE_PASSWORD", DB_PASS)
-            .withEnv("SPRING_DATASOURCE_DRIVER_CLASS_NAME", "org.postgresql.Driver")
-            .withEnv("CAMUNDA_BPM_DATABASE_TYPE", "postgres")
+            .withEnv("SPRING_DATASOURCE_URL", jdbc.containerJdbcUrl())
+            .withEnv("SPRING_DATASOURCE_USERNAME", jdbc.username())
+            .withEnv("SPRING_DATASOURCE_PASSWORD", jdbc.password())
+            .withEnv("SPRING_DATASOURCE_DRIVER_CLASS_NAME", jdbc.driverClassName())
+            .withEnv("CAMUNDA_BPM_DATABASE_TYPE", database.camundaDatabaseType)
             // Disable the built-in invoice example: its @PostDeploy hook starts invoice process
             // instances whose user tasks have no Kadai extension properties, which causes
             // KadaiTaskListener to throw and crash the container on startup.
@@ -139,12 +139,12 @@ public final class Camunda7TestcontainersConfiguration {
                 "JAVA_OPTS",
                 "-Dkadai.outbox.properties=/camunda/configuration/kadai-outbox.properties")
             .withCopyToContainer(
-                Transferable.of(outboxPropsForContainer.getBytes()),
+                Transferable.of(outboxPropsForContainer.getBytes(StandardCharsets.UTF_8)),
                 "/camunda/configuration/kadai-outbox.properties")
             .waitingFor(
                 Wait.forHttp("/engine-rest/engine")
                     .forStatusCode(200)
-                    .withStartupTimeout(Duration.ofMinutes(3)));
+                    .withStartupTimeout(Duration.ofMinutes(5)));
 
     mountUserlib(camunda);
     mountProcesses(camunda);
@@ -154,8 +154,11 @@ public final class Camunda7TestcontainersConfiguration {
         new Slf4jLogConsumer(org.slf4j.LoggerFactory.getLogger("CAMUNDA-CONTAINER"))
             .withSeparateOutputStreams());
 
-    camunda.dependsOn(postgres);
+    if (databaseContainer != null) {
+      camunda.dependsOn(databaseContainer);
+    }
     camunda.start();
+    adjustCamundaSchema(database, jdbc);
 
     String camundaHost = camunda.getHost();
     Integer camundaPort = camunda.getMappedPort(8080);
@@ -165,31 +168,30 @@ public final class Camunda7TestcontainersConfiguration {
     // NOT by the Camunda container. The adapter calls http://localhost:10020/outbox-rest.
     String outboxUrl = "http://localhost:10020/outbox-rest";
 
-    String hostJdbcUrl =
-        "jdbc:postgresql://"
-            + postgres.getHost()
-            + ":"
-            + postgres.getMappedPort(5432)
-            + "/"
-            + DB_NAME;
-
     // Make a host-side outbox properties file for the test JVM (used by OutboxRestConfiguration
     // and by Camunda7ListenerConfiguration if either is touched in this JVM).
-    Path hostOutboxProps = writeHostOutboxProperties(hostJdbcUrl);
+    Path hostOutboxProps =
+        writeHostOutboxProperties(
+            jdbc.hostJdbcUrl(),
+            jdbc.driverClassName(),
+            jdbc.username(),
+            jdbc.password(),
+            jdbc.outboxSchema());
     System.setProperty("kadai.outbox.properties", hostOutboxProps.toString());
 
     // Spring datasource for the camundaBpmDataSource bean (used by DbCleaner).
-    System.setProperty("camunda.datasource.jdbcUrl", hostJdbcUrl);
-    System.setProperty("camunda.datasource.url", hostJdbcUrl);
-    System.setProperty("camunda.datasource.username", DB_USER);
-    System.setProperty("camunda.datasource.password", DB_PASS);
-    System.setProperty("camunda.datasource.driverClassName", "org.postgresql.Driver");
+    System.setProperty("camunda.datasource.jdbcUrl", jdbc.hostJdbcUrl());
+    System.setProperty("camunda.datasource.url", jdbc.hostJdbcUrl());
+    System.setProperty("camunda.datasource.username", jdbc.username());
+    System.setProperty("camunda.datasource.password", jdbc.password());
+    System.setProperty("camunda.datasource.driverClassName", jdbc.driverClassName());
 
     // Spring datasource for the kadai-adapter outbox properties (test JVM perspective).
-    System.setProperty("kadai.adapter.outbox.datasource.driver", "org.postgresql.Driver");
-    System.setProperty("kadai.adapter.outbox.datasource.url", hostJdbcUrl);
-    System.setProperty("kadai.adapter.outbox.datasource.username", DB_USER);
-    System.setProperty("kadai.adapter.outbox.datasource.password", DB_PASS);
+    System.setProperty("kadai.adapter.outbox.schema", jdbc.outboxSchema());
+    System.setProperty("kadai.adapter.outbox.datasource.driver", jdbc.driverClassName());
+    System.setProperty("kadai.adapter.outbox.datasource.url", jdbc.hostJdbcUrl());
+    System.setProperty("kadai.adapter.outbox.datasource.username", jdbc.username());
+    System.setProperty("kadai.adapter.outbox.datasource.password", jdbc.password());
 
     // Camunda REST URL consumed by the kadai-adapter Camunda 7 plugin.
     System.setProperty("kadai-adapter.plugin.camunda7.systems[0].system-rest-url", camundaRestUrl);
@@ -198,9 +200,138 @@ public final class Camunda7TestcontainersConfiguration {
 
     LOGGER.info("Camunda REST URL: {}", camundaRestUrl);
     LOGGER.info("Outbox REST URL (test JVM): {}", outboxUrl);
-    LOGGER.info("Postgres JDBC URL (host): {}", hostJdbcUrl);
+    LOGGER.info("{} JDBC URL (host): {}", database, jdbc.hostJdbcUrl());
 
     initialised = true;
+  }
+
+  public static synchronized void shutdown() {
+    if (camunda != null) {
+      camunda.stop();
+      camunda = null;
+    }
+    if (databaseContainer != null) {
+      databaseContainer.stop();
+      databaseContainer = null;
+    }
+    if (h2Server != null) {
+      h2Server.stop();
+      h2Server = null;
+    }
+    if (network != null) {
+      network.close();
+      network = null;
+    }
+    initialised = false;
+  }
+
+  private static void adjustCamundaSchema(TargetDatabase database, JdbcCoordinates jdbc) {
+    if (database != TargetDatabase.DB2) {
+      return;
+    }
+
+    // outbox schema script runs before Camunda creates ACT_GE_BYTEARRAY
+    // default is too small for the large variable test
+    String sql = "ALTER TABLE ACT_GE_BYTEARRAY ALTER COLUMN BYTES_ SET DATA TYPE BLOB(10M)";
+    try (Connection connection =
+            DriverManager.getConnection(jdbc.hostJdbcUrl(), jdbc.username(), jdbc.password());
+        Statement statement = connection.createStatement()) {
+      statement.execute(sql);
+      LOGGER.info("Adjusted DB2 Camunda byte-array column for large variable tests");
+    } catch (SQLException e) {
+      throw new RuntimeException("Failed to adjust DB2 Camunda schema", e);
+    }
+  }
+
+  private static JdbcCoordinates startDatabase(TargetDatabase database) {
+    return switch (database) {
+      case H2 -> startH2();
+      case POSTGRES -> startPostgres();
+      case DB2 -> startDb2();
+      case ORACLE -> startOracle();
+    };
+  }
+
+  private static JdbcCoordinates startH2() {
+    try {
+      h2Server =
+          Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "0", "-ifNotExists")
+              .start();
+    } catch (SQLException e) {
+      throw new IllegalStateException("Failed to start H2 TCP server", e);
+    }
+
+    int h2Port = h2Server.getPort();
+    Testcontainers.exposeHostPorts(h2Port);
+
+    String jdbcOptions = ";NON_KEYWORDS=KEY,VALUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE";
+    return new JdbcCoordinates(
+        "jdbc:h2:tcp://host.testcontainers.internal:" + h2Port + "/mem:" + DB_NAME + jdbcOptions,
+        "jdbc:h2:tcp://localhost:" + h2Port + "/mem:" + DB_NAME + jdbcOptions,
+        "org.h2.Driver",
+        "sa",
+        "sa",
+        DEFAULT_OUTBOX_SCHEMA);
+  }
+
+  private static JdbcCoordinates startPostgres() {
+    PostgreSQLContainer<?> postgres =
+        new PostgreSQLContainer<>(POSTGRES_IMAGE)
+            .withNetwork(network)
+            .withNetworkAliases(DB_ALIAS)
+            .withDatabaseName(DB_NAME)
+            .withUsername(POSTGRES_USER)
+            .withPassword(POSTGRES_PASS);
+    postgres.start();
+    databaseContainer = postgres;
+
+    return new JdbcCoordinates(
+        "jdbc:postgresql://" + DB_ALIAS + ":5432/" + DB_NAME,
+        postgres.getJdbcUrl(),
+        "org.postgresql.Driver",
+        POSTGRES_USER,
+        POSTGRES_PASS,
+        DEFAULT_OUTBOX_SCHEMA);
+  }
+
+  private static JdbcCoordinates startDb2() {
+    Db2Container db2 =
+        new Db2Container(DockerImageName.parse(DB2_IMAGE))
+            .acceptLicense()
+            .withNetwork(network)
+            .withNetworkAliases(DB_ALIAS)
+            .withDatabaseName(DB_NAME)
+            .withUsername(DB2_USER)
+            .withPassword(DB2_PASS);
+    db2.start();
+    databaseContainer = db2;
+
+    return new JdbcCoordinates(
+        "jdbc:db2://" + DB_ALIAS + ":50000/" + db2.getDatabaseName(),
+        db2.getJdbcUrl(),
+        db2.getDriverClassName(),
+        db2.getUsername(),
+        db2.getPassword(),
+        db2.getUsername().toUpperCase(Locale.ROOT));
+  }
+
+  private static JdbcCoordinates startOracle() {
+    OracleContainer oracle =
+        new OracleContainer(DockerImageName.parse(ORACLE_IMAGE))
+            .withNetwork(network)
+            .withNetworkAliases(DB_ALIAS)
+            .withUsername(ORACLE_USER)
+            .withPassword(ORACLE_PASS);
+    oracle.start();
+    databaseContainer = oracle;
+
+    return new JdbcCoordinates(
+        "jdbc:oracle:thin:@" + DB_ALIAS + ":1521/" + oracle.getDatabaseName(),
+        oracle.getJdbcUrl(),
+        oracle.getDriverClassName(),
+        oracle.getUsername(),
+        oracle.getPassword(),
+        oracle.getUsername().toUpperCase(Locale.ROOT));
   }
 
   private static void mountUserlib(GenericContainer<?> container) {
@@ -243,13 +374,14 @@ public final class Camunda7TestcontainersConfiguration {
     }
   }
 
-  private static Path writeHostOutboxProperties(String jdbcUrl) {
+  private static Path writeHostOutboxProperties(
+      String jdbcUrl, String driverClassName, String user, String pass, String outboxSchema) {
     Path file = Paths.get("target", "kadai-outbox-host.properties").toAbsolutePath();
-    String contents = toPropertiesString(jdbcUrl, DB_USER, DB_PASS);
+    String contents = toPropertiesString(jdbcUrl, driverClassName, user, pass, outboxSchema);
     try {
       Files.createDirectories(file.getParent());
       try (OutputStream out = Files.newOutputStream(file)) {
-        out.write(contents.getBytes());
+        out.write(contents.getBytes(StandardCharsets.UTF_8));
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to write " + file, e);
@@ -257,14 +389,15 @@ public final class Camunda7TestcontainersConfiguration {
     return file;
   }
 
-  private static String toPropertiesString(String jdbcUrl, String user, String pass) {
+  private static String toPropertiesString(
+      String jdbcUrl, String driverClassName, String user, String pass, String outboxSchema) {
     Properties p = new Properties();
-    p.setProperty("kadai.adapter.outbox.schema", OUTBOX_SCHEMA);
+    p.setProperty("kadai.adapter.outbox.schema", outboxSchema);
     p.setProperty("kadai.adapter.outbox.max.number.of.events", "57");
     p.setProperty("kadai.adapter.create_outbox_schema", "true");
     p.setProperty("kadai.adapter.outbox.initial.number.of.task.creation.retries", "3");
     p.setProperty("kadai.adapter.outbox.duration.between.task.creation.retries", "PT1S");
-    p.setProperty("kadai.adapter.outbox.datasource.driver", "org.postgresql.Driver");
+    p.setProperty("kadai.adapter.outbox.datasource.driver", driverClassName);
     p.setProperty("kadai.adapter.outbox.datasource.url", jdbcUrl);
     p.setProperty("kadai.adapter.outbox.datasource.username", user);
     p.setProperty("kadai.adapter.outbox.datasource.password", pass);
@@ -272,4 +405,38 @@ public final class Camunda7TestcontainersConfiguration {
     p.forEach((k, v) -> sb.append(k).append('=').append(v).append('\n'));
     return sb.toString();
   }
+
+  private enum TargetDatabase {
+    H2("h2"),
+    POSTGRES("postgres"),
+    DB2("db2"),
+    ORACLE("oracle");
+
+    private final String camundaDatabaseType;
+
+    TargetDatabase(String camundaDatabaseType) {
+      this.camundaDatabaseType = camundaDatabaseType;
+    }
+
+    private static TargetDatabase fromEnvironment() {
+      String value = System.getenv("DB");
+      if (value == null || value.isBlank()) {
+        return H2;
+      }
+      try {
+        return TargetDatabase.valueOf(value.trim().toUpperCase(Locale.ROOT));
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Unsupported DB value '{}'; falling back to H2", value);
+        return H2;
+      }
+    }
+  }
+
+  private record JdbcCoordinates(
+      String containerJdbcUrl,
+      String hostJdbcUrl,
+      String driverClassName,
+      String username,
+      String password,
+      String outboxSchema) {}
 }
