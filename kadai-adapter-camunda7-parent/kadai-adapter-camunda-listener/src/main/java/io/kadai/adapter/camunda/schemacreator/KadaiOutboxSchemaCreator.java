@@ -75,12 +75,13 @@ public class KadaiOutboxSchemaCreator {
       runner.setLogWriter(logWriter);
       runner.setErrorLogWriter(errorLogWriter);
       final String databaseProductName = connection.getMetaData().getDatabaseProductName();
+      final String camundaSchemaName = connection.getSchema();
       BufferedReader reader =
           new BufferedReader(
               new InputStreamReader(
                   this.getClass()
                       .getResourceAsStream(selectDbScriptFileName(databaseProductName))));
-      runner.runScript(getSqlSchemaNameParsed(reader, databaseProductName));
+      runner.runScript(getSqlSchemaNameParsed(reader, databaseProductName, camundaSchemaName));
 
     } catch (Exception ex) {
       return false;
@@ -186,17 +187,27 @@ public class KadaiOutboxSchemaCreator {
     }
   }
 
-  private StringReader getSqlSchemaNameParsed(BufferedReader reader, String dbProductName) {
+  private StringReader getSqlSchemaNameParsed(
+      BufferedReader reader, String dbProductName, String camundaSchemaName) {
     boolean isPostGres = POSTGRESQL.equals(dbProductName);
     StringBuilder content = new StringBuilder();
     String effectiveSchemaName = isPostGres ? schemaName.toLowerCase() : schemaName.toUpperCase();
+    String effectiveCamundaSchemaName =
+        isPostGres
+            ? normalizeSchemaName(camundaSchemaName, schemaName).toLowerCase()
+            : normalizeSchemaName(camundaSchemaName, schemaName).toUpperCase();
     try {
       String line = "";
       while (line != null) {
         line = reader.readLine();
         if (line != null) {
+          if (isSelfGrantLine(line, effectiveSchemaName, effectiveCamundaSchemaName)) {
+            continue;
+          }
           content
-              .append(line.replace("%schemaName%", effectiveSchemaName))
+              .append(
+                  line.replace("%schemaName%", effectiveSchemaName)
+                      .replace("%camundaSchemaName%", effectiveCamundaSchemaName))
               .append(System.lineSeparator());
         }
       }
@@ -207,5 +218,18 @@ public class KadaiOutboxSchemaCreator {
           e);
     }
     return new StringReader(content.toString());
+  }
+
+  private static boolean isSelfGrantLine(
+      String line, String effectiveSchemaName, String effectiveCamundaSchemaName) {
+    return effectiveSchemaName.equals(effectiveCamundaSchemaName)
+        && line.trim().startsWith("GRANT ")
+        && line.contains("%camundaSchemaName%");
+  }
+
+  private static String normalizeSchemaName(String camundaSchemaName, String fallbackSchemaName) {
+    return camundaSchemaName == null || camundaSchemaName.isBlank()
+        ? fallbackSchemaName
+        : camundaSchemaName;
   }
 }
