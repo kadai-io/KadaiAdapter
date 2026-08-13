@@ -71,7 +71,6 @@ class GlobalUserTaskListenerAccTest {
   }
 
   @Test
-  @SuppressWarnings("unused")
   @WithAccessId(user = "admin")
   @TestDeployment(resources = "processes/globalUserTaskListenersProcess.bpmn")
   void should_CreateKadaiTask_When_CreatingListenerIsConfiguredGlobally() throws Exception {
@@ -83,7 +82,6 @@ class GlobalUserTaskListenerAccTest {
   }
 
   @Test
-  @SuppressWarnings("unused")
   @WithAccessId(user = "admin")
   @TestDeployment(resources = "processes/globalUserTaskListenersProcess.bpmn")
   void should_CompleteKadaiTask_When_CompletingListenerIsConfiguredGlobally() throws Exception {
@@ -96,7 +94,6 @@ class GlobalUserTaskListenerAccTest {
   }
 
   @Test
-  @SuppressWarnings("unused")
   @WithAccessId(user = "admin")
   @TestDeployment(resources = "processes/globalUserTaskListenersProcess.bpmn")
   void should_CancelKadaiTask_When_CancelingListenerIsConfiguredGlobally() throws Exception {
