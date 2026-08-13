@@ -36,7 +36,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith({SpringExtension.class, JaasExtension.class})
 @SpringBootTest(
     classes = KadaiAdapterTestApplication.class,
-    webEnvironment = WebEnvironment.RANDOM_PORT)
+    webEnvironment = WebEnvironment.RANDOM_PORT,
+    properties = {"kadai-adapter.plugin.camunda8.claiming.enabled=true"})
 @ContextConfiguration(classes = KadaiAdapterSpringBootTestConfiguration.class)
 @Import({CamundaProcessTestAutoConfiguration.class})
 @TestExecutionListeners(

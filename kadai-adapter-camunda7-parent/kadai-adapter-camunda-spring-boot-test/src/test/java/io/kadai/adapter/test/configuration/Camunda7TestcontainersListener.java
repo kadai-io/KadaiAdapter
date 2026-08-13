@@ -38,7 +38,6 @@ public class Camunda7TestcontainersListener implements LauncherSessionListener {
 
   @Override
   public void launcherSessionClosed(LauncherSession session) {
-    // Containers stay up for the lifetime of the JVM — Testcontainers' Ryuk reaper
-    // shuts them down when the JVM exits.
+    Camunda7TestcontainersConfiguration.shutdown();
   }
 }
