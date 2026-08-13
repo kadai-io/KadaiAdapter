@@ -86,16 +86,11 @@ class GlobalUserTaskListenerAccTest {
     Task taskToCancel =
         createKadaiTaskViaGlobalUserTaskCreationListener(cancellationCorrelationKey);
 
-    // cancelKadaiTaskViaGlobalUserTaskCancellationListener(taskToCancel,
-    // cancellationCorrelationKey);
+    cancelKadaiTaskViaGlobalUserTaskCancellationListener(taskToCancel, cancellationCorrelationKey);
 
     assertSuccessfulRun(userTaskCreation);
     assertSuccessfulRun(userTaskCompletion);
-    // Camunda 8.9 currently has a known defect:
-    // https://github.com/camunda/camunda/issues/51630
-    // Global canceling listeners are not triggered unless a model-level canceling listener also
-    // exists (which unfortunately attempts to cancel twice).
-    // assertSuccessfulRun(userTaskCancellation);
+    assertSuccessfulRun(userTaskCancellation);
   }
 
   private void createGlobalUserTaskListener(
@@ -167,12 +162,13 @@ class GlobalUserTaskListenerAccTest {
         .send()
         .join();
 
-    // camunda8TestUtil.waitUntil(
-    //    () -> kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState()
-    //        == TaskState.CANCELLED);
+    camunda8TestUtil.waitUntil(
+        () ->
+            kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState()
+                == TaskState.CANCELLED);
 
-    // Task cancelledTask = getKadaiTask(kadaiTask.getId());
-    // assertThat(cancelledTask.getState()).isEqualTo(TaskState.CANCELLED);
+    Task cancelledTask = getKadaiTask(kadaiTask.getId());
+    assertThat(cancelledTask.getState()).isEqualTo(TaskState.CANCELLED);
   }
 
   private String randomCorrelationKey() {
