@@ -74,23 +74,45 @@ class GlobalUserTaskListenerAccTest {
   @SuppressWarnings("unused")
   @WithAccessId(user = "admin")
   @TestDeployment(resources = "processes/globalUserTaskListenersProcess.bpmn")
-  void should_CreateCompleteAndCancelKadaiTask_When_ListenersAreConfiguredGlobally()
-      throws Exception {
-    kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
-    kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
+  void should_CreateKadaiTask_When_CreatingListenerIsConfiguredGlobally() throws Exception {
+    createWorkbasketAndClassification();
+
+    createKadaiTaskViaGlobalUserTaskCreationListener(randomCorrelationKey());
+
+    assertSuccessfulRun(userTaskCreation);
+  }
+
+  @Test
+  @SuppressWarnings("unused")
+  @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/globalUserTaskListenersProcess.bpmn")
+  void should_CompleteKadaiTask_When_CompletingListenerIsConfiguredGlobally() throws Exception {
+    createWorkbasketAndClassification();
 
     Task taskToComplete = createKadaiTaskViaGlobalUserTaskCreationListener(randomCorrelationKey());
     completeKadaiTaskViaGlobalUserTaskCompletionListener(taskToComplete);
 
+    assertSuccessfulRun(userTaskCompletion);
+  }
+
+  @Test
+  @SuppressWarnings("unused")
+  @WithAccessId(user = "admin")
+  @TestDeployment(resources = "processes/globalUserTaskListenersProcess.bpmn")
+  void should_CancelKadaiTask_When_CancelingListenerIsConfiguredGlobally() throws Exception {
+    createWorkbasketAndClassification();
+
     String cancellationCorrelationKey = randomCorrelationKey();
     Task taskToCancel =
         createKadaiTaskViaGlobalUserTaskCreationListener(cancellationCorrelationKey);
-
     cancelKadaiTaskViaGlobalUserTaskCancellationListener(taskToCancel, cancellationCorrelationKey);
 
-    assertSuccessfulRun(userTaskCreation);
-    assertSuccessfulRun(userTaskCompletion);
     assertSuccessfulRun(userTaskCancellation);
+  }
+
+  private void createWorkbasketAndClassification() throws Exception {
+    kadaiAdapterTestUtil.createWorkbasket("GPK_KSC", "DOMAIN_A");
+    kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
   }
 
   private void createGlobalUserTaskListener(
@@ -151,7 +173,6 @@ class GlobalUserTaskListenerAccTest {
     assertThat(completedTask.getState()).isEqualTo(TaskState.COMPLETED);
   }
 
-  @SuppressWarnings("unused")
   private void cancelKadaiTaskViaGlobalUserTaskCancellationListener(
       Task kadaiTask, String correlationKey) {
     client
@@ -178,7 +199,7 @@ class GlobalUserTaskListenerAccTest {
   private Task getOnlyKadaiTaskByProcessInstance(long processInstanceKey) {
     List<Task> tasks = getKadaiTasksByProcessInstance(processInstanceKey);
     assertThat(tasks).hasSize(1);
-    return tasks.get(0);
+    return tasks.getFirst();
   }
 
   private List<Task> getKadaiTasksByProcessInstance(long processInstanceKey) {
