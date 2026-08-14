@@ -4,8 +4,8 @@ import io.kadai.adapter.monitoring.models.Camunda7EngineInfoRepresentationModel;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.http.HttpHeaders;
@@ -21,7 +21,6 @@ public class Camunda7HealthIndicator implements HealthIndicator {
 
   private final RestClient restClient;
   private final HttpHeaderProvider httpHeaderProvider;
-  private final Camunda7System camunda7System;
   private final URI url;
   private final String expectedEngineName;
 
@@ -29,7 +28,6 @@ public class Camunda7HealthIndicator implements HealthIndicator {
       RestClient restClient, HttpHeaderProvider httpHeaderProvider, Camunda7System camunda7System) {
     this.restClient = restClient;
     this.httpHeaderProvider = httpHeaderProvider;
-    this.camunda7System = camunda7System;
     this.url = createEngineListUrl(camunda7System.getSystemRestUrl());
     this.expectedEngineName = determineExpectedEngineName(camunda7System);
   }
@@ -41,25 +39,14 @@ public class Camunda7HealthIndicator implements HealthIndicator {
       Camunda7EngineInfoRepresentationModel[] engines = response.getBody();
 
       if (engines == null || engines.length == 0) {
-        return Health.down()
-            .withDetail("camundaEngineError", "No engines found")
-            .withDetail(BASE_URL, url)
-            .build();
+        return down("No engines found", null);
       }
       if (expectedEngineName != null && !containsEngine(engines, expectedEngineName)) {
-        return Health.down()
-            .withDetail(
-                "camundaEngineError", "Expected engine '" + expectedEngineName + "' not found")
-            .withDetail("camundaEngines", engines)
-            .withDetail(BASE_URL, url)
-            .build();
+        return down("Expected engine '" + expectedEngineName + "' not found", engines);
       }
       return Health.up().withDetail("camundaEngines", engines).withDetail(BASE_URL, url).build();
     } catch (Exception e) {
-      return Health.down()
-          .withDetail("camundaEngines", e.getMessage())
-          .withDetail(BASE_URL, camunda7System.getSystemRestUrl())
-          .build();
+      return down(e.getMessage(), null);
     }
   }
 
@@ -73,16 +60,33 @@ public class Camunda7HealthIndicator implements HealthIndicator {
         .toEntity(Camunda7EngineInfoRepresentationModel[].class);
   }
 
+  /**
+   * Creates the Camunda engine-list endpoint from the configured system REST URL.
+   *
+   * <p>For an engine-scoped URL, the trailing engine name is removed. A URL already ending in
+   * {@code engine} is preserved; otherwise, {@code engine} is appended.
+   *
+   * @param systemRestUrl configured Camunda REST URL
+   * @return the endpoint that lists the available Camunda engines
+   */
   private static URI createEngineListUrl(String systemRestUrl) {
     UriComponents uriComponents = UriComponentsBuilder.fromUriString(systemRestUrl).build();
     List<String> pathSegments = uriComponents.getPathSegments();
-    int engineSegmentIndex = pathSegments.lastIndexOf(ENGINE_PATH_SEGMENT);
+    int engineSegmentIndex = findEngineSegmentIndex(pathSegments);
 
-    if (engineSegmentIndex >= 0 && engineSegmentIndex < pathSegments.size() - 1) {
+    if (engineSegmentIndex >= 0) {
       String engineListPath =
           "/" + String.join("/", pathSegments.subList(0, engineSegmentIndex + 1));
       return UriComponentsBuilder.fromUri(uriComponents.toUri())
           .replacePath(engineListPath)
+          .replaceQuery(null)
+          .fragment(null)
+          .build()
+          .toUri();
+    }
+
+    if (pathSegments.contains(ENGINE_PATH_SEGMENT)) {
+      return UriComponentsBuilder.fromUri(uriComponents.toUri())
           .replaceQuery(null)
           .fragment(null)
           .build()
@@ -95,6 +99,15 @@ public class Camunda7HealthIndicator implements HealthIndicator {
         .toUri();
   }
 
+  /**
+   * Determines the Camunda engine expected from this system's configuration.
+   *
+   * <p>An explicit engine identifier takes precedence over an engine name present in the system
+   * REST URL.
+   *
+   * @param camunda7System Camunda system configuration
+   * @return the expected engine name, or {@code null} when none is configured or implied
+   */
   private static String determineExpectedEngineName(Camunda7System camunda7System) {
     if (camunda7System.getCamunda7EngineIdentifier() != null
         && !camunda7System.getCamunda7EngineIdentifier().isBlank()) {
@@ -105,21 +118,31 @@ public class Camunda7HealthIndicator implements HealthIndicator {
         UriComponentsBuilder.fromUriString(camunda7System.getSystemRestUrl())
             .build()
             .getPathSegments();
-    int engineSegmentIndex = pathSegments.lastIndexOf(ENGINE_PATH_SEGMENT);
+    int engineSegmentIndex = findEngineSegmentIndex(pathSegments);
 
-    if (engineSegmentIndex >= 0 && engineSegmentIndex < pathSegments.size() - 1) {
+    if (engineSegmentIndex >= 0) {
       return pathSegments.get(engineSegmentIndex + 1);
     }
     return null;
   }
 
+  private static int findEngineSegmentIndex(List<String> pathSegments) {
+    int index = pathSegments.lastIndexOf(ENGINE_PATH_SEGMENT);
+    return index >= 0 && index < pathSegments.size() - 1 ? index : -1;
+  }
+
   private static boolean containsEngine(
       Camunda7EngineInfoRepresentationModel[] engines, String expectedEngineName) {
-    for (Camunda7EngineInfoRepresentationModel engine : engines) {
-      if (Objects.equals(expectedEngineName, engine.getName())) {
-        return true;
-      }
+    return Arrays.stream(engines)
+        .map(Camunda7EngineInfoRepresentationModel::getName)
+        .anyMatch(expectedEngineName::equals);
+  }
+
+  private Health down(String error, Object engines) {
+    Health.Builder builder = Health.down().withDetail("camundaEngineError", error);
+    if (engines != null) {
+      builder.withDetail("camundaEngines", engines);
     }
-    return false;
+    return builder.withDetail(BASE_URL, this.url).build();
   }
 }

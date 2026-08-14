@@ -18,6 +18,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -155,7 +156,12 @@ class Camunda7HealthIndicatorTest {
     when(restClient.get()).thenReturn(mockRequestSpec);
     when(mockRequestSpec.uri(EXPECTED_URI)).thenThrow(new RuntimeException("Connection failed"));
 
-    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
+    Health health = camundaHealthIndicator.health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("camundaEngineError", "Connection failed")
+        .containsEntry("baseUrl", EXPECTED_URI);
   }
 
   @Test

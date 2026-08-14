@@ -28,7 +28,12 @@ import org.springframework.web.client.RestClient;
           + "${camunda7.testcontainers.rest-url}/engine/default",
       "kadai-adapter.plugin.camunda7.systems[0].system-task-event-url="
           + "${camunda7.testcontainers.outbox-url}",
-      "kadai-adapter.plugin.camunda7.systems[0].camunda7-engine-identifier=default"
+      "kadai-adapter.plugin.camunda7.systems[0].camunda7-engine-identifier=default",
+      "kadai-adapter.plugin.camunda7.systems[1].system-rest-url="
+          + "${camunda7.testcontainers.rest-url}/engine",
+      "kadai-adapter.plugin.camunda7.systems[1].system-task-event-url="
+          + "${camunda7.testcontainers.outbox-url}",
+      "kadai-adapter.plugin.camunda7.systems[1].camunda7-engine-identifier=default"
     })
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
@@ -46,6 +51,9 @@ class Camunda7EngineScopedHealthIntegrationTest {
   @Value("${kadai-adapter.plugin.camunda7.systems[0].system-rest-url}")
   private String camundaSystemRestUrl;
 
+  @Value("${kadai-adapter.plugin.camunda7.systems[1].system-rest-url}")
+  private String camundaEngineListUrl;
+
   private RestClient restClient;
 
   @BeforeEach
@@ -58,20 +66,33 @@ class Camunda7EngineScopedHealthIntegrationTest {
   }
 
   @Test
-  void should_UseEngineListEndpoint_When_CamundaSystemRestUrlIsEngineScoped() {
-    ResponseEntity<Map> response =
+  void should_UseEngineListEndpoint_When_CamundaSystemRestUrlsAreConfiguredDifferently() {
+    ResponseEntity<Map> engineScopedResponse =
         restClient
             .get()
             .uri("/actuator/health/kadaiAdapter/plugin/camunda7/default/camunda")
             .retrieve()
             .toEntity(Map.class);
-    Map<String, Object> body = response.getBody();
+    ResponseEntity<Map> engineListResponse =
+        restClient
+            .get()
+            .uri("/actuator/health/kadaiAdapter/plugin/camunda7/default-2/camunda")
+            .retrieve()
+            .toEntity(Map.class);
+    Map<String, Object> engineScopedBody = engineScopedResponse.getBody();
+    Map<String, Object> engineListBody = engineListResponse.getBody();
 
     assertThat(camundaSystemRestUrl)
         .isEqualTo(System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine/default");
-    assertThat(body).isNotNull();
-    assertThat(body).extracting("status").isEqualTo("UP");
-    assertThat((Map<String, Object>) body.get("details"))
+    assertThat(camundaEngineListUrl)
+        .isEqualTo(System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine");
+    assertThat(engineScopedBody).isNotNull();
+    assertThat(engineListBody).isNotNull();
+    assertThat(engineScopedBody).extracting("status").isEqualTo("UP");
+    assertThat(engineListBody).extracting("status").isEqualTo("UP");
+    assertThat((Map<String, Object>) engineScopedBody.get("details"))
+        .containsEntry("baseUrl", System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine");
+    assertThat((Map<String, Object>) engineListBody.get("details"))
         .containsEntry("baseUrl", System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine");
   }
 }
