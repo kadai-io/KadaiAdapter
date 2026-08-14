@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_GlobalUserTaskListeners" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.40.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:message id="Message_CancelReview" name="cancel-review">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=correlationKey" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:process id="Global_User_Task_Listeners_Process" name="Global User Task Listeners Process" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_GlobalListenerExample">
+      <bpmn:outgoing>Flow_Start_To_UserTask</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_Start_To_UserTask" sourceRef="StartEvent_GlobalListenerExample" targetRef="ReviewRequest" />
+    <bpmn:userTask id="ReviewRequest" name="Review request">
+      <bpmn:documentation>This task is picked up by KADAI through Camunda 8.9 global user task listeners configured on the cluster.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:taskSchedule followUpDate="=date and time(&#34;2026-12-02T12:00:00Z&#34;)" />
+        <zeebe:priorityDefinition priority="=20" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=&#34;GPK_KSC&#34;" target="kadai_workbasket_key" />
+          <zeebe:input source="=&#34;L11010&#34;" target="kadai_classification_key" />
+          <zeebe:input source="=&#34;DOMAIN_A&#34;" target="kadai_domain" />
+          <zeebe:input source="=&#34;customerId,requestId&#34;" target="kadai_attributes" />
+          <zeebe:input source="=&#34;customer-4711&#34;" target="customerId" />
+          <zeebe:input source="=&#34;request-0815&#34;" target="requestId" />
+          <zeebe:input source="=&#34;Review request&#34;" target="kadai_name" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Start_To_UserTask</bpmn:incoming>
+      <bpmn:outgoing>Flow_UserTask_To_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_UserTask_To_End" sourceRef="ReviewRequest" targetRef="EndEvent_GlobalListenerExample" />
+    <bpmn:sequenceFlow id="Flow_Cancel_To_End" sourceRef="CancelReviewBoundary" targetRef="EndEvent_Cancelled" />
+    <bpmn:endEvent id="EndEvent_GlobalListenerExample">
+      <bpmn:incoming>Flow_UserTask_To_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Cancelled">
+      <bpmn:incoming>Flow_Cancel_To_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="CancelReviewBoundary" attachedToRef="ReviewRequest" cancelActivity="true">
+      <bpmn:outgoing>Flow_Cancel_To_End</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_CancelReview" messageRef="Message_CancelReview" />
+    </bpmn:boundaryEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_GlobalUserTaskListeners">
+    <bpmndi:BPMNPlane id="BPMNPlane_GlobalUserTaskListeners" bpmnElement="Global_User_Task_Listeners_Process">
+      <bpmndi:BPMNShape id="StartEvent_GlobalListenerExample_di" bpmnElement="StartEvent_GlobalListenerExample">
+        <dc:Bounds x="182" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReviewRequest_di" bpmnElement="ReviewRequest">
+        <dc:Bounds x="270" y="80" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_GlobalListenerExample_di" bpmnElement="EndEvent_GlobalListenerExample">
+        <dc:Bounds x="452" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Cancelled_di" bpmnElement="EndEvent_Cancelled">
+        <dc:Bounds x="452" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CancelReviewBoundary_di" bpmnElement="CancelReviewBoundary">
+        <dc:Bounds x="312" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_To_UserTask_di" bpmnElement="Flow_Start_To_UserTask">
+        <di:waypoint x="218" y="120" />
+        <di:waypoint x="270" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UserTask_To_End_di" bpmnElement="Flow_UserTask_To_End">
+        <di:waypoint x="390" y="120" />
+        <di:waypoint x="452" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Cancel_To_End_di" bpmnElement="Flow_Cancel_To_End">
+        <di:waypoint x="330" y="178" />
+        <di:waypoint x="330" y="260" />
+        <di:waypoint x="452" y="260" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

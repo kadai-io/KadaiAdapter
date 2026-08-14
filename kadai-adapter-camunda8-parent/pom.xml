@@ -7,7 +7,9 @@
   <packaging>pom</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
-  <description>This pom is parent to all KadaiAdapter Camunda8-Plugin modules and serves the common build.</description>
+  <description>This pom is parent to all KadaiAdapter Camunda8-Plugin modules and serves the common
+    build.
+  </description>
 
   <parent>
     <groupId>io.kadai</groupId>
@@ -20,12 +22,13 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.camunda8>8.9.14</version.camunda8>
+    <version.camunda8>8.9.15</version.camunda8>
   </properties>
 
   <modules>
     <module>kadai-adapter-camunda-8-system-connector</module>
     <module>kadai-adapter-camunda-8-spring-boot-example</module>
+    <module>kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example</module>
     <module>kadai-adapter-camunda-8-spring-boot-multi-tenancy-example</module>
   </modules>
 </project>
