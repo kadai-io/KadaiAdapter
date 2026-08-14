@@ -27,6 +27,7 @@ import io.kadai.task.api.TaskState;
 import io.kadai.task.api.models.Task;
 import io.kadai.task.api.models.TaskSummary;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -74,9 +75,10 @@ class GlobalUserTaskListenerAccTest {
   void should_CreateKadaiTask_When_CreatingListenerIsConfiguredGlobally() throws Exception {
     createWorkbasketAndClassification();
 
+    Instant globalListenerTriggerTime = Instant.now();
     createKadaiTaskViaGlobalUserTaskCreationListener(randomCorrelationKey());
 
-    assertSuccessfulRun(userTaskCreation);
+    assertGlobalUserTaskListenerTriggered(userTaskCreation, globalListenerTriggerTime);
   }
 
   @Test
@@ -86,9 +88,10 @@ class GlobalUserTaskListenerAccTest {
     createWorkbasketAndClassification();
 
     Task taskToComplete = createKadaiTaskViaGlobalUserTaskCreationListener(randomCorrelationKey());
+    Instant globalListenerTriggerTime = Instant.now();
     completeKadaiTaskViaGlobalUserTaskCompletionListener(taskToComplete);
 
-    assertSuccessfulRun(userTaskCompletion);
+    assertGlobalUserTaskListenerTriggered(userTaskCompletion, globalListenerTriggerTime);
   }
 
   @Test
@@ -100,9 +103,10 @@ class GlobalUserTaskListenerAccTest {
     String cancellationCorrelationKey = randomCorrelationKey();
     Task taskToCancel =
         createKadaiTaskViaGlobalUserTaskCreationListener(cancellationCorrelationKey);
+    Instant globalListenerTriggerTime = Instant.now();
     cancelKadaiTaskViaGlobalUserTaskCancellationListener(taskToCancel, cancellationCorrelationKey);
 
-    assertSuccessfulRun(userTaskCancellation);
+    assertGlobalUserTaskListenerTriggered(userTaskCancellation, globalListenerTriggerTime);
   }
 
   private void createWorkbasketAndClassification() throws Exception {
@@ -213,9 +217,19 @@ class GlobalUserTaskListenerAccTest {
     }
   }
 
-  private void assertSuccessfulRun(MonitoredComponent monitoredComponent) {
+  private void assertGlobalUserTaskListenerTriggered(
+      MonitoredComponent monitoredComponent, Instant globalListenerTriggerTime) {
+    camunda8TestUtil.waitUntil(
+        () -> {
+          var lastRun = monitoredComponent.getLastRun();
+          return lastRun.getEnd() != null
+              && lastRun.getStart() != null
+              && !lastRun.getStart().isBefore(globalListenerTriggerTime);
+        });
+
     assertThat(monitoredComponent.getLastRun().getEnd()).isNotNull();
+    assertThat(monitoredComponent.getLastRun().getStart())
+        .isAfterOrEqualTo(globalListenerTriggerTime);
     assertThat(monitoredComponent.getLastRun().isSuccessful()).isTrue();
-    assertThat(monitoredComponent.getExpectedRunDuration()).isGreaterThanOrEqualTo(Duration.ZERO);
   }
 }
