@@ -23,6 +23,7 @@ import static io.camunda.client.api.search.enums.GlobalTaskListenerEventType.COM
 import static io.camunda.client.api.search.enums.GlobalTaskListenerEventType.CREATING;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ClientHttpException;
 import io.camunda.client.api.search.enums.GlobalTaskListenerEventType;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCancellation;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.UserTaskCompletion;
@@ -95,7 +96,10 @@ public class KadaiAdapterApplicationC8GlobalUserTaskListeners {
   private void deleteGlobalUserTaskListenerIfPresent(CamundaClient client, String id) {
     try {
       client.newDeleteGlobalTaskListenerRequest(id).send().join();
-    } catch (RuntimeException e) {
+    } catch (ClientHttpException e) {
+      if (e.code() != 404) {
+        throw e;
+      }
       LOGGER.debug("Global user task listener '{}' did not exist before startup", id, e);
     }
   }
