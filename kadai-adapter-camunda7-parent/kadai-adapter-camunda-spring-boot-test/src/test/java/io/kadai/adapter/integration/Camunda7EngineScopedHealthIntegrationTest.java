@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,7 +35,12 @@ import org.springframework.web.client.RestClient;
           + "${camunda7.testcontainers.rest-url}/engine",
       "kadai-adapter.plugin.camunda7.systems[1].system-task-event-url="
           + "${camunda7.testcontainers.outbox-url}",
-      "kadai-adapter.plugin.camunda7.systems[1].camunda7-engine-identifier=default"
+      "kadai-adapter.plugin.camunda7.systems[1].camunda7-engine-identifier=default",
+      "kadai-adapter.plugin.camunda7.systems[2].system-rest-url="
+          + "${camunda7.testcontainers.rest-url}/engine/missing",
+      "kadai-adapter.plugin.camunda7.systems[2].system-task-event-url="
+          + "${camunda7.testcontainers.outbox-url}",
+      "kadai-adapter.plugin.camunda7.systems[2].camunda7-engine-identifier=missing"
     })
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
@@ -91,8 +98,35 @@ class Camunda7EngineScopedHealthIntegrationTest {
     assertThat(engineScopedBody).extracting("status").isEqualTo("UP");
     assertThat(engineListBody).extracting("status").isEqualTo("UP");
     assertThat((Map<String, Object>) engineScopedBody.get("details"))
-        .containsEntry("baseUrl", System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine");
+        .containsEntry("baseUrl", System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine")
+        .containsEntry("camundaEngine", Map.of("name", "default"))
+        .doesNotContainKey("camundaEngines");
     assertThat((Map<String, Object>) engineListBody.get("details"))
-        .containsEntry("baseUrl", System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine");
+        .containsEntry("baseUrl", System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine")
+        .containsEntry("camundaEngine", Map.of("name", "default"))
+        .doesNotContainKey("camundaEngines");
+  }
+
+  @Test
+  void should_ReportAllAvailableEngines_When_TheConfiguredEngineIsMissing() {
+    ResponseEntity<Map> response =
+        restClient
+            .get()
+            .uri("/actuator/health/kadaiAdapter/plugin/camunda7/missing/camunda")
+            .retrieve()
+            .onStatus(statusCode -> statusCode.isError(), (request, responseSpec) -> {})
+            .toEntity(Map.class);
+    Map<String, Object> body = response.getBody();
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+    assertThat(body).isNotNull();
+    assertThat(body).extracting("status").isEqualTo("DOWN");
+    Map<String, Object> details = (Map<String, Object>) body.get("details");
+    assertThat(details)
+        .containsEntry("camundaEngineError", "Expected engine 'missing' not found")
+        .containsEntry("baseUrl", System.getProperty(CAMUNDA_SYSTEM_REST_URL_PROPERTY) + "/engine")
+        .doesNotContainKey("camundaEngine");
+    assertThat((List<Map<String, Object>>) details.get("camundaEngines"))
+        .containsExactly(Map.of("name", "default"));
   }
 }

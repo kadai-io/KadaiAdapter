@@ -41,8 +41,16 @@ public class Camunda7HealthIndicator implements HealthIndicator {
       if (engines == null || engines.length == 0) {
         return down("No engines found", null);
       }
-      if (expectedEngineName != null && !containsEngine(engines, expectedEngineName)) {
+      Camunda7EngineInfoRepresentationModel expectedEngine =
+          expectedEngineName == null ? null : findEngine(engines, expectedEngineName);
+      if (expectedEngine == null && expectedEngineName != null) {
         return down("Expected engine '" + expectedEngineName + "' not found", engines);
+      }
+      if (expectedEngine != null) {
+        return Health.up()
+            .withDetail("camundaEngine", expectedEngine)
+            .withDetail(BASE_URL, url)
+            .build();
       }
       return Health.up().withDetail("camundaEngines", engines).withDetail(BASE_URL, url).build();
     } catch (Exception e) {
@@ -131,11 +139,12 @@ public class Camunda7HealthIndicator implements HealthIndicator {
     return index >= 0 && index < pathSegments.size() - 1 ? index : -1;
   }
 
-  private static boolean containsEngine(
+  private static Camunda7EngineInfoRepresentationModel findEngine(
       Camunda7EngineInfoRepresentationModel[] engines, String expectedEngineName) {
     return Arrays.stream(engines)
-        .map(Camunda7EngineInfoRepresentationModel::getName)
-        .anyMatch(expectedEngineName::equals);
+        .filter(engine -> expectedEngineName.equals(engine.getName()))
+        .findFirst()
+        .orElse(null);
   }
 
   private Health down(String error, Object engines) {
