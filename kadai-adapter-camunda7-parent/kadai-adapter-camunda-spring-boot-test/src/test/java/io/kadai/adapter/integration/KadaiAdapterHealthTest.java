@@ -8,6 +8,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
@@ -28,6 +30,22 @@ class KadaiAdapterHealthTest extends AbsIntegrationTest {
   void should_ReturnUp_When_AllContributorsAreUp() {
     ResponseEntity<Map> response =
         restClient.get().uri("/actuator/health/kadaiAdapter").retrieve().toEntity(Map.class);
+    Map<String, Object> body = response.getBody();
+
+    assertThat(body).isNotNull();
+    assertThat(body).extracting("status").isEqualTo("UP");
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "/actuator/health/kadaiAdapter/plugin/camunda7",
+        "/actuator/health/kadaiAdapter/plugin/camunda7/default",
+        "/actuator/health/kadaiAdapter/plugin/camunda7/default/camunda",
+        "/actuator/health/kadaiAdapter/plugin/camunda7/default/outbox"
+      })
+  void should_ReturnUp_ForCamunda7HealthContributors(String uri) {
+    ResponseEntity<Map> response = restClient.get().uri(uri).retrieve().toEntity(Map.class);
     Map<String, Object> body = response.getBody();
 
     assertThat(body).isNotNull();

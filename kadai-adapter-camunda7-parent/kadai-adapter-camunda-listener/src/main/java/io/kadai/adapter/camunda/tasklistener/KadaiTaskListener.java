@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.context.Context;
@@ -403,7 +402,7 @@ public class KadaiTaskListener implements TaskListener {
         model.getModelElementsByType(CamundaProperty.class).stream()
             .filter(camundaProperty -> camundaProperty.getCamundaName() != null)
             .filter(camundaProperty -> camundaProperty.getCamundaName().equals(propertyKey))
-            .collect(Collectors.toList());
+            .toList();
 
     if (processModelExtensionProperties.isEmpty()) {
       return propertyValue;
@@ -431,7 +430,7 @@ public class KadaiTaskListener implements TaskListener {
           camundaProperties.getCamundaProperties().stream()
               .filter(camundaProperty -> camundaProperty.getCamundaName() != null)
               .filter(camundaProperty -> camundaProperty.getCamundaName().equals(propertyKey))
-              .collect(Collectors.toList());
+              .toList();
 
       if (userTaskExtensionProperties.isEmpty()) {
         return propertyValue;

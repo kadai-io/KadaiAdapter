@@ -68,6 +68,7 @@ public final class Camunda7TestcontainersConfiguration {
   public static final String CAMUNDA_IMAGE = "camunda/camunda-bpm-platform:run-7.24.0";
   public static final String DB_ALIAS = "db";
   public static final String DB_NAME = "camunda";
+  public static final String CAMUNDA_ENGINE_IDENTIFIER = "default";
   public static final String POSTGRES_USER = "camunda";
   public static final String POSTGRES_PASS = "camunda";
   public static final String DB2_USER = "db2inst1";
@@ -197,6 +198,11 @@ public final class Camunda7TestcontainersConfiguration {
     System.setProperty("kadai-adapter.plugin.camunda7.systems[0].system-rest-url", camundaRestUrl);
     // Outbox REST is served by the test JVM's Jersey server at localhost:10020.
     System.setProperty("kadai-adapter.plugin.camunda7.systems[0].system-task-event-url", outboxUrl);
+    System.setProperty(
+        "kadai-adapter.plugin.camunda7.systems[0].camunda7-engine-identifier",
+        CAMUNDA_ENGINE_IDENTIFIER);
+    System.setProperty("camunda7.testcontainers.rest-url", camundaRestUrl);
+    System.setProperty("camunda7.testcontainers.outbox-url", outboxUrl);
 
     LOGGER.info("Camunda REST URL: {}", camundaRestUrl);
     LOGGER.info("Outbox REST URL (test JVM): {}", outboxUrl);

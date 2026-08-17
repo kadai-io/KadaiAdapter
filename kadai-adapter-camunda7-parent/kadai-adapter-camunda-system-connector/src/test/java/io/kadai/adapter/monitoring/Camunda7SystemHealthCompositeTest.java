@@ -7,7 +7,6 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
 import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConfigurationProperties;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -23,10 +22,12 @@ class Camunda7SystemHealthCompositeTest {
     final Camunda7System camunda7System1 = new Camunda7System();
     camunda7System1.setSystemRestUrl("http://localhost:8080/engine");
     camunda7System1.setSystemTaskEventUrl("http://localhost:8080/outbox");
+    camunda7System1.setCamunda7EngineIdentifier("");
 
     final Camunda7System camunda7System2 = new Camunda7System();
     camunda7System2.setSystemRestUrl("http://localhost:8081/engine");
     camunda7System2.setSystemTaskEventUrl("http://localhost:8081/outbox");
+    camunda7System2.setCamunda7EngineIdentifier(" ");
 
     final Camunda7SystemsHealthComposite camundaSystemsHealthComposite =
         new Camunda7SystemsHealthComposite(
@@ -59,9 +60,50 @@ class Camunda7SystemHealthCompositeTest {
     long count = composite.stream().count();
     assertThat(count).isEqualTo(2);
 
-    List<String> contributorNames =
-        composite.stream().map(Entry::name).collect(Collectors.toList());
+    List<String> contributorNames = composite.stream().map(Entry::name).toList();
 
     assertThat(contributorNames).containsExactly("camundaSystem1", "camundaSystem2");
+  }
+
+  @Test
+  void should_NameHealthContributorsAfterTheirCamundaEngineIdentifier() {
+    Camunda7System orders =
+        new Camunda7System(
+            "http://localhost:8080/engine", "http://localhost:8080/outbox", "orders");
+    Camunda7System invoices =
+        new Camunda7System(
+            "http://localhost:8081/engine", "http://localhost:8081/outbox", "invoices");
+
+    Camunda7SystemsHealthComposite composite =
+        new Camunda7SystemsHealthComposite(
+            mock(),
+            List.of(orders, invoices),
+            new Camunda7HealthConfigurationProperties(),
+            mock(HttpHeaderProvider.class));
+
+    List<String> contributorNames = composite.stream().map(Entry::name).toList();
+
+    assertThat(contributorNames).containsExactly("orders", "invoices");
+  }
+
+  @Test
+  void should_UseDistinctNamesForDuplicateCamundaEngineIdentifiers() {
+    Camunda7System firstDefault =
+        new Camunda7System(
+            "http://localhost:8080/engine", "http://localhost:8080/outbox", "default");
+    Camunda7System secondDefault =
+        new Camunda7System(
+            "http://localhost:8081/engine", "http://localhost:8081/outbox", "default");
+
+    Camunda7SystemsHealthComposite composite =
+        new Camunda7SystemsHealthComposite(
+            mock(),
+            List.of(firstDefault, secondDefault),
+            new Camunda7HealthConfigurationProperties(),
+            mock(HttpHeaderProvider.class));
+
+    List<String> contributorNames = composite.stream().map(Entry::name).toList();
+
+    assertThat(contributorNames).containsExactly("default", "default-2");
   }
 }

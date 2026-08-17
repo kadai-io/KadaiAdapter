@@ -57,8 +57,7 @@ public class Camunda7TaskEventsService {
   private static final String RETRIES = "retries";
   private static final String TYPE = "type";
   private static final String LOCK_FOR = "lock-for";
-  private static final List<String> ALLOWED_PARAMS =
-      Stream.of(TYPE, RETRIES, LOCK_FOR).collect(Collectors.toList());
+  private static final List<String> ALLOWED_PARAMS = Stream.of(TYPE, RETRIES, LOCK_FOR).toList();
   private static final String OUTBOX_SCHEMA = OutboxRestConfiguration.getOutboxSchema();
   private static final JsonMapper JSON_MAPPER = new JsonMapper();
   private static int maxNumberOfEventsReturned = 0;
@@ -170,10 +169,7 @@ public class Camunda7TaskEventsService {
         ResultSet camundaTaskEventFilteredByRetriesResultSet = preparedStatement.executeQuery();
         camunda7TaskEventsFilteredByRetries =
             getCamunda7TaskEvents(camundaTaskEventFilteredByRetriesResultSet);
-        ids =
-            camunda7TaskEventsFilteredByRetries.stream()
-                .map(Camunda7TaskEvent::getId)
-                .collect(Collectors.toList());
+        ids = camunda7TaskEventsFilteredByRetries.stream().map(Camunda7TaskEvent::getId).toList();
         lockEvents(ids, lockDuration, connection);
         commitTransactionIfNecessary(connection, lockDuration);
         if (LOGGER.isDebugEnabled()) {
@@ -349,8 +345,7 @@ public class Camunda7TaskEventsService {
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camunda7TaskEvents = getCamunda7TaskEvents(camundaTaskEventResultSet);
-        ids =
-            camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
+        ids = camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).toList();
         lockEvents(ids, lockDuration, connection);
         commitTransactionIfNecessary(connection, lockDuration);
         if (LOGGER.isDebugEnabled()) {
@@ -433,9 +428,7 @@ public class Camunda7TaskEventsService {
   private void verifyNoInvalidParameters(MultivaluedMap<String, String> filterParams)
       throws InvalidArgumentException {
     List<String> invalidParams =
-        filterParams.keySet().stream()
-            .filter(key -> !ALLOWED_PARAMS.contains(key))
-            .collect(Collectors.toList());
+        filterParams.keySet().stream().filter(key -> !ALLOWED_PARAMS.contains(key)).toList();
 
     if (!invalidParams.isEmpty()) {
       throw new InvalidArgumentException("Provided invalid request params: " + invalidParams);
@@ -466,8 +459,7 @@ public class Camunda7TaskEventsService {
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camunda7TaskEvents = getCamunda7TaskEvents(camundaTaskEventResultSet);
-        ids =
-            camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
+        ids = camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).toList();
         lockEvents(ids, lockDuration, connection);
         commitTransactionIfNecessary(connection, lockDuration);
         if (LOGGER.isDebugEnabled()) {
@@ -572,8 +564,7 @@ public class Camunda7TaskEventsService {
         }
         ResultSet completeAndDeleteEventsResultSet = preparedStatement.executeQuery();
         camunda7TaskEvents = getCamunda7TaskEvents(completeAndDeleteEventsResultSet);
-        ids =
-            camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).collect(Collectors.toList());
+        ids = camunda7TaskEvents.stream().map(Camunda7TaskEvent::getId).toList();
 
         lockEvents(ids, lockDuration, connection);
         commitTransactionIfNecessary(connection, lockDuration);

@@ -19,7 +19,6 @@
 package io.kadai.impl;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
@@ -58,7 +57,7 @@ public class WorkbasketKeySetter implements JavaDelegate {
       List<CamundaProperty> processModelExtensionProperties =
           model.getModelElementsByType(CamundaProperty.class).stream()
               .filter(camundaProperty -> camundaProperty.getCamundaName().equals("kadai.domain"))
-              .collect(Collectors.toList());
+              .toList();
 
       if (processModelExtensionProperties.isEmpty()) {
         return domainName;
