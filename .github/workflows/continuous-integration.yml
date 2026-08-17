@@ -47,7 +47,7 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_REF: ${{ github.sha }}
-          GITHUB_REF_NAME: ${{ github.ref }}
+          REF_TYPE: ${{ github.ref_type }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
           python3 <<'PY'
@@ -145,19 +145,40 @@ jobs:
           def run(command):
               return subprocess.check_output(command, text=True).splitlines()
 
+          def commit_exists(ref):
+              return (
+                  subprocess.run(
+                      ["git", "cat-file", "-e", f"{ref}^{{commit}}"],
+                      stdout=subprocess.DEVNULL,
+                      stderr=subprocess.DEVNULL,
+                  ).returncode
+                  == 0
+              )
+
           event_name = os.environ["EVENT_NAME"]
-          full_run = event_name in {"workflow_dispatch", "schedule"} or os.environ["GITHUB_REF_NAME"].startswith("refs/tags/")
+          ref_type = os.environ.get("REF_TYPE")
+          full_run = (
+              event_name in {"workflow_dispatch", "schedule"}
+              or ref_type == "tag"
+          )
 
           if full_run:
               changed_files = ["<full-run>"]
           else:
               base_ref = os.environ.get("BASE_REF") or "HEAD~1"
               head_ref = os.environ.get("HEAD_REF") or "HEAD"
-              try:
-                  subprocess.run(["git", "rev-parse", "--verify", base_ref], check=True, stdout=subprocess.DEVNULL)
-              except subprocess.CalledProcessError:
-                  base_ref = "HEAD~1"
-              changed_files = run(["git", "diff", "--name-only", f"{base_ref}...{head_ref}"])
+
+              if commit_exists(base_ref):
+                  changed_files = run(
+                      ["git", "diff", "--name-only", f"{base_ref}...{head_ref}"]
+                  )
+              elif commit_exists("HEAD~1"):
+                  changed_files = run(
+                      ["git", "diff", "--name-only", f"HEAD~1...{head_ref}"]
+                  )
+              else:
+                  full_run = True
+                  changed_files = ["<full-run>"]
 
           global_patterns = (
               ".github/workflows/continuous-integration.yml",
@@ -356,15 +377,16 @@ jobs:
   release_artifacts:
     runs-on: ubuntu-22.04
     name: Release artifacts to Sonatype-Central
-    needs: [ detect_changes, test ]
+    needs: [ detect_changes, build, test ]
     if: |
-      always() &&
+      success() &&
       github.repository == 'kadai-io/KadaiAdapter' &&
-      (startsWith(github.ref, 'refs/tags') || github.ref == 'refs/heads/master') &&
+      (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master') &&
       github.head_ref == '' &&
-      (needs.detect_changes.outputs.code_changed == 'true' || startsWith(github.ref, 'refs/tags')) &&
-      needs.test.result != 'failure' &&
-      needs.test.result != 'cancelled'
+      (needs.detect_changes.outputs.code_changed == 'true' || startsWith(github.ref, 'refs/tags/')) &&
+      needs.detect_changes.result == 'success' &&
+      needs.build.result == 'success' &&
+      needs.test.result == 'success'
     permissions:
       contents: write
       pull-requests: write
@@ -459,7 +481,7 @@ jobs:
           pr-comment: false
         continue-on-error: true
       - name: Update version to next snapshot and create PR
-        if: startsWith(github.ref, 'refs/tags')
+        if: success() && startsWith(github.ref, 'refs/tags/')
         run: |
           ci/change_version.sh -i -m .
           ci/commitPoms.sh
