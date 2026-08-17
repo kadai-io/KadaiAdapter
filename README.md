@@ -12,10 +12,8 @@ system, e.g. [Camunda BPM](https://camunda.com/).
 ## 🧫Components
 
 The Kadai Adapter repository consists of the Kadai adapter, sample connectors to Camunda and Kadai
-as well as
-an outbox REST-Service, and it's SpringBoot-Starter and listeners for Camunda. In addition to that
-there are various
-example and test modules.
+as well as an outbox REST-Service, and it's SpringBoot-Starter and listeners for Camunda. In
+addition to that there are various example and test modules.
 
 The sample implementation of the camunda-system-connector uses
 the [Transactional-Outbox-Pattern](https://microservices.io/patterns/data/transactional-outbox.html).
@@ -38,11 +36,9 @@ the [Transactional-Outbox-Pattern](https://microservices.io/patterns/data/transa
 - **KadaiConnector SPI** connects the adapter to kadai.
 
 Both SPI implementations are loaded by the adapter at initialization time via the Java SPI
-mechanism. They provide plug
-points where custom code can be plugged in.\
+mechanism. They provide plug points where custom code can be plugged in.\
 Please note, that the term ‘referenced task’ is used in this document to refer to tasks in the
-external system that is
-accessed via the SystemConnector
+external system that is accessed via the SystemConnector
 
 ## 🔎Overall Function
 
@@ -86,13 +82,10 @@ The adapter performs periodically the following tasks
 
 1. **Variables** \
    When the adapter finds a referenced task for which a kadai task must be started, it checks the
-   variables of the
-   referenced task's process. If they are not already present due to retrieval from the outbox it
-   will attempt to
-   retrieve them from the referenced task's process.
-   These variables are stored in the **custom attributes** of the corresponding kadai task in a
-   HashMap with key **referenced_task_variables** and value of type String that contains the Json
-   representation of
+   variables of the referenced task's process. If they are not already present due to retrieval from
+   the outbox it will attempt to retrieve them from the referenced task's process. These variables
+   are stored in the **custom attributes** of the corresponding kadai task in a HashMap with key
+   **referenced_task_variables** and value of type String that contains the Json representation of
    the variables.
 2. **Workbaskets** \
    The Adapter does not perform routing of tasks to workbaskets but instead relies on a SPI.
@@ -100,8 +93,8 @@ The adapter performs periodically the following tasks
 # 📨Contact
 
 If you have any questions or ideas feel free to create
-an [issue](https://github.com/kadai-io/kadai/issues),
-contact us via [GitHub Discussions](https://github.com/kadai-io/kadai/discussions)
+an [issue](https://github.com/kadai-io/kadai/issues), contact us
+via [GitHub Discussions](https://github.com/kadai-io/kadai/discussions)
 or E-mail us at [kadai@envite.de](mailto:kadai@envite.de).
 
 We love listening to your feedback, and of course also discussing the project roadmap and possible
