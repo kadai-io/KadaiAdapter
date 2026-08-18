@@ -27,7 +27,10 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(
     properties = {
       "camunda.process-test.multi-tenancy-enabled=true",
-      "camunda.client.worker.defaults.enabled=false"
+      "camunda.client.worker.defaults.enabled=false",
+      "camunda.client.worker.override.kadai-receive-task-created-event.enabled=false",
+      "camunda.client.worker.override.kadai-receive-task-completed-event.enabled=false",
+      "camunda.client.worker.override.kadai-receive-task-cancelled-event.enabled=false"
     })
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @KadaiAdapterCamunda8SpringBootTest
