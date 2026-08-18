@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -29,8 +30,8 @@ class KadaiAdapterApplicationIntegrationTest {
   private static final AtomicBoolean EVENT_IS_AVAILABLE = new AtomicBoolean(false);
   private static final HttpServer OUTBOX_SERVER = startOutboxServer();
 
-  @org.springframework.beans.factory.annotation.Autowired private KadaiEngine kadaiEngine;
-  @org.springframework.beans.factory.annotation.Autowired private KadaiTaskStarterOrchestrator taskStarter;
+  @Autowired private KadaiEngine kadaiEngine;
+  @Autowired private KadaiTaskStarterOrchestrator taskStarter;
 
   @AfterAll
   static void stopOutboxServer() {
@@ -102,12 +103,17 @@ class KadaiAdapterApplicationIntegrationTest {
   }
 
   private static String createEventResponse() {
-    return """
-        {"camunda7TaskEvents":[{"id":1,"type":"create","systemEngineIdentifier":"default","payload":"{\\"id\\":\\"camunda-task-1\\",\\"name\\":\\"Review request\\",\\"businessProcessId\\":\\"camunda-process-1\\",\\"classificationKey\\":\\"L1050\\",\\"domain\\":\\"DOMAIN_A\\",\\"workbasketKey\\":\\"someWbkey\\",\\"manualPriority\\":\\"-1\\",\\"variables\\":\\"{}\\"}"}]}
-        """.strip();
+    return "{\"camunda7TaskEvents\":[{\"id\":1,\"type\":\"create\","
+        + "\"systemEngineIdentifier\":\"default\",\"payload\":\""
+        + "{\\\"id\\\":\\\"camunda-task-1\\\",\\\"name\\\":\\\"Review request\\\","
+        + "\\\"businessProcessId\\\":\\\"camunda-process-1\\\","
+        + "\\\"classificationKey\\\":\\\"L1050\\\",\\\"domain\\\":\\\"DOMAIN_A\\\","
+        + "\\\"workbasketKey\\\":\\\"someWbkey\\\",\\\"manualPriority\\\":\\\"-1\\\","
+        + "\\\"variables\\\":\\\"{}\\\"}\"}]}";
   }
 
-  private static void sendResponse(HttpExchange exchange, int status, String body) throws IOException {
+  private static void sendResponse(HttpExchange exchange, int status, String body)
+      throws IOException {
     byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
     exchange.getResponseHeaders().set("Content-Type", "application/json");
     exchange.sendResponseHeaders(status, bytes.length);
