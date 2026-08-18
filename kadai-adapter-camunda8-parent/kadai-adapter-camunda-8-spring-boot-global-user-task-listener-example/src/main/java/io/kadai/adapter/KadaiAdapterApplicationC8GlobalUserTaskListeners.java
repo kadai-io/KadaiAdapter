@@ -52,25 +52,25 @@ public class KadaiAdapterApplicationC8GlobalUserTaskListeners {
   }
 
   @Bean
-  ApplicationRunner configureGlobalUserTaskListeners(CamundaClient client) {
-    return args -> {
-      List<GlobalUserTaskListenerDefinition> globalListeners =
-          List.of(
-              new GlobalUserTaskListenerDefinition(
-                  "kadai-create-task",
-                  UserTaskCreation.USER_TASK_CREATED_JOB_WORKER_TYPE,
-                  CREATING),
-              new GlobalUserTaskListenerDefinition(
-                  "kadai-complete-task",
-                  UserTaskCompletion.USER_TASK_COMPLETED_JOB_WORKER_TYPE,
-                  COMPLETING),
-              new GlobalUserTaskListenerDefinition(
-                  "kadai-cancel-task",
-                  UserTaskCancellation.USER_TASK_CANCELLED_JOB_WORKER_TYPE,
-                  CANCELING));
+  ApplicationRunner configureGlobalUserTaskListenersRunner(CamundaClient client) {
+    return args -> configureGlobalUserTaskListeners(client);
+  }
 
-      globalListeners.forEach(listener -> configureGlobalUserTaskListener(client, listener));
-    };
+  void configureGlobalUserTaskListeners(CamundaClient client) {
+    List<GlobalUserTaskListenerDefinition> globalListeners =
+        List.of(
+            new GlobalUserTaskListenerDefinition(
+                "kadai-create-task", UserTaskCreation.USER_TASK_CREATED_JOB_WORKER_TYPE, CREATING),
+            new GlobalUserTaskListenerDefinition(
+                "kadai-complete-task",
+                UserTaskCompletion.USER_TASK_COMPLETED_JOB_WORKER_TYPE,
+                COMPLETING),
+            new GlobalUserTaskListenerDefinition(
+                "kadai-cancel-task",
+                UserTaskCancellation.USER_TASK_CANCELLED_JOB_WORKER_TYPE,
+                CANCELING));
+
+    globalListeners.forEach(listener -> configureGlobalUserTaskListener(client, listener));
   }
 
   private void configureGlobalUserTaskListener(

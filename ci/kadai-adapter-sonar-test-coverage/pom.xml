@@ -77,6 +77,16 @@
       <artifactId>kadai-adapter-camunda-8-spring-boot-example</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.kadai</groupId>
+      <artifactId>kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.kadai</groupId>
+      <artifactId>kadai-adapter-camunda-8-spring-boot-multi-tenancy-example</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

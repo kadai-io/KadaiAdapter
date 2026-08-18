@@ -70,6 +70,7 @@ jobs:
               "kadai-adapter-camunda-spring-boot-example-oauth2",
               "kadai-adapter-camunda-8-system-connector",
               "kadai-adapter-camunda-8-spring-boot-example",
+              "kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example",
               "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
           ]
 
@@ -88,6 +89,7 @@ jobs:
               "kadai-adapter-camunda-spring-boot-example-oauth2": "kadai-adapter-camunda7-parent/kadai-adapter-camunda-spring-boot-example-oauth2/",
               "kadai-adapter-camunda-8-system-connector": "kadai-adapter-camunda8-parent/kadai-adapter-camunda-8-system-connector/",
               "kadai-adapter-camunda-8-spring-boot-example": "kadai-adapter-camunda8-parent/kadai-adapter-camunda-8-spring-boot-example/",
+              "kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example": "kadai-adapter-camunda8-parent/kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example/",
               "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example": "kadai-adapter-camunda8-parent/kadai-adapter-camunda-8-spring-boot-multi-tenancy-example/",
           }
 
@@ -101,6 +103,7 @@ jobs:
                   "kadai-adapter-camunda-spring-boot-example-oauth2",
                   "kadai-adapter-camunda-8-system-connector",
                   "kadai-adapter-camunda-8-spring-boot-example",
+                  "kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example",
                   "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
               ],
               "kadai-adapter-kadai-connector": [
@@ -109,11 +112,15 @@ jobs:
                   "kadai-adapter-camunda-spring-boot-example",
                   "kadai-adapter-camunda-spring-boot-example-oauth2",
                   "kadai-adapter-camunda-8-spring-boot-example",
+                  "kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example",
                   "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
               ],
               "kadai-adapter-spring-boot-test": [
                   "kadai-adapter-camunda-spring-boot-test",
                   "kadai-adapter-camunda-8-system-connector",
+                  "kadai-adapter-camunda-8-spring-boot-example",
+                  "kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example",
+                  "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
               ],
               "kadai-adapter-camunda-system-connector": [
                   "kadai-adapter-camunda-spring-boot-test",
@@ -138,6 +145,7 @@ jobs:
               ],
               "kadai-adapter-camunda-8-system-connector": [
                   "kadai-adapter-camunda-8-spring-boot-example",
+                  "kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example",
                   "kadai-adapter-camunda-8-spring-boot-multi-tenancy-example",
               ],
           }
