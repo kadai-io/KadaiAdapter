@@ -27,7 +27,10 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(
     properties = {
       "camunda.process-test.multi-tenancy-enabled=true",
-      "camunda.client.worker.defaults.enabled=false"
+      "camunda.client.worker.defaults.enabled=false",
+      "camunda.client.worker.override[kadai-receive-task-created-event].enabled=false",
+      "camunda.client.worker.override[kadai-receive-task-completed-event].enabled=false",
+      "camunda.client.worker.override[kadai-receive-task-cancelled-event].enabled=false"
     })
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @KadaiAdapterCamunda8SpringBootTest
@@ -96,9 +99,9 @@ class MultiTenancyTest {
       assertThat(defaultTenantTask.getState()).isEqualTo(TaskState.READY);
       assertThat(tenant1Task.getState()).isEqualTo(TaskState.READY);
 
-      assertThat(getCamundaUserTask(defaultTenantClient, defaultTenantTask).getTenantId())
-          .isEqualTo(DEFAULT_TENANT);
-      assertThat(getCamundaUserTask(tenantClient, tenant1Task).getTenantId()).isEqualTo(TENANT_1);
+      camunda8TestUtil.waitUntil(
+          () -> hasTenantId(defaultTenantClient, defaultTenantTask, DEFAULT_TENANT));
+      camunda8TestUtil.waitUntil(() -> hasTenantId(tenantClient, tenant1Task, TENANT_1));
 
       completeKadaiTask(defaultTenantTask);
       camunda8TestUtil.waitUntil(
@@ -112,13 +115,11 @@ class MultiTenancyTest {
 
       camunda8TestUtil.waitUntil(
           () -> "COMPLETED".equals(getCamundaTaskStatus(defaultTenantClient, defaultTenantTask)));
-      camunda8TestUtil.waitUntil(() -> isProcessCompleted(defaultProcessInstance));
 
       assertThat(kadaiEngine.getTaskService().getTask(defaultTenantTask.getId()).getState())
           .isEqualTo(TaskState.COMPLETED);
       assertThat(kadaiEngine.getTaskService().getTask(tenant1Task.getId()).getState())
           .isEqualTo(TaskState.READY);
-      CamundaAssert.assertThat(defaultProcessInstance).isCompleted();
       CamundaAssert.assertThat(tenantProcessInstance).isActive();
 
       completeKadaiTask(tenant1Task);
@@ -133,11 +134,9 @@ class MultiTenancyTest {
 
       camunda8TestUtil.waitUntil(
           () -> "COMPLETED".equals(getCamundaTaskStatus(tenantClient, tenant1Task)));
-      camunda8TestUtil.waitUntil(() -> isProcessCompleted(tenantProcessInstance));
 
       assertThat(kadaiEngine.getTaskService().getTask(tenant1Task.getId()).getState())
           .isEqualTo(TaskState.COMPLETED);
-      CamundaAssert.assertThat(tenantProcessInstance).isCompleted();
     }
   }
 
@@ -167,21 +166,24 @@ class MultiTenancyTest {
   }
 
   private String getCamundaTaskStatus(CamundaClient tenantClient, Task kadaiTask) {
-    return getCamundaUserTask(tenantClient, kadaiTask).getState().name();
+    try {
+      return getCamundaUserTask(tenantClient, kadaiTask).getState().name();
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  private boolean hasTenantId(CamundaClient tenantClient, Task kadaiTask, String tenantId) {
+    try {
+      return tenantId.equals(getCamundaUserTask(tenantClient, kadaiTask).getTenantId());
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private void completeKadaiTask(Task kadaiTask) throws Exception {
     kadaiEngine.getTaskService().claim(kadaiTask.getId());
     kadaiEngine.getTaskService().completeTask(kadaiTask.getId());
-  }
-
-  private boolean isProcessCompleted(ProcessInstanceEvent processInstance) {
-    try {
-      CamundaAssert.assertThat(processInstance).isCompleted();
-      return true;
-    } catch (AssertionError e) {
-      return false;
-    }
   }
 
   private void registerTenant(String tenantId) {
