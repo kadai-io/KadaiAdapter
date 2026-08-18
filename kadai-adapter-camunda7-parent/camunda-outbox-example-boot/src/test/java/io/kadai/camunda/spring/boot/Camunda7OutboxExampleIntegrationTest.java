@@ -63,7 +63,9 @@ class Camunda7OutboxExampleIntegrationTest {
 
     Map<String, String> event = loadOutboxEvent(camundaTask.getId());
 
-    assertThat(event).containsEntry("TYPE", "create").containsEntry("CAMUNDA_TASK_ID", camundaTask.getId());
+    assertThat(event)
+        .containsEntry("TYPE", "create")
+        .containsEntry("CAMUNDA_TASK_ID", camundaTask.getId());
     assertThat(event.get("PAYLOAD"))
         .contains("\"id\":\"" + camundaTask.getId() + "\"")
         .contains("\"classificationKey\":\"L1050\"");
