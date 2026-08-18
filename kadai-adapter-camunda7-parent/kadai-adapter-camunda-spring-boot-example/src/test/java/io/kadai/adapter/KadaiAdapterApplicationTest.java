@@ -38,7 +38,7 @@ class KadaiAdapterApplicationTest {
   KadaiAdapterApplicationTest(@Autowired KadaiEngine kadaiEngine) throws Exception {
     TaskRoutingManager taskRoutingManager =
         (TaskRoutingManager)
-            getValueFromPrivateFieldOfSuperclass(kadaiEngine, "taskRoutingManager");
+            getValueFromPrivateField(kadaiEngine, "taskRoutingManager");
     this.taskRoutingProviders =
         (List<TaskRoutingProvider>)
             getValueFromPrivateField(taskRoutingManager, "taskRoutingProviders");
@@ -52,17 +52,17 @@ class KadaiAdapterApplicationTest {
 
   private Object getValueFromPrivateField(Object obj, String fieldName)
       throws NoSuchFieldException, IllegalAccessException {
-    Field nameField = obj.getClass().getDeclaredField(fieldName);
-    nameField.setAccessible(true);
+    Class<?> type = obj.getClass();
+    while (type != null) {
+      try {
+        Field field = type.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(obj);
+      } catch (NoSuchFieldException ignored) {
+        type = type.getSuperclass();
+      }
+    }
 
-    return nameField.get(obj);
-  }
-
-  private Object getValueFromPrivateFieldOfSuperclass(Object obj, String fieldName)
-      throws NoSuchFieldException, IllegalAccessException {
-    Field nameField = obj.getClass().getSuperclass().getDeclaredField(fieldName);
-    nameField.setAccessible(true);
-
-    return nameField.get(obj);
+    throw new NoSuchFieldException(fieldName);
   }
 }

@@ -117,6 +117,7 @@ jobs:
               ],
               "kadai-adapter-spring-boot-test": [
                   "kadai-adapter-camunda-spring-boot-test",
+                  "kadai-adapter-camunda-spring-boot-example",
                   "kadai-adapter-camunda-8-system-connector",
                   "kadai-adapter-camunda-8-spring-boot-example",
                   "kadai-adapter-camunda-8-spring-boot-global-user-task-listener-example",
@@ -130,6 +131,7 @@ jobs:
               "kadai-adapter-camunda-listener": [
                   "kadai-adapter-camunda-outbox-rest-spring-boot-starter",
                   "kadai-adapter-camunda-spring-boot-test",
+                  "kadai-adapter-camunda-listener-example",
               ],
               "kadai-adapter-camunda-outbox-rest": [
                   "kadai-adapter-camunda-outbox-rest-spring-boot-starter",
