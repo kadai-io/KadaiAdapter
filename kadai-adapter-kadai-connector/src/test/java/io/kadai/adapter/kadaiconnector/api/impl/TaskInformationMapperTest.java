@@ -29,6 +29,7 @@ import io.kadai.task.internal.models.TaskImpl;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -77,9 +78,9 @@ class TaskInformationMapperTest {
   void should_SetPlannedToNow_When_DueAndPlannedAreMissing() {
     ReferencedTask referencedTask = createReferencedTask(null, null);
 
-    Instant beforeConversion = Instant.now();
+    Instant beforeConversion = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     Task kadaiTask = taskInformationMapper.convertToKadaiTask(referencedTask);
-    Instant afterConversion = Instant.now();
+    Instant afterConversion = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 
     assertThat(kadaiTask.getDue()).isNull();
     assertThat(kadaiTask.getPlanned()).isNotNull();
