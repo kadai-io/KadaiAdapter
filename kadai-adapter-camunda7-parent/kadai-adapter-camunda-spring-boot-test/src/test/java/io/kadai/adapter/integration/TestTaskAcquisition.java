@@ -785,6 +785,44 @@ class TestTaskAcquisition extends AbsIntegrationTest {
 
   @WithAccessId(
       user = "teamlead_1",
+      groups = {"admin"})
+  @Test
+  void should_CalculatePlannedFromDueAndServiceLevel_When_StartCamundaTaskWithDueDateOnly()
+      throws Exception {
+
+    String processInstanceId =
+        this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
+            "simple_user_task_process_with_dueDate", "");
+    List<String> camundaTaskIds =
+        this.camundaProcessengineRequester.getTaskIdsFromProcessInstanceId(processInstanceId);
+
+    Thread.sleep((long) (this.adapterTaskPollingInterval * 1.2));
+
+    assertThat(camundaTaskIds).hasSize(1);
+    String camundaTaskId = camundaTaskIds.get(0);
+
+    List<TaskSummary> kadaiTaskSummaryList =
+        this.taskService.createTaskQuery().externalIdIn(camundaTaskId).list();
+    assertThat(kadaiTaskSummaryList).hasSize(1);
+
+    Task kadaiTask = this.taskService.getTask(kadaiTaskSummaryList.get(0).getId());
+
+    Instant expectedDue =
+        java.time.LocalDateTime.parse("2030-06-26T09:54:00")
+            .atZone(ZoneId.systemDefault())
+            .toInstant();
+    Instant expectedPlanned =
+        java.time.LocalDateTime.parse("2030-06-25T09:54:00")
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .plusMillis(1);
+
+    assertThat(kadaiTask.getDue()).isEqualTo(expectedDue);
+    assertThat(kadaiTask.getPlanned()).isEqualTo(expectedPlanned);
+  }
+
+  @WithAccessId(
+      user = "teamlead_1",
       groups = {"taskadmin"})
   @TestFactory
   Stream<DynamicTest> should_CreateKadaiTask_When_StartCamundaTaskWithManualPriorityNull() {

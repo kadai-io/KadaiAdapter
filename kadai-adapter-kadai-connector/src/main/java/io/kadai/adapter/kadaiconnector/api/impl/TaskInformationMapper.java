@@ -198,17 +198,24 @@ public class TaskInformationMapper {
     kadaiTask.setCreated(created);
 
     String due = camundaTask.getDue();
-    if (due == null || due.isEmpty() || "null".equals(due)) {
-      kadaiTask.setPlanned(now);
-    } else {
-      kadaiTask.setDue(convertStringToInstant(camundaTask.getDue(), now));
+    if (!isTimestampUnset(due)) {
+      kadaiTask.setDue(convertStringToInstant(due, now));
     }
-    Instant planned = convertStringToInstant(camundaTask.getPlanned(), now);
-    kadaiTask.setPlanned(planned);
+
+    String planned = camundaTask.getPlanned();
+    if (!isTimestampUnset(planned)) {
+      kadaiTask.setPlanned(convertStringToInstant(planned, now));
+    } else if (isTimestampUnset(due)) {
+      kadaiTask.setPlanned(now);
+    }
+  }
+
+  private boolean isTimestampUnset(String timestamp) {
+    return timestamp == null || timestamp.isEmpty() || "null".equals(timestamp);
   }
 
   private Instant convertStringToInstant(String strTimestamp, Instant defaultTimestamp) {
-    if (strTimestamp == null || strTimestamp.isEmpty() || "null".equals(strTimestamp)) {
+    if (isTimestampUnset(strTimestamp)) {
       return defaultTimestamp;
     } else {
       try {
