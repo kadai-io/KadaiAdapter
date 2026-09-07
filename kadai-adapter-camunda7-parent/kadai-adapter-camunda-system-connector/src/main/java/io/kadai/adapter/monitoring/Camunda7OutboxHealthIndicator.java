@@ -46,9 +46,9 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
 
     if (result.failureType() != HttpProbeResult.FailureType.NONE) {
       return downForFailure(
-          healthFailureType(result.failureType()),
+          HealthProbeFailureSupport.healthFailureType(result.failureType()),
           result.failureMessage(),
-          httpStatus(result))
+          HealthProbeFailureSupport.httpStatus(result))
           .build();
     }
 
@@ -56,7 +56,7 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
       return downForFailure(
           "http-status",
           "Unexpected HTTP status: " + result.statusCode(),
-          httpStatus(result))
+          HealthProbeFailureSupport.httpStatus(result))
           .build();
     }
 
@@ -79,7 +79,9 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
       String failureType, String error, Integer httpStatus) {
     Health.Builder builder =
         Health.down()
-            .withDetail("outboxServiceError", errorOrFailureType(error, failureType))
+            .withDetail(
+                "outboxServiceError",
+                HealthProbeFailureSupport.errorOrFailureType(error, failureType))
             .withDetail("failureType", failureType)
             .withDetail(BASE_URL, urlString);
     if (httpStatus != null) {
@@ -88,20 +90,4 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
     return builder;
   }
 
-  private static String healthFailureType(HttpProbeResult.FailureType failureType) {
-    return switch (failureType) {
-      case INVALID_RESPONSE -> "invalid-response";
-      case TRANSPORT_ERROR -> "transport-error";
-      case CLIENT_ERROR -> "client-error";
-      case NONE -> throw new IllegalArgumentException("NONE is not a failure");
-    };
-  }
-
-  private static Integer httpStatus(HttpProbeResult<?> result) {
-    return result.statusCode() == null ? null : result.statusCode().value();
-  }
-
-  private static String errorOrFailureType(String error, String failureType) {
-    return error == null || error.isBlank() ? "Health probe failed: " + failureType : error;
-  }
 }

@@ -230,7 +230,7 @@ public class Camunda7TaskEventsService {
   /**
    * Returns the event count using the response shape exposed by the original public API.
    *
-   * @param remainingRetries minimum remaining retries to include
+   * @param remainingRetries exact remaining-retries value to include
    * @return the event count as JSON
    */
   public String getEventsCount(int remainingRetries) {

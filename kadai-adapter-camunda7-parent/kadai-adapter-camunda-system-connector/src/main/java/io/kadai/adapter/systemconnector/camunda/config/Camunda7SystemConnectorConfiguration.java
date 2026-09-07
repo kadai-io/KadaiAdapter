@@ -33,7 +33,6 @@ import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomize
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.DeserializationFeature;
@@ -115,12 +114,11 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   @Bean
-  @Primary
   RestClient restClient(HttpComponentsClientProperties props) {
     return createRestClient(props, false);
   }
 
-  @Bean("camunda7HealthRestClient")
+  @Bean(name = "camunda7HealthRestClient", defaultCandidate = false)
   RestClient camunda7HealthRestClient(HttpComponentsClientProperties props) {
     return createRestClient(props, true);
   }
