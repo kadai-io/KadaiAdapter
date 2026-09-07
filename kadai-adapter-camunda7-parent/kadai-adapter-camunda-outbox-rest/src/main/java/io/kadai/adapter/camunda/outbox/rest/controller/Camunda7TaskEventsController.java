@@ -26,6 +26,7 @@ import io.kadai.adapter.camunda.outbox.rest.resource.Camunda7TaskEventListResour
 import io.kadai.adapter.camunda.outbox.rest.resource.Camunda7TaskEventListResourceAssembler;
 import io.kadai.adapter.camunda.outbox.rest.resource.Camunda7TaskEventResource;
 import io.kadai.adapter.camunda.outbox.rest.resource.Camunda7TaskEventResourceAssembler;
+import io.kadai.adapter.camunda.outbox.rest.resource.OutboxEventCountResource;
 import io.kadai.adapter.camunda.outbox.rest.service.Camunda7TaskEventsService;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -210,8 +211,8 @@ public class Camunda7TaskEventsController {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getEventsCount(@QueryParam("retries") int remainingRetries) {
 
-    String failedEventsCount = camunda7TaskEventService.getEventsCount(remainingRetries);
+    int failedEventsCount = camunda7TaskEventService.getEventsCount(remainingRetries);
 
-    return Response.status(200).entity(failedEventsCount).build();
+    return Response.ok(new OutboxEventCountResource(failedEventsCount)).build();
   }
 }

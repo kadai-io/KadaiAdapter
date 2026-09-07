@@ -22,6 +22,7 @@ import io.kadai.adapter.camunda.OutboxRestConfiguration;
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxDataSource;
 import io.kadai.adapter.camunda.outbox.rest.exception.Camunda7TaskEventNotFoundException;
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentException;
+import io.kadai.adapter.camunda.outbox.rest.exception.OutboxServiceUnavailableException;
 import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.repository.Camunda7OutboxSqlProvider;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -202,24 +203,28 @@ public class Camunda7TaskEventsService {
     return camunda7TaskEventsFilteredByRetries;
   }
 
-  public String getEventsCount(int remainingRetries) {
-    String eventsCount = "{\"eventsCount\":0}";
+  public int getEventsCount(int remainingRetries) {
     try (Connection connection = getConnection()) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
       String sql = sqlProvider.getEventsCount(OUTBOX_SCHEMA);
       try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
         preparedStatement.setInt(1, remainingRetries);
-        ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
-        if (camundaTaskEventResultSet.next()) {
-          eventsCount =
-              eventsCount.replace("0", String.valueOf(camundaTaskEventResultSet.getInt(1)));
+        try (ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery()) {
+          if (!camundaTaskEventResultSet.next()) {
+            throw new OutboxServiceUnavailableException(
+                "Outbox event-count query returned no result");
+          }
+          return camundaTaskEventResultSet.getInt(1);
         }
       }
+    } catch (OutboxServiceUnavailableException e) {
+      throw e;
     } catch (Exception e) {
       LOGGER.warn("Caught Exception while trying to retrieve events count from the outbox", e);
+      throw new OutboxServiceUnavailableException(
+          "Unable to retrieve Outbox event count", e);
     }
-    return eventsCount;
   }
 
   public Camunda7TaskEvent setRemainingRetries(int id, int retriesToSet)
