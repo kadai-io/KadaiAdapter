@@ -71,7 +71,8 @@ class Camunda7TaskEventsServiceLockingTest {
   void should_ReturnEventCount_When_EventCountQuerySucceeds() throws SQLException {
     insertEvents("create", 7, 0);
 
-    assertThat(service.getEventsCount(0)).isEqualTo(7);
+    assertThat(service.countEvents(0)).isEqualTo(7);
+    assertThat(service.getEventsCount(0)).isEqualTo("{\"eventsCount\":7}");
   }
 
   @Test
@@ -81,7 +82,7 @@ class Camunda7TaskEventsServiceLockingTest {
       statement.execute("drop table " + OUTBOX_SCHEMA + ".event_store");
     }
 
-    assertThatThrownBy(() -> service.getEventsCount(0))
+    assertThatThrownBy(() -> service.countEvents(0))
         .isInstanceOf(OutboxServiceUnavailableException.class)
         .hasMessage("Unable to retrieve Outbox event count");
   }

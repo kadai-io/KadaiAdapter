@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -32,6 +33,7 @@ import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomize
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.DeserializationFeature;
@@ -113,7 +115,18 @@ public class Camunda7SystemConnectorConfiguration {
   }
 
   @Bean
+  @Primary
   RestClient restClient(HttpComponentsClientProperties props) {
+    return createRestClient(props, false);
+  }
+
+  @Bean("camunda7HealthRestClient")
+  RestClient camunda7HealthRestClient(HttpComponentsClientProperties props) {
+    return createRestClient(props, true);
+  }
+
+  private RestClient createRestClient(
+      HttpComponentsClientProperties props, boolean healthProbe) {
     ConnectionConfig connectionConfig =
         ConnectionConfig.custom()
             .setConnectTimeout(Timeout.ofMilliseconds(props.getConnectionTimeout()))
@@ -129,13 +142,15 @@ public class Camunda7SystemConnectorConfiguration {
             .setResponseTimeout(Timeout.ofMilliseconds(props.getReadTimeout()))
             .build();
 
-    CloseableHttpClient httpClient =
+    HttpClientBuilder httpClientBuilder =
         HttpClients.custom()
-            .disableAutomaticRetries()
-            .disableRedirectHandling()
             .setConnectionManager(connectionManager)
-            .setDefaultRequestConfig(requestConfig)
-            .build();
+            .setDefaultRequestConfig(requestConfig);
+    if (healthProbe) {
+      httpClientBuilder.disableAutomaticRetries().disableRedirectHandling();
+    }
+
+    CloseableHttpClient httpClient = httpClientBuilder.build();
 
     HttpComponentsClientHttpRequestFactory requestFactory =
         new HttpComponentsClientHttpRequestFactory(httpClient);

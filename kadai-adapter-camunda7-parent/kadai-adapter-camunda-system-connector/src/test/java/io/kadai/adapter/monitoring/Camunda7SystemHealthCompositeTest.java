@@ -12,7 +12,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.health.contributor.HealthContributors.Entry;
 import org.springframework.web.client.RestClient;
-import tools.jackson.databind.json.JsonMapper;
 
 class Camunda7SystemHealthCompositeTest {
 
@@ -32,7 +31,7 @@ class Camunda7SystemHealthCompositeTest {
 
     final Camunda7SystemsHealthComposite camundaSystemsHealthComposite =
         new Camunda7SystemsHealthComposite(
-            mockHttpProbe(),
+            mock(RestClient.class),
             List.of(camunda7System1, camunda7System2),
             new Camunda7HealthConfigurationProperties(),
             mock(HttpHeaderProvider.class));
@@ -56,7 +55,7 @@ class Camunda7SystemHealthCompositeTest {
     RestClient restTemplate = mock(RestClient.class);
     Camunda7SystemsHealthComposite composite =
         new Camunda7SystemsHealthComposite(
-            new ExternalServiceHttpProbe(restTemplate, new JsonMapper()),
+            restTemplate,
             urls,
             properties,
             mock(HttpHeaderProvider.class));
@@ -80,7 +79,7 @@ class Camunda7SystemHealthCompositeTest {
 
     Camunda7SystemsHealthComposite composite =
         new Camunda7SystemsHealthComposite(
-            mockHttpProbe(),
+            mock(RestClient.class),
             List.of(orders, invoices),
             new Camunda7HealthConfigurationProperties(),
             mock(HttpHeaderProvider.class));
@@ -101,7 +100,7 @@ class Camunda7SystemHealthCompositeTest {
 
     Camunda7SystemsHealthComposite composite =
         new Camunda7SystemsHealthComposite(
-            mockHttpProbe(),
+            mock(RestClient.class),
             List.of(firstDefault, secondDefault),
             new Camunda7HealthConfigurationProperties(),
             mock(HttpHeaderProvider.class));
@@ -109,9 +108,5 @@ class Camunda7SystemHealthCompositeTest {
     List<String> contributorNames = composite.stream().map(Entry::name).toList();
 
     assertThat(contributorNames).containsExactly("default", "default-2");
-  }
-
-  private static ExternalServiceHttpProbe mockHttpProbe() {
-    return new ExternalServiceHttpProbe(mock(RestClient.class), new JsonMapper());
   }
 }

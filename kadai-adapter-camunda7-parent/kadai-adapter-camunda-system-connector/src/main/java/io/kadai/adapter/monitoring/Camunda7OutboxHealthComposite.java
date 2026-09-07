@@ -8,13 +8,14 @@ import java.util.Map;
 import java.util.stream.Stream;
 import org.springframework.boot.health.contributor.CompositeHealthContributor;
 import org.springframework.boot.health.contributor.HealthContributor;
+import org.springframework.web.client.RestClient;
 
 public class Camunda7OutboxHealthComposite implements CompositeHealthContributor {
 
   private final Map<String, HealthContributor> healthContributors = new HashMap<>();
 
   public Camunda7OutboxHealthComposite(
-      ExternalServiceHttpProbe httpProbe,
+      RestClient restClient,
       Camunda7System camunda7System,
       String outboxUrl,
       Camunda7HealthConfigurationProperties properties,
@@ -22,11 +23,11 @@ public class Camunda7OutboxHealthComposite implements CompositeHealthContributor
 
     if (properties.getCamunda().getEnabled()) {
       healthContributors.put(
-          "camunda", new Camunda7HealthIndicator(httpProbe, httpHeaderProvider, camunda7System));
+          "camunda", new Camunda7HealthIndicator(restClient, httpHeaderProvider, camunda7System));
     }
     if (properties.getOutbox().getEnabled()) {
       healthContributors.put(
-          "outbox", new Camunda7OutboxHealthIndicator(httpProbe, httpHeaderProvider, outboxUrl));
+          "outbox", new Camunda7OutboxHealthIndicator(restClient, httpHeaderProvider, outboxUrl));
     }
   }
 

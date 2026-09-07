@@ -13,7 +13,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.web.client.RestClient;
-import tools.jackson.databind.json.JsonMapper;
 
 class Camunda7OutboxHealthCompositeTest {
 
@@ -23,7 +22,7 @@ class Camunda7OutboxHealthCompositeTest {
       Camunda7HealthConfigurationProperties properties, long expectedEnabledCount) {
     final Camunda7OutboxHealthComposite camundaOutboxHealthComposite =
         new Camunda7OutboxHealthComposite(
-            mockHttpProbe(),
+            mock(RestClient.class),
             new Camunda7System(
                 "http://localhost:10020/engine-rest", "http://localhost:10020/outbox-rest", null),
             "http://localhost:10020/outbox-rest",
@@ -40,7 +39,7 @@ class Camunda7OutboxHealthCompositeTest {
       String contributorName) {
     final Camunda7OutboxHealthComposite camundaOutboxHealthComposite =
         new Camunda7OutboxHealthComposite(
-            mockHttpProbe(),
+            mock(RestClient.class),
             new Camunda7System(
                 "http://localhost:10020/engine-rest", "http://localhost:10020/outbox-rest", null),
             "http://localhost:10020/outbox-rest",
@@ -66,9 +65,5 @@ class Camunda7OutboxHealthCompositeTest {
         Arguments.of(allEnabled, 2),
         Arguments.of(camundaDisabled, 1),
         Arguments.of(outboxDisabled, 1));
-  }
-
-  private static ExternalServiceHttpProbe mockHttpProbe() {
-    return new ExternalServiceHttpProbe(mock(RestClient.class), new JsonMapper());
   }
 }

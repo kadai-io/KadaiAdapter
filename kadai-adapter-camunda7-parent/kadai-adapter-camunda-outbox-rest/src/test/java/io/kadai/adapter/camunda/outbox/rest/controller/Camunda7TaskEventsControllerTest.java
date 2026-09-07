@@ -56,7 +56,7 @@ class Camunda7TaskEventsControllerTest {
   private static Camunda7TaskEventsService eventCountServiceReturning(int eventCount) {
     return new Camunda7TaskEventsService() {
       @Override
-      public int getEventsCount(int remainingRetries) {
+      public int countEvents(int remainingRetries) {
         return eventCount;
       }
     };
@@ -65,7 +65,7 @@ class Camunda7TaskEventsControllerTest {
   private static Camunda7TaskEventsService eventCountServiceFailing() {
     return new Camunda7TaskEventsService() {
       @Override
-      public int getEventsCount(int remainingRetries) {
+      public int countEvents(int remainingRetries) {
         throw new OutboxServiceUnavailableException("Unable to retrieve Outbox event count");
       }
     };

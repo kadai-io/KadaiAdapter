@@ -203,7 +203,7 @@ public class Camunda7TaskEventsService {
     return camunda7TaskEventsFilteredByRetries;
   }
 
-  public int getEventsCount(int remainingRetries) {
+  public int countEvents(int remainingRetries) {
     try (Connection connection = getConnection()) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
@@ -225,6 +225,16 @@ public class Camunda7TaskEventsService {
       throw new OutboxServiceUnavailableException(
           "Unable to retrieve Outbox event count", e);
     }
+  }
+
+  /**
+   * Returns the event count using the response shape exposed by the original public API.
+   *
+   * @param remainingRetries minimum remaining retries to include
+   * @return the event count as JSON
+   */
+  public String getEventsCount(int remainingRetries) {
+    return "{\"eventsCount\":" + countEvents(remainingRetries) + "}";
   }
 
   public Camunda7TaskEvent setRemainingRetries(int id, int retriesToSet)

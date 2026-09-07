@@ -20,13 +20,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import tools.jackson.databind.json.JsonMapper;
 
 class Camunda7HealthIndicatorTest {
 
@@ -95,6 +95,34 @@ class Camunda7HealthIndicatorTest {
         .containsEntry("httpStatus", 200);
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"[null]", "[{}]", "[{\"name\":null}]", "[{\"name\":\"   \"}]"})
+  void should_ReturnDown_When_CamundaReturnsOnlyInvalidEngines(String body) {
+    String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    enqueueJson(200, body);
+
+    Health health = indicator(camunda7System(systemRestUrl)).health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "semantic-mismatch")
+        .containsEntry("httpStatus", 200);
+  }
+
+  @Test
+  void should_ReturnUp_When_CamundaReturnsInvalidAndValidEngines() {
+    String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    enqueueJson(200, "[null,{}, {\"name\":\"x\"}]");
+
+    Health health = indicator(camunda7System(systemRestUrl)).health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
+    Camunda7EngineInfoRepresentationModel[] engines =
+        (Camunda7EngineInfoRepresentationModel[]) health.getDetails().get("camundaEngines");
+    assertThat(engines).hasSize(1);
+    assertThat(engines[0].getName()).isEqualTo("x");
+  }
+
   @Test
   void should_ReturnDown_When_ExpectedEngineIsNotListed() {
     String systemRestUrl = mockWebServer.url("/engine-rest/engine/default").toString();
@@ -154,6 +182,23 @@ class Camunda7HealthIndicatorTest {
         .containsEntry("httpStatus", status);
   }
 
+  @ParameterizedTest
+  @ValueSource(ints = {301, 503})
+  void should_MakeOnlyOneRequest_When_HealthProbeReceivesRedirectOrRetryStatus(int status)
+      throws InterruptedException {
+    String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    enqueueJson(status, "ignored");
+    enqueueJson(200, "[{\"name\":\"default\"}]");
+
+    Health health = indicator(camunda7System(systemRestUrl)).health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "http-status")
+        .containsEntry("httpStatus", status);
+    assertThat(mockWebServer.getRequestCount()).isEqualTo(1);
+  }
+
   @Test
   void should_SendAuthenticationHeaders_When_PingingCamunda() throws InterruptedException {
     final String systemRestUrl = mockWebServer.url("/engine-rest").toString();
@@ -192,10 +237,7 @@ class Camunda7HealthIndicatorTest {
 
   private Camunda7HealthIndicator indicator(
       Camunda7System camunda7System, HttpHeaderProvider httpHeaderProvider) {
-    return new Camunda7HealthIndicator(
-        new ExternalServiceHttpProbe(restClient, new JsonMapper()),
-        httpHeaderProvider,
-        camunda7System);
+    return new Camunda7HealthIndicator(restClient, httpHeaderProvider, camunda7System);
   }
 
   private HttpHeaderProvider mockHttpHeaderProvider() {

@@ -18,13 +18,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import tools.jackson.databind.json.JsonMapper;
 
 class Camunda7OutboxHealthIndicatorTest {
 
@@ -129,6 +129,21 @@ class Camunda7OutboxHealthIndicatorTest {
         .containsEntry("httpStatus", status);
   }
 
+  @ParameterizedTest
+  @ValueSource(ints = {301, 503})
+  void should_MakeOnlyOneRequest_When_HealthProbeReceivesRedirectOrRetryStatus(int status) {
+    enqueueJson(status, "ignored");
+    enqueueJson(200, "{\"eventsCount\":0}");
+
+    Health health = indicator().health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "http-status")
+        .containsEntry("httpStatus", status);
+    assertThat(mockWebServer.getRequestCount()).isEqualTo(1);
+  }
+
   @Test
   void should_SendAuthenticationHeaders_When_PingingOutbox() throws InterruptedException {
     HttpHeaderProvider httpHeaderProvider = mock(HttpHeaderProvider.class);
@@ -176,9 +191,7 @@ class Camunda7OutboxHealthIndicatorTest {
 
   private Camunda7OutboxHealthIndicator indicator(HttpHeaderProvider httpHeaderProvider) {
     return new Camunda7OutboxHealthIndicator(
-        new ExternalServiceHttpProbe(restClient, new JsonMapper()),
-        httpHeaderProvider,
-        mockWebServer.url("/outbox-rest").toString());
+        restClient, httpHeaderProvider, mockWebServer.url("/outbox-rest").toString());
   }
 
   private HttpHeaderProvider mockHttpHeaderProvider() {

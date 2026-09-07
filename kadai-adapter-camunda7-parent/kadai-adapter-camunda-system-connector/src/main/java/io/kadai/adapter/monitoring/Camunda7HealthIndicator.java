@@ -9,6 +9,7 @@ import java.util.List;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,11 +23,11 @@ public class Camunda7HealthIndicator implements HealthIndicator {
   private final URI url;
   private final String expectedEngineName;
 
-  Camunda7HealthIndicator(
-      ExternalServiceHttpProbe httpProbe,
+  public Camunda7HealthIndicator(
+      RestClient restClient,
       HttpHeaderProvider httpHeaderProvider,
       Camunda7System camunda7System) {
-    this.httpProbe = httpProbe;
+    this.httpProbe = new ExternalServiceHttpProbe(restClient);
     this.httpHeaderProvider = httpHeaderProvider;
     this.url = createEngineListUrl(camunda7System.getSystemRestUrl());
     this.expectedEngineName = determineExpectedEngineName(camunda7System);
@@ -65,14 +66,22 @@ public class Camunda7HealthIndicator implements HealthIndicator {
       return downForFailure("semantic-mismatch", "No engines found", 200).build();
     }
 
+    Camunda7EngineInfoRepresentationModel[] validEngines =
+        Arrays.stream(engines)
+            .filter(Camunda7HealthIndicator::isValidEngine)
+            .toArray(Camunda7EngineInfoRepresentationModel[]::new);
+    if (validEngines.length == 0) {
+      return downForFailure("semantic-mismatch", "No valid engines found", 200).build();
+    }
+
     Camunda7EngineInfoRepresentationModel expectedEngine =
-        expectedEngineName == null ? null : findEngine(engines, expectedEngineName);
+        expectedEngineName == null ? null : findEngine(validEngines, expectedEngineName);
     if (expectedEngine == null && expectedEngineName != null) {
       return downForFailure(
               "semantic-mismatch",
               "Expected engine '" + expectedEngineName + "' not found",
               200)
-          .withDetail("camundaEngines", engines)
+          .withDetail("camundaEngines", validEngines)
           .build();
     }
     if (expectedEngine != null) {
@@ -81,7 +90,10 @@ public class Camunda7HealthIndicator implements HealthIndicator {
           .withDetail(BASE_URL, url)
           .build();
     }
-    return Health.up().withDetail("camundaEngines", engines).withDetail(BASE_URL, url).build();
+    return Health.up()
+        .withDetail("camundaEngines", validEngines)
+        .withDetail(BASE_URL, url)
+        .build();
   }
 
   private Health.Builder downForFailure(
@@ -102,7 +114,7 @@ public class Camunda7HealthIndicator implements HealthIndicator {
       case INVALID_RESPONSE -> "invalid-response";
       case TRANSPORT_ERROR -> "transport-error";
       case CLIENT_ERROR -> "client-error";
-      case NONE -> "client-error";
+      case NONE -> throw new IllegalArgumentException("NONE is not a failure");
     };
   }
 
@@ -188,9 +200,12 @@ public class Camunda7HealthIndicator implements HealthIndicator {
   private static Camunda7EngineInfoRepresentationModel findEngine(
       Camunda7EngineInfoRepresentationModel[] engines, String expectedEngineName) {
     return Arrays.stream(engines)
-        .filter(engine -> engine != null)
         .filter(engine -> expectedEngineName.equals(engine.getName()))
         .findFirst()
         .orElse(null);
+  }
+
+  private static boolean isValidEngine(Camunda7EngineInfoRepresentationModel engine) {
+    return engine != null && engine.getName() != null && !engine.getName().isBlank();
   }
 }

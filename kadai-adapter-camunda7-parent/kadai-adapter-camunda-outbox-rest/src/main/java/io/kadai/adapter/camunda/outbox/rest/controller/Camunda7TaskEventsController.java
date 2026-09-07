@@ -211,7 +211,7 @@ public class Camunda7TaskEventsController {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getEventsCount(@QueryParam("retries") int remainingRetries) {
 
-    int failedEventsCount = camunda7TaskEventService.getEventsCount(remainingRetries);
+    int failedEventsCount = camunda7TaskEventService.countEvents(remainingRetries);
 
     return Response.ok(new OutboxEventCountResource(failedEventsCount)).build();
   }

@@ -6,6 +6,7 @@ import java.net.URI;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 public class Camunda7OutboxHealthIndicator implements HealthIndicator {
@@ -17,9 +18,9 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
   private final URI url;
   private final String urlString;
 
-  Camunda7OutboxHealthIndicator(
-      ExternalServiceHttpProbe httpProbe, HttpHeaderProvider httpHeaderProvider, String urlString) {
-    this.httpProbe = httpProbe;
+  public Camunda7OutboxHealthIndicator(
+      RestClient restClient, HttpHeaderProvider httpHeaderProvider, String urlString) {
+    this.httpProbe = new ExternalServiceHttpProbe(restClient);
     this.httpHeaderProvider = httpHeaderProvider;
     this.url =
         UriComponentsBuilder.fromUriString(urlString)
@@ -40,8 +41,8 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
       return downForFailure("client-error", "Unable to create authentication headers", null)
           .build();
     }
-    HttpProbeResult<OutboxEventCountRepresentationModel> result =
-        httpProbe.getJson(url, headers, OutboxEventCountRepresentationModel.class);
+    HttpProbeResult<OutboxEventCountProbeResponse> result =
+        httpProbe.getJson(url, headers, OutboxEventCountProbeResponse.class);
 
     if (result.failureType() != HttpProbeResult.FailureType.NONE) {
       return downForFailure(
@@ -59,15 +60,17 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
           .build();
     }
 
-    OutboxEventCountRepresentationModel body = result.body();
+    OutboxEventCountProbeResponse body = result.body();
     if (body == null || body.getEventsCount() == null || body.getEventsCount() < 0) {
       return downForFailure(
               "semantic-mismatch", "Invalid Outbox event-count response", 200)
           .build();
     }
 
+    OutboxEventCountRepresentationModel details = new OutboxEventCountRepresentationModel();
+    details.setEventsCount(body.getEventsCount());
     return Health.up()
-        .withDetail("outboxService", body)
+        .withDetail("outboxService", details)
         .withDetail(BASE_URL, urlString)
         .build();
   }
@@ -90,7 +93,7 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
       case INVALID_RESPONSE -> "invalid-response";
       case TRANSPORT_ERROR -> "transport-error";
       case CLIENT_ERROR -> "client-error";
-      case NONE -> "client-error";
+      case NONE -> throw new IllegalArgumentException("NONE is not a failure");
     };
   }
 

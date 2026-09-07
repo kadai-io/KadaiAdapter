@@ -2,13 +2,13 @@ package io.kadai.adapter.monitoring.models;
 
 public class OutboxEventCountRepresentationModel {
 
-  private Integer eventsCount;
+  private int eventsCount;
 
-  public Integer getEventsCount() {
+  public int getEventsCount() {
     return eventsCount;
   }
 
-  public void setEventsCount(Integer eventsCount) {
+  public void setEventsCount(int eventsCount) {
     this.eventsCount = eventsCount;
   }
 }
