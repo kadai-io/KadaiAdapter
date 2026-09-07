@@ -1,191 +1,201 @@
 package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.monitoring.models.Camunda7EngineInfoRepresentationModel;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7System;
+import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
-@ExtendWith(MockitoExtension.class)
 class Camunda7HealthIndicatorTest {
 
-  private static final String BASE_URL = "http://localhost:8080/engine-rest";
-  private static final URI EXPECTED_URI =
-      UriComponentsBuilder.fromUriString(BASE_URL).pathSegment("engine").build().toUri();
-  private static final String ENGINE_SCOPED_BASE_URL =
-      "http://localhost:8080/rest/engine/default";
-  private static final URI EXPECTED_ENGINE_SCOPED_URI =
-      UriComponentsBuilder.fromUriString("http://localhost:8080/rest/engine").build().toUri();
+  private MockWebServer mockWebServer;
+  private RestClient restClient;
 
-  @Mock RestClient restClient;
+  @BeforeEach
+  void setUp() throws IOException {
+    mockWebServer = new MockWebServer();
+    mockWebServer.start();
+    restClient =
+        RestClient.builder()
+            .requestFactory(
+                new HttpComponentsClientHttpRequestFactory(
+                    HttpClients.custom()
+                        .disableAutomaticRetries()
+                        .disableRedirectHandling()
+                        .build()))
+            .build();
+  }
 
-  @Test
-  void should_ReturnUp_When_CamundaRespondsSuccessfully() {
-    Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, mockHttpHeaderProvider(), camunda7System(BASE_URL));
-    Camunda7EngineInfoRepresentationModel engine = new Camunda7EngineInfoRepresentationModel();
-    Camunda7EngineInfoRepresentationModel[] engines = {engine};
-
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
-
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
-        .thenReturn(ResponseEntity.ok(engines));
-
-    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
+  @AfterEach
+  void tearDown() throws IOException {
+    if (mockWebServer != null) {
+      mockWebServer.shutdown();
+    }
   }
 
   @Test
-  void should_ReturnUp_When_CamundaRespondsSuccessfullyForEngineScopedUrl() {
-    Camunda7EngineInfoRepresentationModel engine = new Camunda7EngineInfoRepresentationModel();
-    engine.setName("default");
-    Camunda7EngineInfoRepresentationModel[] engines = {engine};
+  void should_ReturnUp_When_CamundaReturns200AndEngineListIsValid() {
+    final String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    enqueueJson(200, "[{\"name\":\"default\"}]");
 
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+    Health health = indicator(camunda7System(systemRestUrl)).health();
 
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_ENGINE_SCOPED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
-        .thenReturn(ResponseEntity.ok(engines));
-
-    Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(
-            restClient,
-            mockHttpHeaderProvider(),
-            camunda7System(ENGINE_SCOPED_BASE_URL, "default"));
-
-    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
+    assertThat(health.getDetails())
+        .containsEntry("baseUrl", URI.create(systemRestUrl + "/engine"))
+        .containsKey("camundaEngines");
   }
 
   @Test
-  void should_ReturnDown_When_ConfiguredEngineIsNotListed() {
-    Camunda7EngineInfoRepresentationModel engine = new Camunda7EngineInfoRepresentationModel();
-    engine.setName("other-engine");
-    Camunda7EngineInfoRepresentationModel[] engines = {engine};
+  void should_ReturnUp_When_CamundaReturns200ForEngineScopedUrl() {
+    String systemRestUrl = mockWebServer.url("/rest/engine/default").toString();
+    enqueueJson(200, "[{\"name\":\"default\"}]");
 
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+    Health health = indicator(camunda7System(systemRestUrl)).health();
 
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_ENGINE_SCOPED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
-        .thenReturn(ResponseEntity.ok(engines));
-
-    Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(
-            restClient,
-            mockHttpHeaderProvider(),
-            camunda7System(ENGINE_SCOPED_BASE_URL, "default"));
-
-    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
+    assertThat(health.getDetails())
+        .containsEntry("baseUrl", URI.create(mockWebServer.url("/rest/engine").toString()))
+        .containsKey("camundaEngine")
+        .doesNotContainKey("camundaEngines");
   }
 
   @Test
-  void should_ReturnDown_When_CamundaRespondsSuccessfullyButListsNoEngines() {
-    Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, mockHttpHeaderProvider(), camunda7System(BASE_URL));
+  void should_ReturnDown_When_CamundaReturns200AndNoEngines() {
+    String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    enqueueJson(200, "[]");
 
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
-
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
-        .thenReturn(ResponseEntity.ok(new Camunda7EngineInfoRepresentationModel[0]));
-
-    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
-  }
-
-  @ParameterizedTest
-  @MethodSource("errorResponseProvider")
-  void should_ReturnDown_When_CamundaRespondsWithError(HttpStatus httpStatus) {
-    Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, mockHttpHeaderProvider(), camunda7System(BASE_URL));
-
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
-
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
-        .thenThrow(new RuntimeException("HTTP " + httpStatus.value()));
-
-    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
-  }
-
-  @Test
-  void should_ReturnDown_When_CamundaPingFails() {
-    Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, mockHttpHeaderProvider(), camunda7System(BASE_URL));
-
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenThrow(new RuntimeException("Connection failed"));
-
-    Health health = camundaHealthIndicator.health();
+    Health health = indicator(camunda7System(systemRestUrl)).health();
 
     assertThat(health.getStatus()).isEqualTo(Status.DOWN);
     assertThat(health.getDetails())
-        .containsEntry("camundaEngineError", "Connection failed")
-        .containsEntry("baseUrl", EXPECTED_URI);
+        .containsEntry("failureType", "semantic-mismatch")
+        .containsEntry("httpStatus", 200);
   }
 
   @Test
-  void should_SendAuthenticationHeaders_When_PingingCamunda() {
+  void should_ReturnDown_When_ExpectedEngineIsNotListed() {
+    String systemRestUrl = mockWebServer.url("/engine-rest/engine/default").toString();
+    enqueueJson(200, "[{\"name\":\"other\"}]");
+
+    Health health = indicator(camunda7System(systemRestUrl)).health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("camundaEngineError", "Expected engine 'default' not found")
+        .containsEntry("failureType", "semantic-mismatch")
+        .containsEntry("httpStatus", 200);
+    Camunda7EngineInfoRepresentationModel[] engines =
+        (Camunda7EngineInfoRepresentationModel[]) health.getDetails().get("camundaEngines");
+    assertThat(engines)
+        .extracting(Camunda7EngineInfoRepresentationModel::getName)
+        .containsExactly("other");
+  }
+
+  @Test
+  void should_ReturnDown_When_CamundaReturns200WithEmptyBody() {
+    String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    enqueueJson(200, "");
+
+    Health health = indicator(camunda7System(systemRestUrl)).health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "invalid-response")
+        .containsEntry("httpStatus", 200);
+  }
+
+  @Test
+  void should_ReturnDown_When_CamundaReturns200WithMalformedJson() {
+    String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    enqueueJson(200, "{not-json");
+
+    Health health = indicator(camunda7System(systemRestUrl)).health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "invalid-response")
+        .containsEntry("httpStatus", 200);
+  }
+
+  @ParameterizedTest
+  @MethodSource("non200Statuses")
+  void should_ReturnDownAndExposeStatus_When_CamundaReturnsNon200(int status) {
+    String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    enqueueJson(status, "ignored");
+
+    Health health = indicator(camunda7System(systemRestUrl)).health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "http-status")
+        .containsEntry("httpStatus", status);
+  }
+
+  @Test
+  void should_SendAuthenticationHeaders_When_PingingCamunda() throws InterruptedException {
+    final String systemRestUrl = mockWebServer.url("/engine-rest").toString();
     HttpHeaderProvider httpHeaderProvider = mock(HttpHeaderProvider.class);
     HttpHeaders authHeaders = new HttpHeaders();
-    authHeaders.add("Authorization", "Basic dXNlcjpwYXNz");
+    authHeaders.setBasicAuth("user", "pass");
     when(httpHeaderProvider.camunda7RestApiHeaders()).thenReturn(authHeaders);
+    enqueueJson(200, "[{\"name\":\"default\"}]");
 
-    Camunda7HealthIndicator camundaHealthIndicator =
-        new Camunda7HealthIndicator(restClient, httpHeaderProvider, camunda7System(BASE_URL));
+    Health health = indicator(camunda7System(systemRestUrl), httpHeaderProvider).health();
+    RecordedRequest request = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
 
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
-    Camunda7EngineInfoRepresentationModel[] engines = {new Camunda7EngineInfoRepresentationModel()};
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
+    assertThat(request).isNotNull();
+    assertThat(request.getHeader("Authorization")).isEqualTo("Basic dXNlcjpwYXNz");
+  }
 
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(Camunda7EngineInfoRepresentationModel[].class))
-        .thenReturn(ResponseEntity.ok(engines));
+  @Test
+  void should_ReturnDown_When_CamundaCannotBeReached() throws IOException {
+    String systemRestUrl = mockWebServer.url("/engine-rest").toString();
+    Camunda7HealthIndicator healthIndicator = indicator(camunda7System(systemRestUrl));
+    mockWebServer.shutdown();
+    mockWebServer = null;
 
-    assertThat(camundaHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
+    Health health = healthIndicator.health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "transport-error")
+        .doesNotContainKey("httpStatus");
+  }
+
+  private Camunda7HealthIndicator indicator(Camunda7System camunda7System) {
+    return indicator(camunda7System, mockHttpHeaderProvider());
+  }
+
+  private Camunda7HealthIndicator indicator(
+      Camunda7System camunda7System, HttpHeaderProvider httpHeaderProvider) {
+    return new Camunda7HealthIndicator(
+        new ExternalServiceHttpProbe(restClient, new JsonMapper()),
+        httpHeaderProvider,
+        camunda7System);
   }
 
   private HttpHeaderProvider mockHttpHeaderProvider() {
@@ -200,13 +210,19 @@ class Camunda7HealthIndicatorTest {
     return camunda7System;
   }
 
-  private Camunda7System camunda7System(String systemRestUrl, String engineIdentifier) {
-    Camunda7System camunda7System = camunda7System(systemRestUrl);
-    camunda7System.setCamunda7EngineIdentifier(engineIdentifier);
-    return camunda7System;
+  private void enqueueJson(int status, String body) {
+    MockResponse response =
+        new MockResponse()
+            .setResponseCode(status)
+            .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(body);
+    if (status == 301) {
+      response.setHeader("Location", "/redirected");
+    }
+    mockWebServer.enqueue(response);
   }
 
-  private static Stream<Arguments> errorResponseProvider() {
-    return Arrays.stream(HttpStatus.values()).filter(HttpStatus::isError).map(Arguments::of);
+  private static Stream<Integer> non200Statuses() {
+    return Stream.of(204, 301, 400, 401, 403, 404, 429, 500, 503);
   }
 }

@@ -9,11 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.health.contributor.HealthContributor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class Camunda7HealthContributorFactory implements PluginHealthContributorFactory {
 
-  private final RestClient restClient;
+  private final ExternalServiceHttpProbe httpProbe;
   private final Camunda7HealthConfigurationProperties properties;
   private final List<Camunda7System> camunda7Systems;
   private final HttpHeaderProvider httpHeaderProvider;
@@ -21,10 +22,11 @@ public class Camunda7HealthContributorFactory implements PluginHealthContributor
   @Autowired
   public Camunda7HealthContributorFactory(
       RestClient restClient,
+      JsonMapper jsonMapper,
       Camunda7HealthConfigurationProperties properties,
       List<Camunda7System> camunda7Systems,
       HttpHeaderProvider httpHeaderProvider) {
-    this.restClient = restClient;
+    this.httpProbe = new ExternalServiceHttpProbe(restClient, jsonMapper);
     this.properties = properties;
     this.camunda7Systems = camunda7Systems;
     this.httpHeaderProvider = httpHeaderProvider;
@@ -40,7 +42,7 @@ public class Camunda7HealthContributorFactory implements PluginHealthContributor
     return properties.getEnabled()
         ? Optional.of(
             new Camunda7SystemsHealthComposite(
-                restClient, camunda7Systems, properties, httpHeaderProvider))
+                httpProbe, camunda7Systems, properties, httpHeaderProvider))
         : Optional.empty();
   }
 }

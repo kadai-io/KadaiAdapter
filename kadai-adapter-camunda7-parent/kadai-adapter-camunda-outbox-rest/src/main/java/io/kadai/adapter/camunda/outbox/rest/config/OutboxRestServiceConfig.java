@@ -23,6 +23,7 @@ import io.kadai.adapter.camunda.outbox.rest.exception.Camunda7TaskEventNotFoundE
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentExceptionMapper;
 import io.kadai.adapter.camunda.outbox.rest.exception.JsonParseExceptionMapper;
 import io.kadai.adapter.camunda.outbox.rest.exception.MismatchedInputExceptionMapper;
+import io.kadai.adapter.camunda.outbox.rest.exception.OutboxServiceUnavailableExceptionMapper;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 import java.util.HashSet;
@@ -40,6 +41,7 @@ public class OutboxRestServiceConfig extends Application {
     classesToBeScanned.add(Camunda7TaskEventNotFoundExceptionMapper.class);
     classesToBeScanned.add(JsonParseExceptionMapper.class);
     classesToBeScanned.add(MismatchedInputExceptionMapper.class);
+    classesToBeScanned.add(OutboxServiceUnavailableExceptionMapper.class);
     return classesToBeScanned;
   }
 }

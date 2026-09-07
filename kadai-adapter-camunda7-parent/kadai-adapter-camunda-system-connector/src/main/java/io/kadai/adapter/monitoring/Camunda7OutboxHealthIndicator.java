@@ -6,23 +6,20 @@ import java.net.URI;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 public class Camunda7OutboxHealthIndicator implements HealthIndicator {
 
   private static final String BASE_URL = "baseUrl";
 
-  private final RestClient restClient;
+  private final ExternalServiceHttpProbe httpProbe;
   private final HttpHeaderProvider httpHeaderProvider;
-  private URI url;
-  private String urlString;
+  private final URI url;
+  private final String urlString;
 
-  public Camunda7OutboxHealthIndicator(
-      RestClient restClient, HttpHeaderProvider httpHeaderProvider, String urlString) {
-    this.restClient = restClient;
+  Camunda7OutboxHealthIndicator(
+      ExternalServiceHttpProbe httpProbe, HttpHeaderProvider httpHeaderProvider, String urlString) {
+    this.httpProbe = httpProbe;
     this.httpHeaderProvider = httpHeaderProvider;
     this.url =
         UriComponentsBuilder.fromUriString(urlString)
@@ -36,36 +33,72 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
 
   @Override
   public Health health() {
+    HttpHeaders headers;
     try {
-      ResponseEntity<OutboxEventCountRepresentationModel> response = pingOutBoxRest();
-
-      if (response.getStatusCode() == HttpStatus.OK) {
-        return Health.up()
-            .withDetail("outboxService", response.getBody())
-            .withDetail(BASE_URL, urlString)
-            .build();
-      } else {
-        return Health.down()
-            .withDetail("outboxServiceError", "Unexpected status: " + response.getStatusCode())
-            .withDetail(BASE_URL, urlString)
-            .build();
-      }
-
-    } catch (Exception e) {
-      return Health.down()
-          .withDetail("outboxServiceError", e.getMessage())
-          .withDetail(BASE_URL, urlString)
+      headers = httpHeaderProvider.outboxRestApiHeaders();
+    } catch (RuntimeException e) {
+      return downForFailure("client-error", "Unable to create authentication headers", null)
           .build();
     }
+    HttpProbeResult<OutboxEventCountRepresentationModel> result =
+        httpProbe.getJson(url, headers, OutboxEventCountRepresentationModel.class);
+
+    if (result.failureType() != HttpProbeResult.FailureType.NONE) {
+      return downForFailure(
+          healthFailureType(result.failureType()),
+          result.failureMessage(),
+          httpStatus(result))
+          .build();
+    }
+
+    if (!result.isHttp200()) {
+      return downForFailure(
+          "http-status",
+          "Unexpected HTTP status: " + result.statusCode(),
+          httpStatus(result))
+          .build();
+    }
+
+    OutboxEventCountRepresentationModel body = result.body();
+    if (body == null || body.getEventsCount() == null || body.getEventsCount() < 0) {
+      return downForFailure(
+              "semantic-mismatch", "Invalid Outbox event-count response", 200)
+          .build();
+    }
+
+    return Health.up()
+        .withDetail("outboxService", body)
+        .withDetail(BASE_URL, urlString)
+        .build();
   }
 
-  ResponseEntity<OutboxEventCountRepresentationModel> pingOutBoxRest() {
-    HttpHeaders headers = httpHeaderProvider.outboxRestApiHeaders();
-    return restClient
-        .get()
-        .uri(url)
-        .headers(h -> h.addAll(headers))
-        .retrieve()
-        .toEntity(OutboxEventCountRepresentationModel.class);
+  private Health.Builder downForFailure(
+      String failureType, String error, Integer httpStatus) {
+    Health.Builder builder =
+        Health.down()
+            .withDetail("outboxServiceError", errorOrFailureType(error, failureType))
+            .withDetail("failureType", failureType)
+            .withDetail(BASE_URL, urlString);
+    if (httpStatus != null) {
+      builder.withDetail("httpStatus", httpStatus);
+    }
+    return builder;
+  }
+
+  private static String healthFailureType(HttpProbeResult.FailureType failureType) {
+    return switch (failureType) {
+      case INVALID_RESPONSE -> "invalid-response";
+      case TRANSPORT_ERROR -> "transport-error";
+      case CLIENT_ERROR -> "client-error";
+      case NONE -> "client-error";
+    };
+  }
+
+  private static Integer httpStatus(HttpProbeResult<?> result) {
+    return result.statusCode() == null ? null : result.statusCode().value();
+  }
+
+  private static String errorOrFailureType(String error, String failureType) {
+    return error == null || error.isBlank() ? "Health probe failed: " + failureType : error;
   }
 }

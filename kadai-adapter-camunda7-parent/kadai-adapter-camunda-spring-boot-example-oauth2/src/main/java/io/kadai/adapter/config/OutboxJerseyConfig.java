@@ -23,6 +23,7 @@ import io.kadai.adapter.camunda.outbox.rest.exception.Camunda7TaskEventNotFoundE
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentExceptionMapper;
 import io.kadai.adapter.camunda.outbox.rest.exception.JsonParseExceptionMapper;
 import io.kadai.adapter.camunda.outbox.rest.exception.MismatchedInputExceptionMapper;
+import io.kadai.adapter.camunda.outbox.rest.exception.OutboxServiceUnavailableExceptionMapper;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
@@ -42,5 +43,6 @@ public class OutboxJerseyConfig extends ResourceConfig {
     register(Camunda7TaskEventNotFoundExceptionMapper.class);
     register(JsonParseExceptionMapper.class);
     register(MismatchedInputExceptionMapper.class);
+    register(OutboxServiceUnavailableExceptionMapper.class);
   }
 }

@@ -1,116 +1,184 @@
 package io.kadai.adapter.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.kadai.adapter.monitoring.models.OutboxEventCountRepresentationModel;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
-import java.net.URI;
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
-@ExtendWith(MockitoExtension.class)
 class Camunda7OutboxHealthIndicatorTest {
 
-  private static final String BASE_URL = "http://localhost:8080/outbox-rest";
-  private static final URI EXPECTED_URI =
-      UriComponentsBuilder.fromUriString(BASE_URL)
-          .pathSegment("events")
-          .pathSegment("count")
-          .queryParam("retries", 0)
-          .build()
-          .toUri();
+  private MockWebServer mockWebServer;
+  private RestClient restClient;
 
-  @Mock RestClient restClient;
+  @BeforeEach
+  void setUp() throws IOException {
+    mockWebServer = new MockWebServer();
+    mockWebServer.start();
+    restClient =
+        RestClient.builder()
+            .requestFactory(
+                new HttpComponentsClientHttpRequestFactory(
+                    HttpClients.custom()
+                        .disableAutomaticRetries()
+                        .disableRedirectHandling()
+                        .build()))
+            .build();
+  }
+
+  @AfterEach
+  void tearDown() throws IOException {
+    if (mockWebServer != null) {
+      mockWebServer.shutdown();
+    }
+  }
 
   @Test
-  void should_ReturnUp_When_OutboxRespondsSuccessfully() {
-    Camunda7OutboxHealthIndicator outboxHealthIndicator =
-        new Camunda7OutboxHealthIndicator(restClient, mockHttpHeaderProvider(), BASE_URL);
-    OutboxEventCountRepresentationModel outboxEventCount =
-        new OutboxEventCountRepresentationModel();
+  void should_ReturnUp_When_OutboxReturnsZero() {
+    enqueueJson(200, "{\"eventsCount\":0}");
 
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+    Health health = indicator().health();
 
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(OutboxEventCountRepresentationModel.class))
-        .thenReturn(ResponseEntity.ok(outboxEventCount));
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
+    assertThat(((OutboxEventCountRepresentationModel) health.getDetails().get("outboxService"))
+            .getEventsCount())
+        .isZero();
+  }
 
-    assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
+  @Test
+  void should_ReturnUp_When_OutboxReturnsPositiveCount() {
+    enqueueJson(200, "{\"eventsCount\":7}");
+
+    Health health = indicator().health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
+    assertThat(((OutboxEventCountRepresentationModel) health.getDetails().get("outboxService"))
+            .getEventsCount())
+        .isEqualTo(7);
+  }
+
+  @Test
+  void should_ReturnDown_When_OutboxResponseOmitsEventsCount() {
+    assertDownForSemanticMismatch("{}");
+  }
+
+  @Test
+  void should_ReturnDown_When_OutboxResponseContainsNullEventsCount() {
+    assertDownForSemanticMismatch("{\"eventsCount\":null}");
+  }
+
+  @Test
+  void should_ReturnDown_When_OutboxResponseContainsNegativeCount() {
+    assertDownForSemanticMismatch("{\"eventsCount\":-1}");
+  }
+
+  @Test
+  void should_ReturnDown_When_OutboxReturns200WithEmptyBody() {
+    enqueueJson(200, "");
+
+    Health health = indicator().health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "invalid-response")
+        .containsEntry("httpStatus", 200);
+  }
+
+  @Test
+  void should_ReturnDown_When_OutboxReturns200WithMalformedJson() {
+    enqueueJson(200, "{not-json");
+
+    Health health = indicator().health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "invalid-response")
+        .containsEntry("httpStatus", 200);
   }
 
   @ParameterizedTest
-  @MethodSource("errorResponseProvider")
-  void should_ReturnDown_When_OutboxRespondsWithError(HttpStatus httpStatus) {
-    Camunda7OutboxHealthIndicator outboxHealthIndicator =
-        new Camunda7OutboxHealthIndicator(restClient, mockHttpHeaderProvider(), BASE_URL);
+  @MethodSource("non200Statuses")
+  void should_ReturnDownAndExposeStatus_When_OutboxReturnsNon200(int status) {
+    enqueueJson(status, "ignored");
 
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+    Health health = indicator().health();
 
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(OutboxEventCountRepresentationModel.class))
-        .thenThrow(new RuntimeException("HTTP " + httpStatus.value()));
-
-    assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "http-status")
+        .containsEntry("httpStatus", status);
   }
 
   @Test
-  void should_ReturnDown_When_OutboxPingFails() {
-    Camunda7OutboxHealthIndicator outboxHealthIndicator =
-        new Camunda7OutboxHealthIndicator(restClient, mockHttpHeaderProvider(), BASE_URL);
-
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenThrow(new RuntimeException("Connection failed"));
-
-    assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
-  }
-
-  @Test
-  void should_SendAuthenticationHeaders_When_PingingOutbox() {
+  void should_SendAuthenticationHeaders_When_PingingOutbox() throws InterruptedException {
     HttpHeaderProvider httpHeaderProvider = mock(HttpHeaderProvider.class);
     HttpHeaders authHeaders = new HttpHeaders();
-    authHeaders.add("Authorization", "Basic dXNlcjpwYXNz");
+    authHeaders.setBasicAuth("user", "pass");
     when(httpHeaderProvider.outboxRestApiHeaders()).thenReturn(authHeaders);
+    enqueueJson(200, "{\"eventsCount\":0}");
 
-    Camunda7OutboxHealthIndicator outboxHealthIndicator =
-        new Camunda7OutboxHealthIndicator(restClient, httpHeaderProvider, BASE_URL);
+    Health health = indicator(httpHeaderProvider).health();
+    RecordedRequest request = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
 
-    RestClient.RequestHeadersUriSpec mockRequestSpec = mock(RestClient.RequestHeadersUriSpec.class);
-    RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
+    assertThat(request).isNotNull();
+    assertThat(request.getHeader("Authorization")).isEqualTo("Basic dXNlcjpwYXNz");
+  }
 
-    when(restClient.get()).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.uri(EXPECTED_URI)).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.headers(any())).thenReturn(mockRequestSpec);
-    when(mockRequestSpec.retrieve()).thenReturn(mockResponseSpec);
-    when(mockResponseSpec.toEntity(OutboxEventCountRepresentationModel.class))
-        .thenReturn(ResponseEntity.ok(new OutboxEventCountRepresentationModel()));
+  @Test
+  void should_ReturnDown_When_OutboxCannotBeReached() throws IOException {
+    Camunda7OutboxHealthIndicator healthIndicator = indicator();
+    mockWebServer.shutdown();
+    mockWebServer = null;
 
-    assertThat(outboxHealthIndicator.health().getStatus()).isEqualTo(Status.UP);
+    Health health = healthIndicator.health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "transport-error")
+        .doesNotContainKey("httpStatus");
+  }
+
+  private void assertDownForSemanticMismatch(String body) {
+    enqueueJson(200, body);
+
+    Health health = indicator().health();
+
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    assertThat(health.getDetails())
+        .containsEntry("failureType", "semantic-mismatch")
+        .containsEntry("httpStatus", 200);
+  }
+
+  private Camunda7OutboxHealthIndicator indicator() {
+    return indicator(mockHttpHeaderProvider());
+  }
+
+  private Camunda7OutboxHealthIndicator indicator(HttpHeaderProvider httpHeaderProvider) {
+    return new Camunda7OutboxHealthIndicator(
+        new ExternalServiceHttpProbe(restClient, new JsonMapper()),
+        httpHeaderProvider,
+        mockWebServer.url("/outbox-rest").toString());
   }
 
   private HttpHeaderProvider mockHttpHeaderProvider() {
@@ -119,7 +187,19 @@ class Camunda7OutboxHealthIndicatorTest {
     return httpHeaderProvider;
   }
 
-  private static Stream<Arguments> errorResponseProvider() {
-    return Arrays.stream(HttpStatus.values()).filter(HttpStatus::isError).map(Arguments::of);
+  private void enqueueJson(int status, String body) {
+    MockResponse response =
+        new MockResponse()
+            .setResponseCode(status)
+            .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(body);
+    if (status == 301) {
+      response.setHeader("Location", "/redirected");
+    }
+    mockWebServer.enqueue(response);
+  }
+
+  private static Stream<Integer> non200Statuses() {
+    return Stream.of(204, 301, 400, 401, 403, 404, 429, 500, 503);
   }
 }
