@@ -131,6 +131,8 @@ public class Camunda7SystemConnectorConfiguration {
 
     CloseableHttpClient httpClient =
         HttpClients.custom()
+            .disableAutomaticRetries()
+            .disableRedirectHandling()
             .setConnectionManager(connectionManager)
             .setDefaultRequestConfig(requestConfig)
             .build();
