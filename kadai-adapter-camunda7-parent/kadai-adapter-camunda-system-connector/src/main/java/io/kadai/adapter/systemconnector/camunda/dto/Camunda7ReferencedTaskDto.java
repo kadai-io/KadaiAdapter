@@ -17,7 +17,14 @@
 
 package io.kadai.adapter.systemconnector.camunda.dto;
 
-/** Payload of a Camunda 7 task event. */
+/**
+ * Deserialization DTO for Camunda 7 task-event payloads retrieved from the outbox.
+ *
+ * <p>The DTO accepts both task-created payloads and the smaller finished-task payload shape, while
+ * ignoring extra legacy properties. It is mapped to the KADAI Adapter core
+ * {@link io.kadai.adapter.systemconnector.api.ReferencedTask} by
+ * {@link io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper}.
+ */
 public class Camunda7ReferencedTaskDto {
 
   private String id;

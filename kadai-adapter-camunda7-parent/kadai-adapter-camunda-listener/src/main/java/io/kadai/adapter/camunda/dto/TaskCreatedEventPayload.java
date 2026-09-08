@@ -20,8 +20,13 @@ package io.kadai.adapter.camunda.dto;
 
 import java.util.Objects;
 
-/** POJO that represents a task in the external system. */
-public class ReferencedTask {
+/**
+ * Payload written to the Camunda 7 outbox for a task creation event.
+ *
+ * <p>This type belongs to the Camunda 7 listener boundary and is serialized to JSON. It is not the
+ * KADAI Adapter core {@code ReferencedTask}.
+ */
+public class TaskCreatedEventPayload {
 
   private String id;
   private String name;
@@ -280,7 +285,7 @@ public class ReferencedTask {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    ReferencedTask other = (ReferencedTask) obj;
+    TaskCreatedEventPayload other = (TaskCreatedEventPayload) obj;
     return Objects.equals(id, other.id)
         && Objects.equals(name, other.name)
         && Objects.equals(assignee, other.assignee)
@@ -308,7 +313,7 @@ public class ReferencedTask {
 
   @Override
   public String toString() {
-    return "ReferencedTask [id="
+    return "TaskCreatedEventPayload [id="
         + id
         + ", name="
         + name

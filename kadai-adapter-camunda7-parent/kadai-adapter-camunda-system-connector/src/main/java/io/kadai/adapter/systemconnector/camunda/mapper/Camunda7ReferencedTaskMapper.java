@@ -22,7 +22,10 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
 import org.springframework.stereotype.Component;
 
-/** Maps a Camunda 7 event payload and its envelope to a core referenced task. */
+/**
+ * Maps a deserialized Camunda 7 task-event payload plus its outbox event metadata to the adapter
+ * core {@code ReferencedTask}.
+ */
 @Component
 public class Camunda7ReferencedTaskMapper {
 

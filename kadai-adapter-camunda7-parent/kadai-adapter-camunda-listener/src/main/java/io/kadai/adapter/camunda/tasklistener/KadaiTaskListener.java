@@ -21,7 +21,7 @@ package io.kadai.adapter.camunda.tasklistener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kadai.adapter.camunda.Camunda7ListenerConfiguration;
-import io.kadai.adapter.camunda.dto.ReferencedTask;
+import io.kadai.adapter.camunda.dto.TaskCreatedEventPayload;
 import io.kadai.adapter.camunda.dto.VariableValueDto;
 import io.kadai.adapter.camunda.exceptions.SystemException;
 import io.kadai.adapter.camunda.mapper.JacksonConfigurator;
@@ -128,11 +128,11 @@ public class KadaiTaskListener implements TaskListener {
       camundaSchema = connection.getSchema();
       LOGGER.debug("camundaSchema in taskListener is {}", camundaSchema);
 
-      String referencedTaskJson = getReferencedTaskJson(delegateTask);
+      String taskCreatedEventPayloadJson = getTaskCreatedEventPayloadJson(delegateTask);
 
       setOutboxSchema(connection);
 
-      prepareAndExecuteStatement(connection, delegateTask, referencedTaskJson);
+      prepareAndExecuteStatement(connection, delegateTask, taskCreatedEventPayloadJson);
 
     } finally {
       if (camundaSchema != null) {
@@ -221,39 +221,41 @@ public class KadaiTaskListener implements TaskListener {
     }
   }
 
-  private String getReferencedTaskJson(DelegateTask delegateTask) throws JsonProcessingException {
+  private String getTaskCreatedEventPayloadJson(DelegateTask delegateTask)
+      throws JsonProcessingException {
 
-    ReferencedTask referencedTask = new ReferencedTask();
+    TaskCreatedEventPayload payload = new TaskCreatedEventPayload();
 
-    referencedTask.setId(delegateTask.getId());
-    referencedTask.setCreated(formatDate(delegateTask.getCreateTime()));
-    referencedTask.setPriority(String.valueOf(delegateTask.getPriority()));
-    referencedTask.setName(delegateTask.getName());
-    referencedTask.setAssignee(delegateTask.getAssignee());
-    referencedTask.setPlanned(formatDate(delegateTask.getFollowUpDate()));
-    referencedTask.setDue(formatDate(delegateTask.getDueDate()));
-    referencedTask.setDescription(delegateTask.getDescription());
-    referencedTask.setOwner(delegateTask.getOwner());
-    referencedTask.setTaskDefinitionKey(delegateTask.getTaskDefinitionKey());
-    referencedTask.setBusinessProcessId(delegateTask.getProcessInstanceId());
-    referencedTask.setClassificationKey(
+    payload.setId(delegateTask.getId());
+    payload.setCreated(formatDate(delegateTask.getCreateTime()));
+    payload.setPriority(String.valueOf(delegateTask.getPriority()));
+    payload.setName(delegateTask.getName());
+    payload.setAssignee(delegateTask.getAssignee());
+    payload.setPlanned(formatDate(delegateTask.getFollowUpDate()));
+    payload.setDue(formatDate(delegateTask.getDueDate()));
+    payload.setDescription(delegateTask.getDescription());
+    payload.setOwner(delegateTask.getOwner());
+    payload.setTaskDefinitionKey(delegateTask.getTaskDefinitionKey());
+    payload.setBusinessProcessId(delegateTask.getProcessInstanceId());
+    payload.setClassificationKey(
         getUserTaskExtensionPropertyWithFallback(delegateTask, "classification-key"));
-    referencedTask.setDomain(getDomainVariable(delegateTask));
-    referencedTask.setWorkbasketKey(getVariableWithFallback(delegateTask, "workbasket-key", null));
-    referencedTask.setManualPriority(
+    payload.setDomain(getDomainVariable(delegateTask));
+    payload.setWorkbasketKey(getVariableWithFallback(delegateTask, "workbasket-key", null));
+    payload.setManualPriority(
         getVariableWithFallback(delegateTask, "manual-priority", "-1"));
-    referencedTask.setCustomInt1(getVariableWithFallback(delegateTask, "custom-int-1", null));
-    referencedTask.setCustomInt2(getVariableWithFallback(delegateTask, "custom-int-2", null));
-    referencedTask.setCustomInt3(getVariableWithFallback(delegateTask, "custom-int-3", null));
-    referencedTask.setCustomInt4(getVariableWithFallback(delegateTask, "custom-int-4", null));
-    referencedTask.setCustomInt5(getVariableWithFallback(delegateTask, "custom-int-5", null));
-    referencedTask.setCustomInt6(getVariableWithFallback(delegateTask, "custom-int-6", null));
-    referencedTask.setCustomInt7(getVariableWithFallback(delegateTask, "custom-int-7", null));
-    referencedTask.setCustomInt8(getVariableWithFallback(delegateTask, "custom-int-8", null));
-    referencedTask.setVariables(getProcessVariables(delegateTask));
-    String referencedTaskJson = objectMapper.writeValueAsString(referencedTask);
-    LOGGER.debug("Exit from getReferencedTaskJson. Returning {}.", referencedTaskJson);
-    return referencedTaskJson;
+    payload.setCustomInt1(getVariableWithFallback(delegateTask, "custom-int-1", null));
+    payload.setCustomInt2(getVariableWithFallback(delegateTask, "custom-int-2", null));
+    payload.setCustomInt3(getVariableWithFallback(delegateTask, "custom-int-3", null));
+    payload.setCustomInt4(getVariableWithFallback(delegateTask, "custom-int-4", null));
+    payload.setCustomInt5(getVariableWithFallback(delegateTask, "custom-int-5", null));
+    payload.setCustomInt6(getVariableWithFallback(delegateTask, "custom-int-6", null));
+    payload.setCustomInt7(getVariableWithFallback(delegateTask, "custom-int-7", null));
+    payload.setCustomInt8(getVariableWithFallback(delegateTask, "custom-int-8", null));
+    payload.setVariables(getProcessVariables(delegateTask));
+    String taskCreatedEventPayloadJson = objectMapper.writeValueAsString(payload);
+    LOGGER.debug(
+        "Exit from getTaskCreatedEventPayloadJson. Returning {}.", taskCreatedEventPayloadJson);
+    return taskCreatedEventPayloadJson;
   }
 
   private String getDomainVariable(DelegateTask delegateTask) {
