@@ -21,6 +21,8 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEventListResource;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
+import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
+import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,12 +45,17 @@ public class Camunda7TaskRetriever {
   private final HttpHeaderProvider httpHeaderProvider;
   private final JsonMapper jsonMapper;
   private final RestClient restClient;
+  private final Camunda7ReferencedTaskMapper referencedTaskMapper;
 
   public Camunda7TaskRetriever(
-      HttpHeaderProvider httpHeaderProvider, JsonMapper jsonMapper, RestClient restClient) {
+      HttpHeaderProvider httpHeaderProvider,
+      JsonMapper jsonMapper,
+      RestClient restClient,
+      Camunda7ReferencedTaskMapper referencedTaskMapper) {
     this.httpHeaderProvider = httpHeaderProvider;
     this.jsonMapper = jsonMapper;
     this.restClient = restClient;
+    this.referencedTaskMapper = referencedTaskMapper;
   }
 
   public List<ReferencedTask> retrieveNewStartedCamunda7Tasks(
@@ -151,10 +158,10 @@ public class Camunda7TaskRetriever {
 
         try {
 
+          Camunda7ReferencedTaskDto dto =
+              jsonMapper.readValue(referencedTaskJson, Camunda7ReferencedTaskDto.class);
           ReferencedTask referencedTask =
-              jsonMapper.readValue(referencedTaskJson, ReferencedTask.class);
-          referencedTask.setOutboxEventId(String.valueOf(camunda7TaskEvent.getId()));
-          referencedTask.setOutboxEventType(String.valueOf(camunda7TaskEvent.getType()));
+              referencedTaskMapper.toReferencedTask(dto, camunda7TaskEvent);
           referencedTasks.add(referencedTask);
 
         } catch (JacksonException e) {

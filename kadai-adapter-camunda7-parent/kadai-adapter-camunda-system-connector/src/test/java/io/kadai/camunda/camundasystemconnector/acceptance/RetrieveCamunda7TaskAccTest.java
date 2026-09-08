@@ -25,6 +25,7 @@ import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
+import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import java.util.List;
 import okhttp3.mockwebserver.MockResponse;
@@ -48,6 +49,7 @@ import org.springframework.test.context.ContextConfiguration;
     classes = {
       JacksonAutoConfiguration.class,
       Camunda7TaskRetriever.class,
+      Camunda7ReferencedTaskMapper.class,
       HttpHeaderProvider.class,
       Camunda7SystemConnectorConfiguration.class,
       AdapterSpringContextProvider.class
@@ -89,6 +91,7 @@ class RetrieveCamunda7TaskAccTest {
     expectedTask.setOwner("admin");
     expectedTask.setDescription("blabla");
     expectedTask.setCreated(timeStamp);
+    expectedTask.setPlanned("2019-01-15T15:22:30.811+0000");
     expectedTask.setPriority("50");
     expectedTask.setTaskDefinitionKey("Task_0yogl0i");
     expectedTask.setClassificationKey("Schaden_1");
@@ -114,6 +117,7 @@ class RetrieveCamunda7TaskAccTest {
             + "   \"payload\": "
             + " \"{\\\"id\\\":\\\"801aca2e-1b25-11e9-b283-94819a5b525c\\\","
             + "            \\\"created\\\":\\\"2019-01-14T15:22:30.811+0000\\\","
+            + "            \\\"planned\\\":\\\"2019-01-15T15:22:30.811+0000\\\","
             + "            \\\"priority\\\":\\\"50\\\","
             + "            \\\"name\\\":\\\"modify Request\\\","
             + "            \\\"assignee\\\":\\\"admin\\\","
@@ -149,7 +153,12 @@ class RetrieveCamunda7TaskAccTest {
       e.printStackTrace();
     }
     assertThat(actualResult).isNotEmpty();
-    assertThat(actualResult.get(0)).isEqualTo(expectedTask);
+    ReferencedTask actualTask = actualResult.get(0);
+    assertThat(actualTask).isEqualTo(expectedTask);
+    assertThat(actualTask.getOutboxEventId()).isEqualTo("1");
+    assertThat(actualTask.getOutboxEventType()).isEqualTo("create");
+    assertThat(actualTask.getPlanned()).isEqualTo("2019-01-15T15:22:30.811+0000");
+    assertThat(actualTask.getCustomInt8()).isEqualTo("8");
   }
 
   @Test
@@ -158,6 +167,7 @@ class RetrieveCamunda7TaskAccTest {
     expectedTask.setId("2275fb87-1065-11ea-a7a0-02004c4f4f50");
     expectedTask.setOutboxEventId("16");
     expectedTask.setOutboxEventType("complete");
+    expectedTask.setTaskState("COMPLETED");
     String expectedReplyBody =
         "{"
             + "\n"
@@ -168,7 +178,8 @@ class RetrieveCamunda7TaskAccTest {
             + "        \"type\": \"complete\",\n"
             + "        \"systemEngineIdentifier\": \"default\",\n"
             + "        \"created\": \"2019-11-26T16:55:52.460+0100\",\n"
-            + "        \"payload\": \"{\\\"id\\\":\\\"2275fb87-1065-11ea-a7a0-02004c4f4f50\\\"}\"\n"
+            + "        \"payload\": \"{\\\"id\\\":\\\"2275fb87-1065-11ea-a7a0-02004c4f4f50\\\","
+            + "\\\"taskState\\\":\\\"COMPLETED\\\"}\"\n"
             + "    }\n"
             + "]"
             + "}";
@@ -182,6 +193,34 @@ class RetrieveCamunda7TaskAccTest {
         camunda7TaskRetriever.retrieveFinishedCamunda7Tasks(
             camundaSystemUrl, camundaSystemEngineIdentifier, null);
     assertThat(actualResult).isNotEmpty();
-    assertThat(actualResult.get(0)).isEqualTo(expectedTask);
+    ReferencedTask actualTask = actualResult.get(0);
+    assertThat(actualTask).isEqualTo(expectedTask);
+    assertThat(actualTask.getTaskState()).isEqualTo("COMPLETED");
+    assertThat(actualTask.getOutboxEventId()).isEqualTo("16");
+    assertThat(actualTask.getOutboxEventType()).isEqualTo("complete");
+  }
+
+  @Test
+  void should_IgnoreLegacyPayloadMetadataAndUseEnvelopeMetadata() {
+    String expectedReplyBody =
+        "{\"camunda7TaskEvents\":[{\"id\":12,\"type\":\"create\","
+            + "\"systemEngineIdentifier\":\"default\",\"payload\":"
+            + "\"{\\\"id\\\":\\\"task-1\\\",\\\"name\\\":\\\"test\\\","
+            + "\\\"outboxEventId\\\":\\\"legacy-id\\\",\\\"outboxEventType\\\":\\\"legacy-type\\\","
+            + "\\\"systemUrl\\\":\\\"https://legacy.example\\\"}\"}]}";
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(expectedReplyBody));
+
+    List<ReferencedTask> actualResult =
+        camunda7TaskRetriever.retrieveNewStartedCamunda7Tasks(
+            mockWebServer.url("/").toString(), "default", null);
+
+    ReferencedTask actualTask = actualResult.get(0);
+    assertThat(actualTask.getId()).isEqualTo("task-1");
+    assertThat(actualTask.getOutboxEventId()).isEqualTo("12");
+    assertThat(actualTask.getOutboxEventType()).isEqualTo("create");
+    assertThat(actualTask.getSystemUrl()).isNull();
   }
 }

@@ -13,15 +13,12 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  *
- *
  */
 
-package io.kadai.adapter.camunda.dto;
+package io.kadai.adapter.systemconnector.camunda.dto;
 
-import java.util.Objects;
-
-/** POJO that represents a task in the external system. */
-public class ReferencedTask {
+/** Payload of a Camunda 7 task event. */
+public class Camunda7ReferencedTaskDto {
 
   private String id;
   private String name;
@@ -36,7 +33,7 @@ public class ReferencedTask {
   private String taskDefinitionKey;
   private String businessProcessId;
   private String variables;
-  // extension properties
+  private String taskState;
   private String domain;
   private String classificationKey;
   private String workbasketKey;
@@ -48,14 +45,6 @@ public class ReferencedTask {
   private String customInt6;
   private String customInt7;
   private String customInt8;
-
-  public String getBusinessProcessId() {
-    return businessProcessId;
-  }
-
-  public void setBusinessProcessId(String businessProcessId) {
-    this.businessProcessId = businessProcessId;
-  }
 
   public String getId() {
     return id;
@@ -145,12 +134,28 @@ public class ReferencedTask {
     this.taskDefinitionKey = taskDefinitionKey;
   }
 
+  public String getBusinessProcessId() {
+    return businessProcessId;
+  }
+
+  public void setBusinessProcessId(String businessProcessId) {
+    this.businessProcessId = businessProcessId;
+  }
+
   public String getVariables() {
     return variables;
   }
 
   public void setVariables(String variables) {
     this.variables = variables;
+  }
+
+  public String getTaskState() {
+    return taskState;
+  }
+
+  public void setTaskState(String taskState) {
+    this.taskState = taskState;
   }
 
   public String getDomain() {
@@ -239,123 +244,5 @@ public class ReferencedTask {
 
   public void setCustomInt8(String customInt8) {
     this.customInt8 = customInt8;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(
-        id,
-        name,
-        assignee,
-        created,
-        due,
-        description,
-        owner,
-        priority,
-        manualPriority,
-        taskDefinitionKey,
-        businessProcessId,
-        variables,
-        domain,
-        classificationKey,
-        workbasketKey,
-        customInt1,
-        customInt2,
-        customInt3,
-        customInt4,
-        customInt5,
-        customInt6,
-        customInt7,
-        customInt8);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    ReferencedTask other = (ReferencedTask) obj;
-    return Objects.equals(id, other.id)
-        && Objects.equals(name, other.name)
-        && Objects.equals(assignee, other.assignee)
-        && Objects.equals(created, other.created)
-        && Objects.equals(due, other.due)
-        && Objects.equals(description, other.description)
-        && Objects.equals(owner, other.owner)
-        && Objects.equals(priority, other.priority)
-        && Objects.equals(manualPriority, other.manualPriority)
-        && Objects.equals(taskDefinitionKey, other.taskDefinitionKey)
-        && Objects.equals(businessProcessId, other.businessProcessId)
-        && Objects.equals(variables, other.variables)
-        && Objects.equals(domain, other.domain)
-        && Objects.equals(classificationKey, other.classificationKey)
-        && Objects.equals(workbasketKey, other.workbasketKey)
-        && Objects.equals(customInt1, other.customInt1)
-        && Objects.equals(customInt2, other.customInt2)
-        && Objects.equals(customInt3, other.customInt3)
-        && Objects.equals(customInt4, other.customInt4)
-        && Objects.equals(customInt5, other.customInt5)
-        && Objects.equals(customInt6, other.customInt6)
-        && Objects.equals(customInt7, other.customInt7)
-        && Objects.equals(customInt8, other.customInt8);
-  }
-
-  @Override
-  public String toString() {
-    return "ReferencedTask [id="
-        + id
-        + ", name="
-        + name
-        + ", assignee="
-        + assignee
-        + ", created="
-        + created
-        + ", planned="
-        + planned
-        + ", due="
-        + due
-        + ", description="
-        + description
-        + ", owner="
-        + owner
-        + ", priority="
-        + priority
-        + ", manualPriority="
-        + manualPriority
-        + ", taskDefinitionKey="
-        + taskDefinitionKey
-        + ", businessProcessId="
-        + businessProcessId
-        + ", variables="
-        + variables
-        + ", domain="
-        + domain
-        + ", classificationKey="
-        + classificationKey
-        + ", workbasketKey="
-        + workbasketKey
-        + ", customInt1="
-        + customInt1
-        + ", customInt2="
-        + customInt2
-        + ", customInt3="
-        + customInt3
-        + ", customInt4="
-        + customInt4
-        + ", customInt5="
-        + customInt5
-        + ", customInt6="
-        + customInt6
-        + ", customInt7="
-        + customInt7
-        + ", customInt8="
-        + customInt8
-        + "]";
   }
 }

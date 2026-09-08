@@ -40,17 +40,15 @@ class ReferencedTaskTest {
     theTask.setDue("7");
     theTask.setId("8");
     theTask.setName("9");
-    theTask.setOutboxEventId("10");
-    theTask.setOutboxEventType("11");
-    theTask.setOwner("12");
-    theTask.setCustomInt1("13");
-    theTask.setCustomInt2("14");
-    theTask.setCustomInt3("15");
-    theTask.setCustomInt4("16");
-    theTask.setCustomInt5("17");
-    theTask.setCustomInt6("18");
-    theTask.setCustomInt7("19");
-    theTask.setCustomInt8("20");
+    theTask.setOwner("10");
+    theTask.setCustomInt1("11");
+    theTask.setCustomInt2("12");
+    theTask.setCustomInt3("13");
+    theTask.setCustomInt4("14");
+    theTask.setCustomInt5("15");
+    theTask.setCustomInt6("16");
+    theTask.setCustomInt7("17");
+    theTask.setCustomInt8("18");
   }
 
   @Test
@@ -64,20 +62,6 @@ class ReferencedTaskTest {
     ReferencedTask referencedTask = new ReferencedTask();
     referencedTask.setId(theValue);
     assertThat(theValue).isEqualTo(referencedTask.getId());
-  }
-
-  @Test
-  void should_ReturnOutboxEventId_When_OutboxEventIdWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setOutboxEventId(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getOutboxEventId());
-  }
-
-  @Test
-  void should_ReturnOutboxEventType_When_OutboxEventTypeWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setOutboxEventType(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getOutboxEventType());
   }
 
   @Test
@@ -127,20 +111,6 @@ class ReferencedTaskTest {
     ReferencedTask referencedTask = new ReferencedTask();
     referencedTask.setPriority(theValue);
     assertThat(theValue).isEqualTo(referencedTask.getPriority());
-  }
-
-  @Test
-  void should_ReturnSuspended_When_SuspendedWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setSuspended(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getSuspended());
-  }
-
-  @Test
-  void should_ReturnSystemUrl_When_SystemUrlWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setsystemUrl(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getsystemUrl());
   }
 
   @Test
@@ -223,8 +193,6 @@ class ReferencedTaskTest {
     theTask.setDue("7");
     theTask.setId("8");
     theTask.setName("9");
-    theTask.setOutboxEventId("10");
-    theTask.setOutboxEventType("11");
     theTask.setOwner("12");
     theTask.setWorkbasketKey("13");
     theTask.setCustomInt1("14");
@@ -247,8 +215,6 @@ class ReferencedTaskTest {
     refTask2.setDue("7");
     refTask2.setId("8");
     refTask2.setName("9");
-    refTask2.setOutboxEventId("10");
-    refTask2.setOutboxEventType("11");
     refTask2.setOwner("12");
     refTask2.setWorkbasketKey("13");
     refTask2.setCustomInt1("14");
