@@ -6,6 +6,7 @@ import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
+import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ class HttpHeaderProviderXsrfTest {
       classes = {
         JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
+        Camunda7ReferencedTaskMapper.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
         AdapterSpringContextProvider.class
@@ -47,6 +49,7 @@ class HttpHeaderProviderXsrfTest {
       classes = {
         JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
+        Camunda7ReferencedTaskMapper.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
         AdapterSpringContextProvider.class

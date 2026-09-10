@@ -7,6 +7,7 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
 import io.kadai.adapter.systemconnector.camunda.config.OutboxOAuth2TokenProvider;
+import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import java.io.IOException;
 import okhttp3.mockwebserver.Dispatcher;
@@ -42,6 +43,7 @@ import org.springframework.web.client.RestClient;
     classes = {
       JacksonAutoConfiguration.class,
       Camunda7TaskRetriever.class,
+      Camunda7ReferencedTaskMapper.class,
       HttpHeaderProvider.class,
       Camunda7SystemConnectorConfiguration.class,
       OutboxOAuth2TokenProvider.class,

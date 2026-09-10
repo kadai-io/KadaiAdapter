@@ -7,6 +7,7 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7TaskRetriever;
 import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
 import io.kadai.adapter.systemconnector.camunda.config.OutboxOAuth2TokenProvider;
+import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import java.util.Optional;
 import org.junit.jupiter.api.Nested;
@@ -27,6 +28,7 @@ class HttpHeaderProviderTest {
       classes = {
         JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
+        Camunda7ReferencedTaskMapper.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
         AdapterSpringContextProvider.class
@@ -60,6 +62,7 @@ class HttpHeaderProviderTest {
       classes = {
         JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
+        Camunda7ReferencedTaskMapper.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
         AdapterSpringContextProvider.class
@@ -80,6 +83,7 @@ class HttpHeaderProviderTest {
       classes = {
         JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
+        Camunda7ReferencedTaskMapper.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
         AdapterSpringContextProvider.class
@@ -105,6 +109,7 @@ class HttpHeaderProviderTest {
       classes = {
         JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
+        Camunda7ReferencedTaskMapper.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
         OutboxOAuth2TokenProvider.class,
@@ -152,6 +157,7 @@ class HttpHeaderProviderTest {
       classes = {
         JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
+        Camunda7ReferencedTaskMapper.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
         AdapterSpringContextProvider.class
@@ -181,6 +187,7 @@ class HttpHeaderProviderTest {
       classes = {
         JacksonAutoConfiguration.class,
         Camunda7TaskRetriever.class,
+        Camunda7ReferencedTaskMapper.class,
         HttpHeaderProvider.class,
         Camunda7SystemConnectorConfiguration.class,
         AdapterSpringContextProvider.class

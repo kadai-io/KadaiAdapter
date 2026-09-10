@@ -20,12 +20,15 @@ package io.kadai.adapter.camunda.dto;
 
 import java.util.Objects;
 
-/** POJO that represents a task in the external system. */
-public class ReferencedTask {
+/**
+ * Payload written to the Camunda 7 outbox for a task creation event.
+ *
+ * <p>This type belongs to the Camunda 7 listener boundary and is serialized to JSON. It is not the
+ * KADAI Adapter core {@code ReferencedTask}.
+ */
+public class TaskCreatedEventPayload {
 
   private String id;
-  private String outboxEventId;
-  private String outboxEventType;
   private String name;
   private String assignee;
   private String created;
@@ -35,12 +38,9 @@ public class ReferencedTask {
   private String owner;
   private String priority;
   private String manualPriority;
-  private String suspended;
-  private String systemUrl;
   private String taskDefinitionKey;
   private String businessProcessId;
   private String variables;
-  private String taskState;
   // extension properties
   private String domain;
   private String classificationKey;
@@ -68,22 +68,6 @@ public class ReferencedTask {
 
   public void setId(String id) {
     this.id = id;
-  }
-
-  public String getOutboxEventId() {
-    return outboxEventId;
-  }
-
-  public void setOutboxEventId(String outboxEventId) {
-    this.outboxEventId = outboxEventId;
-  }
-
-  public String getOutboxEventType() {
-    return outboxEventType;
-  }
-
-  public void setOutboxEventType(String outboxEventType) {
-    this.outboxEventType = outboxEventType;
   }
 
   public String getName() {
@@ -158,36 +142,12 @@ public class ReferencedTask {
     this.manualPriority = manualPriority;
   }
 
-  public String getSuspended() {
-    return suspended;
-  }
-
-  public void setSuspended(String suspended) {
-    this.suspended = suspended;
-  }
-
-  public String getsystemUrl() {
-    return systemUrl;
-  }
-
-  public void setsystemUrl(String systemUrl) {
-    this.systemUrl = systemUrl;
-  }
-
   public String getTaskDefinitionKey() {
     return taskDefinitionKey;
   }
 
   public void setTaskDefinitionKey(String taskDefinitionKey) {
     this.taskDefinitionKey = taskDefinitionKey;
-  }
-
-  public String getTaskState() {
-    return taskState;
-  }
-
-  public void setTaskState(String taskState) {
-    this.taskState = taskState;
   }
 
   public String getVariables() {
@@ -290,8 +250,6 @@ public class ReferencedTask {
   public int hashCode() {
     return Objects.hash(
         id,
-        outboxEventId,
-        outboxEventType,
         name,
         assignee,
         created,
@@ -300,12 +258,9 @@ public class ReferencedTask {
         owner,
         priority,
         manualPriority,
-        suspended,
-        systemUrl,
         taskDefinitionKey,
         businessProcessId,
         variables,
-        taskState,
         domain,
         classificationKey,
         workbasketKey,
@@ -330,10 +285,8 @@ public class ReferencedTask {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    ReferencedTask other = (ReferencedTask) obj;
+    TaskCreatedEventPayload other = (TaskCreatedEventPayload) obj;
     return Objects.equals(id, other.id)
-        && Objects.equals(outboxEventId, other.outboxEventId)
-        && Objects.equals(outboxEventType, other.outboxEventType)
         && Objects.equals(name, other.name)
         && Objects.equals(assignee, other.assignee)
         && Objects.equals(created, other.created)
@@ -342,12 +295,9 @@ public class ReferencedTask {
         && Objects.equals(owner, other.owner)
         && Objects.equals(priority, other.priority)
         && Objects.equals(manualPriority, other.manualPriority)
-        && Objects.equals(suspended, other.suspended)
-        && Objects.equals(systemUrl, other.systemUrl)
         && Objects.equals(taskDefinitionKey, other.taskDefinitionKey)
         && Objects.equals(businessProcessId, other.businessProcessId)
         && Objects.equals(variables, other.variables)
-        && Objects.equals(taskState, other.taskState)
         && Objects.equals(domain, other.domain)
         && Objects.equals(classificationKey, other.classificationKey)
         && Objects.equals(workbasketKey, other.workbasketKey)
@@ -363,12 +313,8 @@ public class ReferencedTask {
 
   @Override
   public String toString() {
-    return "ReferencedTask [id="
+    return "TaskCreatedEventPayload [id="
         + id
-        + ", outboxEventId="
-        + outboxEventId
-        + ", outboxEventType="
-        + outboxEventType
         + ", name="
         + name
         + ", assignee="
@@ -387,18 +333,12 @@ public class ReferencedTask {
         + priority
         + ", manualPriority="
         + manualPriority
-        + ", suspended="
-        + suspended
-        + ", systemUrl="
-        + systemUrl
         + ", taskDefinitionKey="
         + taskDefinitionKey
         + ", businessProcessId="
         + businessProcessId
         + ", variables="
         + variables
-        + ", taskState="
-        + taskState
         + ", domain="
         + domain
         + ", classificationKey="
