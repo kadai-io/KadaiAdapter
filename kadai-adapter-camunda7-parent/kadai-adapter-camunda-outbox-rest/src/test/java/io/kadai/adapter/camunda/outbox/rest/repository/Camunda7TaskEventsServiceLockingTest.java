@@ -1,9 +1,11 @@
 package io.kadai.adapter.camunda.outbox.rest.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.kadai.adapter.camunda.outbox.rest.config.OutboxDataSource;
 import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentException;
+import io.kadai.adapter.camunda.outbox.rest.exception.OutboxServiceUnavailableException;
 import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.service.Camunda7TaskEventsService;
 import jakarta.ws.rs.core.MultivaluedHashMap;
@@ -63,6 +65,26 @@ class Camunda7TaskEventsServiceLockingTest {
     List<Integer> retrievedEventIds = retrieveLockedCreateEventIdsConcurrently(12);
 
     assertThat(retrievedEventIds).hasSize(eventCount).doesNotHaveDuplicates();
+  }
+
+  @Test
+  void should_ReturnEventCount_When_EventCountQuerySucceeds() throws SQLException {
+    insertEvents("create", 7, 0);
+
+    assertThat(service.countEvents(0)).isEqualTo(7);
+    assertThat(service.getEventsCount(0)).isEqualTo("{\"eventsCount\":7}");
+  }
+
+  @Test
+  void should_ThrowServiceUnavailable_When_EventCountQueryFails() throws SQLException {
+    try (Connection connection = OutboxDataSource.get().getConnection();
+        Statement statement = connection.createStatement()) {
+      statement.execute("drop table " + OUTBOX_SCHEMA + ".event_store");
+    }
+
+    assertThatThrownBy(() -> service.countEvents(0))
+        .isInstanceOf(OutboxServiceUnavailableException.class)
+        .hasMessage("Unable to retrieve Outbox event count");
   }
 
   @Test
