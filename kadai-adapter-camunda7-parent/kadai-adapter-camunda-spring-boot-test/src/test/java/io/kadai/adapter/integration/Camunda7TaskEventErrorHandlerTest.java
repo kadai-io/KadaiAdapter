@@ -22,8 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundReferencedTask;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
-import io.kadai.adapter.systemconnector.api.ReferencedTask;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7InboundReferencedTask;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
@@ -86,7 +87,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
@@ -137,7 +138,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
 
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
@@ -188,7 +189,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
@@ -220,7 +221,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
@@ -238,7 +239,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     assertThat(errorJson).hasToString(expectedErrorJson.toString());
   }
 
-  private Camunda7TaskEvent getAnEventWithError(List<ReferencedTask> referencedTasks) {
+  private Camunda7TaskEvent getAnEventWithError(List<InboundReferencedTask> referencedTasks) {
     List<Camunda7TaskEvent> allEvents = kadaiOutboxRequester.getAllEvents();
 
     return allEvents.stream()
@@ -246,7 +247,9 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
             event ->
                 referencedTasks.stream()
                     .anyMatch(
-                        task -> String.valueOf(event.getId()).equals(task.getOutboxEventId())))
+                        task ->
+                            event.getId()
+                                == ((Camunda7InboundReferencedTask) task).getTaskEventId()))
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("No matching Camunda7TaskEvent found"));
   }

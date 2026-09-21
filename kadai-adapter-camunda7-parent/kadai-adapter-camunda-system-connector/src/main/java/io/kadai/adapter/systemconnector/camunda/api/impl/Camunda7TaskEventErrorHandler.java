@@ -18,7 +18,6 @@
 
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
-import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -43,8 +42,8 @@ public class Camunda7TaskEventErrorHandler {
     this.restClient = restClient;
   }
 
-  public void decreaseRemainingRetriesAndLogErrorForReferencedTask(
-      ReferencedTask referencedTask, Exception e, String camundaSystemTaskEventUrl) {
+  public void decreaseRemainingRetriesAndLogError(
+      int taskEventId, Exception e, String camundaSystemTaskEventUrl) {
 
     LOGGER.debug(
         "entry to decreaseRemainingRetriesAndLogErrorForReferencedTasks, CamundaSystemURL = {}",
@@ -53,29 +52,27 @@ public class Camunda7TaskEventErrorHandler {
     final String decreaseRemainingRetriesUrl =
         String.format(
             Camunda7SystemConnectorImpl.URL_CAMUNDA_EVENT_DECREASE_REMAINING_RETRIES,
-            Integer.valueOf(referencedTask.getOutboxEventId()));
+            taskEventId);
     final String requestUrl = camundaSystemTaskEventUrl + decreaseRemainingRetriesUrl;
 
     JSONObject errorLog = createErrorLog(e);
 
     String failedTaskEventIdAndErrorLog =
-        String.format(
-            "{\"taskEventId\":%s,\"errorLog\":%s}", referencedTask.getOutboxEventId(), errorLog);
+        String.format("{\"taskEventId\":%s,\"errorLog\":%s}", taskEventId, errorLog);
 
     LOGGER.debug("decreaseRemainingRetriesAndLogError Events url {} ", requestUrl);
 
-    decreaseRemainingRetriesAndLogError(requestUrl, failedTaskEventIdAndErrorLog);
+    sendDecreaseRemainingRetriesAndLogError(requestUrl, failedTaskEventIdAndErrorLog);
 
     LOGGER.debug("exit from decreaseRemainingRetriesAndLogErrorForReferencedTasks.");
   }
 
-  public void unlockEvent(String eventId, String camundaSystemTaskEventUrl) {
+  public void unlockEvent(int eventId, String camundaSystemTaskEventUrl) {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("entry to unlockEvent, CamundaSystemURL = {}", camundaSystemTaskEventUrl);
     }
     final String unlockEventUrl =
-        String.format(
-            Camunda7SystemConnectorImpl.URL_CAMUNDA_UNLOCK_EVENT, Integer.valueOf(eventId));
+        String.format(Camunda7SystemConnectorImpl.URL_CAMUNDA_UNLOCK_EVENT, eventId);
     final String requestUrl = camundaSystemTaskEventUrl + unlockEventUrl;
 
     LOGGER.debug("decreaseRemainingRetriesAndLogError Events url {} ", requestUrl);
@@ -130,7 +127,7 @@ public class Camunda7TaskEventErrorHandler {
     return errorLog;
   }
 
-  private void decreaseRemainingRetriesAndLogError(
+  private void sendDecreaseRemainingRetriesAndLogError(
       String requestUrl, String failedTaskEventIdAndErrorLog) {
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
