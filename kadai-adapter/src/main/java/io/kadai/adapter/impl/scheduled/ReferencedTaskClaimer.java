@@ -147,7 +147,7 @@ public class ReferencedTaskClaimer implements MonitoredScheduledComponent {
         success = true;
       } else {
         throw new SystemException(
-            "couldnt find a connector for systemUrl " + referencedTask.getSystemUrl());
+            "couldn't find a connector for systemUrl " + referencedTask.getSystemUrl());
       }
     } catch (Exception ex) {
       LOGGER.error("Caught {} when attempting to claim referenced task {}", ex, referencedTask);

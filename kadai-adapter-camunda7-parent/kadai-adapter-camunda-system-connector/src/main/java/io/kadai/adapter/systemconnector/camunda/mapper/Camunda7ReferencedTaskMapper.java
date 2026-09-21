@@ -17,19 +17,17 @@
 
 package io.kadai.adapter.systemconnector.camunda.mapper;
 
-import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEvent;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps a deserialized Camunda 7 task-event payload plus its outbox event metadata to the adapter
- * core {@code ReferencedTask}.
+ * Maps a deserialized Camunda 7 task-event payload to the adapter core {@code ReferencedTask}.
  */
 @Component
 public class Camunda7ReferencedTaskMapper {
 
-  public ReferencedTask toReferencedTask(Camunda7ReferencedTaskDto dto, Camunda7TaskEvent event) {
+  public ReferencedTask toReferencedTask(Camunda7ReferencedTaskDto dto) {
     ReferencedTask referencedTask = new ReferencedTask();
     referencedTask.setId(dto.getId());
     referencedTask.setName(dto.getName());
@@ -38,8 +36,6 @@ public class Camunda7ReferencedTaskMapper {
     referencedTask.setPlanned(dto.getPlanned());
     referencedTask.setDue(dto.getDue());
     referencedTask.setDescription(dto.getDescription());
-    referencedTask.setOwner(dto.getOwner());
-    referencedTask.setPriority(dto.getPriority());
     referencedTask.setManualPriority(dto.getManualPriority());
     referencedTask.setTaskDefinitionKey(dto.getTaskDefinitionKey());
     referencedTask.setBusinessProcessId(dto.getBusinessProcessId());
@@ -56,8 +52,6 @@ public class Camunda7ReferencedTaskMapper {
     referencedTask.setCustomInt6(dto.getCustomInt6());
     referencedTask.setCustomInt7(dto.getCustomInt7());
     referencedTask.setCustomInt8(dto.getCustomInt8());
-    referencedTask.setOutboxEventId(String.valueOf(event.getId()));
-    referencedTask.setOutboxEventType(event.getType());
     return referencedTask;
   }
 }

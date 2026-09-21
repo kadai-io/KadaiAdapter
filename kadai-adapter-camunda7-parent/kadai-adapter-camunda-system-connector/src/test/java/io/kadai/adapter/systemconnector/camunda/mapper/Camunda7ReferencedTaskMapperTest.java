@@ -19,7 +19,6 @@ package io.kadai.adapter.systemconnector.camunda.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEvent;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,7 @@ class Camunda7ReferencedTaskMapperTest {
   private final Camunda7ReferencedTaskMapper mapper = new Camunda7ReferencedTaskMapper();
 
   @Test
-  void should_MapPayloadFieldsAndEnvelopeMetadata() {
+  void should_MapCoreTaskFields_When_PayloadIsProvided() {
     Camunda7ReferencedTaskDto dto = new Camunda7ReferencedTaskDto();
     dto.setId("id");
     dto.setName("name");
@@ -38,8 +37,6 @@ class Camunda7ReferencedTaskMapperTest {
     dto.setPlanned("planned");
     dto.setDue("due");
     dto.setDescription("description");
-    dto.setOwner("owner");
-    dto.setPriority("priority");
     dto.setManualPriority("manualPriority");
     dto.setTaskDefinitionKey("taskDefinitionKey");
     dto.setBusinessProcessId("businessProcessId");
@@ -56,11 +53,7 @@ class Camunda7ReferencedTaskMapperTest {
     dto.setCustomInt6("customInt6");
     dto.setCustomInt7("customInt7");
     dto.setCustomInt8("customInt8");
-    Camunda7TaskEvent event = new Camunda7TaskEvent();
-    event.setId(12);
-    event.setType("create");
-
-    ReferencedTask actual = mapper.toReferencedTask(dto, event);
+    ReferencedTask actual = mapper.toReferencedTask(dto);
 
     assertThat(actual.getId()).isEqualTo("id");
     assertThat(actual.getName()).isEqualTo("name");
@@ -69,8 +62,6 @@ class Camunda7ReferencedTaskMapperTest {
     assertThat(actual.getPlanned()).isEqualTo("planned");
     assertThat(actual.getDue()).isEqualTo("due");
     assertThat(actual.getDescription()).isEqualTo("description");
-    assertThat(actual.getOwner()).isEqualTo("owner");
-    assertThat(actual.getPriority()).isEqualTo("priority");
     assertThat(actual.getManualPriority()).isEqualTo("manualPriority");
     assertThat(actual.getTaskDefinitionKey()).isEqualTo("taskDefinitionKey");
     assertThat(actual.getBusinessProcessId()).isEqualTo("businessProcessId");
@@ -87,8 +78,6 @@ class Camunda7ReferencedTaskMapperTest {
     assertThat(actual.getCustomInt6()).isEqualTo("customInt6");
     assertThat(actual.getCustomInt7()).isEqualTo("customInt7");
     assertThat(actual.getCustomInt8()).isEqualTo("customInt8");
-    assertThat(actual.getOutboxEventId()).isEqualTo("12");
-    assertThat(actual.getOutboxEventType()).isEqualTo("create");
     assertThat(actual.getSystemUrl()).isNull();
   }
 }

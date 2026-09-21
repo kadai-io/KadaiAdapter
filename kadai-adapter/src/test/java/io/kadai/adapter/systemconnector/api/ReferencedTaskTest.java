@@ -42,9 +42,6 @@ class ReferencedTaskTest {
     theTask.setDue("6");
     theTask.setId("7");
     theTask.setName("8");
-    theTask.setOutboxEventId("9");
-    theTask.setOutboxEventType("10");
-    theTask.setOwner("11");
     theTask.setCustomInt1("12");
     theTask.setCustomInt2("13");
     theTask.setCustomInt3("14");
@@ -66,20 +63,6 @@ class ReferencedTaskTest {
     ReferencedTask referencedTask = new ReferencedTask();
     referencedTask.setId(theValue);
     assertThat(theValue).isEqualTo(referencedTask.getId());
-  }
-
-  @Test
-  void should_ReturnOutboxEventId_When_OutboxEventIdWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setOutboxEventId(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getOutboxEventId());
-  }
-
-  @Test
-  void should_ReturnOutboxEventType_When_OutboxEventTypeWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setOutboxEventType(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getOutboxEventType());
   }
 
   @Test
@@ -115,27 +98,6 @@ class ReferencedTaskTest {
     ReferencedTask referencedTask = new ReferencedTask();
     referencedTask.setDescription(theValue);
     assertThat(theValue).isEqualTo(referencedTask.getDescription());
-  }
-
-  @Test
-  void should_ReturnOwner_When_OwnerWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setOwner(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getOwner());
-  }
-
-  @Test
-  void should_ReturnPriority_When_PriorityWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setPriority(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getPriority());
-  }
-
-  @Test
-  void should_ReturnSuspended_When_SuspendedWasSet() {
-    ReferencedTask referencedTask = new ReferencedTask();
-    referencedTask.setSuspended(theValue);
-    assertThat(theValue).isEqualTo(referencedTask.getSuspended());
   }
 
   @Test
@@ -230,9 +192,6 @@ class ReferencedTaskTest {
     theTask.setDue("6");
     theTask.setId("7");
     theTask.setName("8");
-    theTask.setOutboxEventId("9");
-    theTask.setOutboxEventType("10");
-    theTask.setOwner("11");
     theTask.setWorkbasketKey("12");
     theTask.setCustomInt1("13");
     theTask.setCustomInt2("14");
@@ -253,9 +212,6 @@ class ReferencedTaskTest {
     refTask2.setDue("6");
     refTask2.setId("7");
     refTask2.setName("8");
-    refTask2.setOutboxEventId("9");
-    refTask2.setOutboxEventType("10");
-    refTask2.setOwner("11");
     refTask2.setWorkbasketKey("12");
     theTask.setCustomInt1("13");
     theTask.setCustomInt2("14");
