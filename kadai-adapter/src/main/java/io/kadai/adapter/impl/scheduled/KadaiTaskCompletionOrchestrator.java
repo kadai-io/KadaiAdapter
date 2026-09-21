@@ -23,10 +23,12 @@ import io.kadai.adapter.exceptions.TaskTerminationFailedException;
 import io.kadai.adapter.impl.service.KadaiTaskCompletionService;
 import io.kadai.adapter.manager.AdapterManager;
 import io.kadai.adapter.monitoring.MonitoredRun;
+import io.kadai.adapter.systemconnector.api.InboundReferencedTask;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.util.LowerMedian;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,28 +108,34 @@ public class KadaiTaskCompletionOrchestrator implements MonitoredScheduledCompon
             + "retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks ENTRY ");
 
     try {
-      List<ReferencedTask> kadaiTasksToTerminate =
+      List<InboundReferencedTask> kadaiTasksToTerminate =
           systemConnector.retrieveFinishedReferencedTasks();
+      List<InboundReferencedTask> successfullyTerminatedTasks = new ArrayList<>();
 
-      for (ReferencedTask referencedTask : kadaiTasksToTerminate) {
+      for (InboundReferencedTask inboundReferencedTask : kadaiTasksToTerminate) {
+        ReferencedTask referencedTask = inboundReferencedTask.getReferencedTask();
         try {
           kadaiTaskCompletionService.terminateKadaiTask(referencedTask);
+          successfullyTerminatedTasks.add(inboundReferencedTask);
         } catch (TaskTerminationFailedException ex) {
           LOGGER.error(
               "attempted to terminate task with external Id {} and caught exception",
               referencedTask.getId(),
               ex);
-          systemConnector.unlockEvent(referencedTask.getOutboxEventId());
+          systemConnector.kadaiTaskFailedToBeTerminatedForFinishedReferencedTask(
+              inboundReferencedTask, ex);
         } catch (Exception e) {
           LOGGER.error(
               "caught unexpected Exception when attempting to terminate KadaiTask "
                   + "for referencedTask {}",
               referencedTask,
               e);
-          systemConnector.unlockEvent(referencedTask.getOutboxEventId());
+          systemConnector.kadaiTaskFailedToBeTerminatedForFinishedReferencedTask(
+              inboundReferencedTask, e);
         }
       }
-      systemConnector.kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(kadaiTasksToTerminate);
+      systemConnector.kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(
+          successfullyTerminatedTasks);
 
     } finally {
       LOGGER.trace(
