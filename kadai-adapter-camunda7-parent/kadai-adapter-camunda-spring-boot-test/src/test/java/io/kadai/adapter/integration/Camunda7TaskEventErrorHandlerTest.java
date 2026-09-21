@@ -239,6 +239,62 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     assertThat(errorJson).hasToString(expectedErrorJson.toString());
   }
 
+  @Test
+  void should_UnlockEvent_When_KadaiTaskCreationFails() {
+    Exception testException = new NumberFormatException("exception");
+    InboundSystemConnector connector =
+        adapterManager.getInboundSystemConnectors().values().stream().findFirst().orElseThrow();
+
+    camundaProcessengineRequester.startCamundaProcessAndReturnId("simple_user_task_process", "");
+    InboundReferencedTask inboundTask =
+        connector.retrieveNewStartedReferencedTasks().stream().findFirst().orElseThrow();
+    int taskEventId = ((Camunda7InboundReferencedTask) inboundTask).getTaskEventId();
+    Camunda7TaskEvent lockedEvent = getEventWithId(taskEventId);
+
+    assertThat(lockedEvent.getLockExpiresAt()).isNotNull();
+    final int remainingRetriesBeforeFailure = lockedEvent.getRemainingRetries();
+
+    connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(inboundTask, testException);
+
+    Camunda7TaskEvent eventAfterFailure = getEventWithId(taskEventId);
+    JSONObject errorJson = new JSONObject(eventAfterFailure.getError());
+    assertThat(errorJson.getJSONObject("exception").getString("name"))
+        .isEqualTo(testException.getClass().getName());
+    assertThat(errorJson.getJSONObject("exception").getString("message"))
+        .isEqualTo(testException.getMessage());
+    assertThat(eventAfterFailure.getRemainingRetries())
+        .isEqualTo(remainingRetriesBeforeFailure - 1);
+    assertThat(eventAfterFailure.getLockExpiresAt()).isNull();
+  }
+
+  @Test
+  void should_UnlockAndKeepEvent_When_KadaiTaskTerminationFails() {
+    Exception testException = new RuntimeException("exception");
+    InboundSystemConnector connector =
+        adapterManager.getInboundSystemConnectors().values().stream().findFirst().orElseThrow();
+
+    String processInstanceId =
+        camundaProcessengineRequester.startCamundaProcessAndReturnId(
+            "simple_user_task_process", "");
+    String camundaTaskId =
+        camundaProcessengineRequester.getTaskIdsFromProcessInstanceId(processInstanceId).getFirst();
+    assertThat(camundaProcessengineRequester.completeTaskWithId(camundaTaskId)).isTrue();
+
+    InboundReferencedTask inboundTask =
+        connector.retrieveFinishedReferencedTasks().stream()
+            .filter(task -> task.getReferencedTask().getId().equals(camundaTaskId))
+            .findFirst()
+            .orElseThrow();
+    int taskEventId = ((Camunda7InboundReferencedTask) inboundTask).getTaskEventId();
+
+    assertThat(getEventWithId(taskEventId).getLockExpiresAt()).isNotNull();
+
+    connector.kadaiTaskFailedToBeTerminatedForFinishedReferencedTask(inboundTask, testException);
+
+    Camunda7TaskEvent eventAfterFailure = getEventWithId(taskEventId);
+    assertThat(eventAfterFailure.getLockExpiresAt()).isNull();
+  }
+
   private Camunda7TaskEvent getAnEventWithError(List<InboundReferencedTask> referencedTasks) {
     List<Camunda7TaskEvent> allEvents = kadaiOutboxRequester.getAllEvents();
 
@@ -250,6 +306,13 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
                         task ->
                             event.getId()
                                 == ((Camunda7InboundReferencedTask) task).getTaskEventId()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException("No matching Camunda7TaskEvent found"));
+  }
+
+  private Camunda7TaskEvent getEventWithId(int taskEventId) {
+    return kadaiOutboxRequester.getAllEvents().stream()
+        .filter(event -> event.getId() == taskEventId)
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("No matching Camunda7TaskEvent found"));
   }
