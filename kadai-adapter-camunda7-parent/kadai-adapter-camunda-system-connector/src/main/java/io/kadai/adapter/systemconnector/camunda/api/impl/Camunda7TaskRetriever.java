@@ -20,6 +20,7 @@ package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.Camunda7TaskEventListResource;
+import io.kadai.adapter.systemconnector.api.InboundReferencedTask;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
 import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
@@ -58,7 +59,7 @@ public class Camunda7TaskRetriever {
     this.referencedTaskMapper = referencedTaskMapper;
   }
 
-  public List<ReferencedTask> retrieveNewStartedCamunda7Tasks(
+  public List<InboundReferencedTask> retrieveNewStartedCamunda7Tasks(
       String camundaSystemTaskEventUrl,
       String camundaSystemEngineIdentifier,
       Duration lockDuration) {
@@ -71,7 +72,7 @@ public class Camunda7TaskRetriever {
             Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_CREATE_EVENTS,
             lockDuration);
 
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         getReferencedTasksFromCamunda7TaskEvents(camunda7TaskEvents, camundaSystemEngineIdentifier);
 
     if (LOGGER.isDebugEnabled()) {
@@ -80,7 +81,7 @@ public class Camunda7TaskRetriever {
     return referencedTasks;
   }
 
-  public List<ReferencedTask> retrieveFinishedCamunda7Tasks(
+  public List<InboundReferencedTask> retrieveFinishedCamunda7Tasks(
       String camundaSystemUrl, String camundaSystemEngineIdentifier, Duration lockDuration) {
     LOGGER.debug("entry to retrieveFinishedCamundaTasks. CamundaSystemURL = {} ", camundaSystemUrl);
 
@@ -90,7 +91,7 @@ public class Camunda7TaskRetriever {
             Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_FINISHED_EVENTS,
             lockDuration);
 
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         getReferencedTasksFromCamunda7TaskEvents(camunda7TaskEvents, camundaSystemEngineIdentifier);
 
     if (LOGGER.isDebugEnabled()) {
@@ -143,10 +144,10 @@ public class Camunda7TaskRetriever {
     return Collections.emptyList();
   }
 
-  private List<ReferencedTask> getReferencedTasksFromCamunda7TaskEvents(
+  private List<InboundReferencedTask> getReferencedTasksFromCamunda7TaskEvents(
       List<Camunda7TaskEvent> camunda7TaskEvents, String systemEngineIdentifier) {
 
-    List<ReferencedTask> referencedTasks = new ArrayList<>();
+    List<InboundReferencedTask> referencedTasks = new ArrayList<>();
 
     for (Camunda7TaskEvent camunda7TaskEvent : camunda7TaskEvents) {
 
@@ -160,9 +161,9 @@ public class Camunda7TaskRetriever {
 
           Camunda7ReferencedTaskDto dto =
               jsonMapper.readValue(referencedTaskJson, Camunda7ReferencedTaskDto.class);
-          ReferencedTask referencedTask =
-              referencedTaskMapper.toReferencedTask(dto, camunda7TaskEvent);
-          referencedTasks.add(referencedTask);
+          ReferencedTask referencedTask = referencedTaskMapper.toReferencedTask(dto);
+          referencedTasks.add(
+              new Camunda7InboundReferencedTask(referencedTask, camunda7TaskEvent.getId()));
 
         } catch (JacksonException e) {
           LOGGER.warn(
