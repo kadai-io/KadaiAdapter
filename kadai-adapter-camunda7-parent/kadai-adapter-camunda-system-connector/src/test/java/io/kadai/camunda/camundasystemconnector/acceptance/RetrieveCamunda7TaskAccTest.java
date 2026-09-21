@@ -152,9 +152,9 @@ class RetrieveCamunda7TaskAccTest {
     }
     assertThat(actualResult).isNotEmpty();
     Camunda7InboundReferencedTask inboundTask = (Camunda7InboundReferencedTask) actualResult.get(0);
-    ReferencedTask actualTask = inboundTask.getReferencedTask();
+    ReferencedTask actualTask = inboundTask.referencedTask();
     assertThat(actualTask).isEqualTo(expectedTask);
-    assertThat(inboundTask.getTaskEventId()).isEqualTo(1);
+    assertThat(inboundTask.taskEventId()).isEqualTo(1);
     assertThat(actualTask.getPlanned()).isEqualTo("2019-01-15T15:22:30.811+0000");
     assertThat(actualTask.getCustomInt8()).isEqualTo("8");
   }
@@ -190,10 +190,10 @@ class RetrieveCamunda7TaskAccTest {
             camundaSystemUrl, camundaSystemEngineIdentifier, null);
     assertThat(actualResult).isNotEmpty();
     Camunda7InboundReferencedTask inboundTask = (Camunda7InboundReferencedTask) actualResult.get(0);
-    ReferencedTask actualTask = inboundTask.getReferencedTask();
+    ReferencedTask actualTask = inboundTask.referencedTask();
     assertThat(actualTask).isEqualTo(expectedTask);
     assertThat(actualTask.getTaskState()).isEqualTo("COMPLETED");
-    assertThat(inboundTask.getTaskEventId()).isEqualTo(16);
+    assertThat(inboundTask.taskEventId()).isEqualTo(16);
   }
 
   @Test
@@ -214,9 +214,9 @@ class RetrieveCamunda7TaskAccTest {
             mockWebServer.url("/").toString(), "default", null);
 
     Camunda7InboundReferencedTask inboundTask = (Camunda7InboundReferencedTask) actualResult.get(0);
-    ReferencedTask actualTask = inboundTask.getReferencedTask();
+    ReferencedTask actualTask = inboundTask.referencedTask();
     assertThat(actualTask.getId()).isEqualTo("task-1");
-    assertThat(inboundTask.getTaskEventId()).isEqualTo(12);
+    assertThat(inboundTask.taskEventId()).isEqualTo(12);
     assertThat(actualTask.getSystemUrl()).isNull();
   }
 }

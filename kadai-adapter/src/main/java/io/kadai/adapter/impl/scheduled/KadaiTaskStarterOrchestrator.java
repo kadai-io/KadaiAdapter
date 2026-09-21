@@ -143,7 +143,7 @@ public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent
       futures.add(
           executorService.submit(
               () -> {
-                ReferencedTask referencedTask = inboundReferencedTask.getReferencedTask();
+                ReferencedTask referencedTask = inboundReferencedTask.referencedTask();
                 try {
                   addVariablesToReferencedTask(referencedTask, systemConnector);
                   referencedTask.setSystemUrl(systemConnector.getSystemUrl());
@@ -191,7 +191,7 @@ public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent
       InboundReferencedTask inboundReferencedTask,
       Exception exception,
       String message) {
-    ReferencedTask referencedTask = inboundReferencedTask.getReferencedTask();
+    ReferencedTask referencedTask = inboundReferencedTask.referencedTask();
     LOGGER.error(message, referencedTask, exception);
     systemConnector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
         inboundReferencedTask, exception);

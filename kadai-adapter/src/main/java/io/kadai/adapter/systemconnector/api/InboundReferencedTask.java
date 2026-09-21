@@ -20,7 +20,7 @@ package io.kadai.adapter.systemconnector.api;
  * Represents a referenced task retrieved by an {@link InboundSystemConnector}.
  *
  * <p>Implementations may retain connector-specific processing or acknowledgement context. The
- * adapter core operates only on {@link #getReferencedTask()} and treats any implementation-specific
+ * adapter core operates only on {@link #referencedTask()} and treats any implementation-specific
  * information as opaque.
  */
 public interface InboundReferencedTask {
@@ -30,5 +30,5 @@ public interface InboundReferencedTask {
    *
    * @return the referenced task
    */
-  ReferencedTask getReferencedTask();
+  ReferencedTask referencedTask();
 }

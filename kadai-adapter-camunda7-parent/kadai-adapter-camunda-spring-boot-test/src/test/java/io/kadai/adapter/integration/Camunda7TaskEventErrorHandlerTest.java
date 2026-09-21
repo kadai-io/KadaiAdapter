@@ -248,7 +248,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     camundaProcessengineRequester.startCamundaProcessAndReturnId("simple_user_task_process", "");
     InboundReferencedTask inboundTask =
         connector.retrieveNewStartedReferencedTasks().stream().findFirst().orElseThrow();
-    int taskEventId = ((Camunda7InboundReferencedTask) inboundTask).getTaskEventId();
+    int taskEventId = ((Camunda7InboundReferencedTask) inboundTask).taskEventId();
     Camunda7TaskEvent lockedEvent = getEventWithId(taskEventId);
 
     assertThat(lockedEvent.getLockExpiresAt()).isNotNull();
@@ -282,10 +282,10 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
 
     InboundReferencedTask inboundTask =
         connector.retrieveFinishedReferencedTasks().stream()
-            .filter(task -> task.getReferencedTask().getId().equals(camundaTaskId))
+            .filter(task -> task.referencedTask().getId().equals(camundaTaskId))
             .findFirst()
             .orElseThrow();
-    int taskEventId = ((Camunda7InboundReferencedTask) inboundTask).getTaskEventId();
+    int taskEventId = ((Camunda7InboundReferencedTask) inboundTask).taskEventId();
 
     assertThat(getEventWithId(taskEventId).getLockExpiresAt()).isNotNull();
 
@@ -304,8 +304,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
                 referencedTasks.stream()
                     .anyMatch(
                         task ->
-                            event.getId()
-                                == ((Camunda7InboundReferencedTask) task).getTaskEventId()))
+                            event.getId() == ((Camunda7InboundReferencedTask) task).taskEventId()))
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("No matching Camunda7TaskEvent found"));
   }

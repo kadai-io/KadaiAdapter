@@ -59,10 +59,10 @@ class KadaiTaskCompletionOrchestratorTest {
     doAnswer(
             invocation -> {
               ReferencedTask task = invocation.getArgument(0);
-              if (task == second.getReferencedTask()) {
+              if (task == second.referencedTask()) {
                 throw expectedFailure;
               }
-              if (task == third.getReferencedTask()) {
+              if (task == third.referencedTask()) {
                 throw unexpectedFailure;
               }
               return null;
@@ -71,8 +71,7 @@ class KadaiTaskCompletionOrchestratorTest {
         .terminateKadaiTask(org.mockito.ArgumentMatchers.any());
 
     createOrchestrator()
-        .retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(
-            inboundSystemConnector);
+        .retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(inboundSystemConnector);
 
     verify(inboundSystemConnector)
         .kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(
@@ -91,8 +90,7 @@ class KadaiTaskCompletionOrchestratorTest {
         .thenReturn(List.of(first, second));
 
     createOrchestrator()
-        .retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(
-            inboundSystemConnector);
+        .retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(inboundSystemConnector);
 
     verify(inboundSystemConnector)
         .kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(List.of(first, second));
@@ -115,8 +113,7 @@ class KadaiTaskCompletionOrchestratorTest {
         .terminateKadaiTask(org.mockito.ArgumentMatchers.any());
 
     createOrchestrator()
-        .retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(
-            inboundSystemConnector);
+        .retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(inboundSystemConnector);
 
     verify(inboundSystemConnector)
         .kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(List.of());
@@ -131,8 +128,7 @@ class KadaiTaskCompletionOrchestratorTest {
     when(inboundSystemConnector.retrieveFinishedReferencedTasks()).thenReturn(List.of());
 
     createOrchestrator()
-        .retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(
-            inboundSystemConnector);
+        .retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks(inboundSystemConnector);
 
     verify(inboundSystemConnector)
         .kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(List.of());

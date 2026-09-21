@@ -132,7 +132,7 @@ public class Camunda7SystemConnectorImpl
   @Override
   public void kadaiTaskFailedToBeCreatedForNewReferencedTask(
       InboundReferencedTask referencedTask, Exception e) {
-    int taskEventId = requireCamunda7InboundTask(referencedTask).getTaskEventId();
+    int taskEventId = requireCamunda7InboundTask(referencedTask).taskEventId();
     taskEventErrorHandler.decreaseRemainingRetriesAndLogError(
         taskEventId, e, camunda7SystemUrl.getSystemTaskEventUrl());
     taskEventErrorHandler.unlockEvent(taskEventId, camunda7SystemUrl.getSystemTaskEventUrl());
@@ -142,14 +142,14 @@ public class Camunda7SystemConnectorImpl
   public void kadaiTaskFailedToBeTerminatedForFinishedReferencedTask(
       InboundReferencedTask referencedTask, Exception e) {
     taskEventErrorHandler.unlockEvent(
-        requireCamunda7InboundTask(referencedTask).getTaskEventId(),
+        requireCamunda7InboundTask(referencedTask).taskEventId(),
         camunda7SystemUrl.getSystemTaskEventUrl());
   }
 
   private List<Integer> getTaskEventIds(List<InboundReferencedTask> referencedTasks) {
     return referencedTasks.stream()
         .map(this::requireCamunda7InboundTask)
-        .map(Camunda7InboundReferencedTask::getTaskEventId)
+        .map(Camunda7InboundReferencedTask::taskEventId)
         .toList();
   }
 

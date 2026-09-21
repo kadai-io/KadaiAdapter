@@ -113,7 +113,7 @@ public class KadaiTaskCompletionOrchestrator implements MonitoredScheduledCompon
       List<InboundReferencedTask> successfullyTerminatedTasks = new ArrayList<>();
 
       for (InboundReferencedTask inboundReferencedTask : kadaiTasksToTerminate) {
-        ReferencedTask referencedTask = inboundReferencedTask.getReferencedTask();
+        ReferencedTask referencedTask = inboundReferencedTask.referencedTask();
         try {
           kadaiTaskCompletionService.terminateKadaiTask(referencedTask);
           successfullyTerminatedTasks.add(inboundReferencedTask);

@@ -19,15 +19,15 @@ package io.kadai.adapter.systemconnector.api;
 import java.util.Objects;
 
 /** An inbound referenced task without additional connector-specific processing context. */
-public record SimpleInboundReferencedTask(ReferencedTask referencedTask)
+public record SimpleInboundReferencedTask(ReferencedTask getReferencedTask)
     implements InboundReferencedTask {
 
   public SimpleInboundReferencedTask {
-    Objects.requireNonNull(referencedTask, "referencedTask must not be null");
+    Objects.requireNonNull(getReferencedTask, "referencedTask must not be null");
   }
 
   @Override
-  public ReferencedTask getReferencedTask() {
-    return referencedTask;
+  public ReferencedTask referencedTask() {
+    return getReferencedTask;
   }
 }

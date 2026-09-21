@@ -221,7 +221,7 @@ class KadaiTaskStarterOrchestratorTest {
     orchestrator.retrieveReferencedTasksAndCreateCorrespondingKadaiTasks();
 
     for (InboundReferencedTask task : tasks) {
-      assertThat(task.getReferencedTask().getSystemUrl()).isEqualTo("http://test.system");
+      assertThat(task.referencedTask().getSystemUrl()).isEqualTo("http://test.system");
     }
   }
 
