@@ -27,18 +27,18 @@ import java.util.List;
 public interface InboundSystemConnector extends BaseSystemConnector {
 
   /**
-   * Retrieve ReferencedTasks that were started within the last polling interval.
+   * Retrieve inbound ReferencedTasks that were started within the last polling interval.
    *
    * @return a list of created ReferencedTasks that don't have an associated KADAI task yet.
    */
-  List<ReferencedTask> retrieveNewStartedReferencedTasks();
+  List<InboundReferencedTask> retrieveNewStartedReferencedTasks();
 
   /**
-   * Retrieve ReferencedTasks that were finished.
+   * Retrieve inbound ReferencedTasks that were finished.
    *
    * @return a list of ReferencedTasks that were finished
    */
-  List<ReferencedTask> retrieveFinishedReferencedTasks();
+  List<InboundReferencedTask> retrieveFinishedReferencedTasks();
 
   /**
    * Get the variables of the ReferencedTask.
@@ -52,32 +52,39 @@ public interface InboundSystemConnector extends BaseSystemConnector {
    * With this call the Adapter notifies the SystemConnector that a list of KADAI tasks has been
    * created. Depending on the Implementation of the SystemConnector, it may ignore this call.
    *
-   * @param referencedTasks List of ReferencedTasks for which KADAI tasks have been created.
+   * @param referencedTasks inbound ReferencedTasks for which KADAI tasks have been created.
    */
-  void kadaiTasksHaveBeenCreatedForNewReferencedTasks(List<ReferencedTask> referencedTasks);
+  void kadaiTasksHaveBeenCreatedForNewReferencedTasks(
+      List<InboundReferencedTask> referencedTasks);
 
   /**
    * With this call the Adapter notifies the SystemConnector that a list of KADAI tasks has been
    * terminated. The rationale for this action is that ReferencedTasks in the external system were
    * finished. Depending on the Implementation of the SystemConnector, it may ignore this call.
    *
-   * @param referencedTasks List of ReferencedTasks for which KADAI Tasks have been terminated.
+   * @param referencedTasks inbound ReferencedTasks for which KADAI Tasks have been terminated.
    */
-  void kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(List<ReferencedTask> referencedTasks);
+  void kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(
+      List<InboundReferencedTask> referencedTasks);
 
   /**
    * With this call the Adapter notifies the SystemConnector that a KADAI task has failed to be
    * created. Depending on the implementation of the SystemConnector, it may ignore this call.
    *
-   * @param referencedTask The ReferencedTasks for which the KADAI task failed to be created
+   * @param referencedTask the inbound ReferencedTask for which the KADAI task failed to be created
    * @param e exception
    */
-  void kadaiTaskFailedToBeCreatedForNewReferencedTask(ReferencedTask referencedTask, Exception e);
+  void kadaiTaskFailedToBeCreatedForNewReferencedTask(
+      InboundReferencedTask referencedTask, Exception e);
 
   /**
-   * Instruct the external system to unlock the event.
+   * With this call the Adapter notifies the SystemConnector that a KADAI task has failed to be
+   * terminated. Depending on the implementation of the SystemConnector, it may ignore this call.
    *
-   * @param eventId the id of the event that needs to be unlocked
+   * @param referencedTask the inbound ReferencedTask for which the KADAI task failed to be
+   *     terminated
+   * @param e exception
    */
-  void unlockEvent(String eventId);
+  void kadaiTaskFailedToBeTerminatedForFinishedReferencedTask(
+      InboundReferencedTask referencedTask, Exception e);
 }
