@@ -247,5 +247,4 @@ public class TaskInformationMapper {
         taskMappingConfiguration.getObjectReference().getType(),
         taskMappingConfiguration.getObjectReference().getValue());
   }
-
 }
