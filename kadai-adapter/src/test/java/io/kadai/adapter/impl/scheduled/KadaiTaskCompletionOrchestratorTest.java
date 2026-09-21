@@ -83,7 +83,7 @@ class KadaiTaskCompletionOrchestratorTest {
   }
 
   @Test
-  void should_AcknowledgeAllTasks_When_AllTerminationsSucceed() throws Exception {
+  void should_AcknowledgeAllTasks_When_AllTerminationsSucceed() {
     InboundReferencedTask first = createInboundTask("first");
     InboundReferencedTask second = createInboundTask("second");
     when(inboundSystemConnector.retrieveFinishedReferencedTasks())
