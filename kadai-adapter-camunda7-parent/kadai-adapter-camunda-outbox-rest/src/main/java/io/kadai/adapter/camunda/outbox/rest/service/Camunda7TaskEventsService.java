@@ -25,6 +25,7 @@ import io.kadai.adapter.camunda.outbox.rest.exception.InvalidArgumentException;
 import io.kadai.adapter.camunda.outbox.rest.exception.OutboxServiceUnavailableException;
 import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
 import io.kadai.adapter.camunda.outbox.rest.repository.Camunda7OutboxSqlProvider;
+import io.kadai.adapter.camunda.outbox.rest.resource.OutboxEventCountResource;
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.sql.Connection;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spinjar.com.fasterxml.jackson.core.JsonProcessingException;
 import spinjar.com.fasterxml.jackson.databind.JsonNode;
 import spinjar.com.fasterxml.jackson.databind.json.JsonMapper;
 
@@ -232,9 +234,15 @@ public class Camunda7TaskEventsService {
    *
    * @param remainingRetries exact remaining-retries value to include
    * @return the event count as JSON
+   * @throws IllegalStateException if the event count cannot be serialized
    */
-  public String getEventsCount(int remainingRetries) {
-    return "{\"eventsCount\":" + countEvents(remainingRetries) + "}";
+  public String getEventsCount(int remainingRetries) throws IllegalStateException {
+    try {
+      return JSON_MAPPER.writeValueAsString(
+          new OutboxEventCountResource(countEvents(remainingRetries)));
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException("Unable to serialize Outbox event count", e);
+    }
   }
 
   public Camunda7TaskEvent setRemainingRetries(int id, int retriesToSet)
