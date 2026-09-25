@@ -16,7 +16,6 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
   private final ExternalServiceHttpProbe httpProbe;
   private final HttpHeaderProvider httpHeaderProvider;
   private final URI url;
-  private final String urlString;
 
   public Camunda7OutboxHealthIndicator(
       RestClient restClient, HttpHeaderProvider httpHeaderProvider, String urlString) {
@@ -29,7 +28,6 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
             .queryParam("retries", 0)
             .build()
             .toUri();
-    this.urlString = urlString;
   }
 
   @Override
@@ -71,7 +69,7 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
     details.setEventsCount(body.getEventsCount());
     return Health.up()
         .withDetail("outboxService", details)
-        .withDetail(BASE_URL, urlString)
+        .withDetail(BASE_URL, url)
         .build();
   }
 
@@ -83,7 +81,7 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
                 "outboxServiceError",
                 HealthProbeFailureSupport.errorOrFailureType(error, failureType))
             .withDetail("failureType", failureType)
-            .withDetail(BASE_URL, urlString);
+            .withDetail(BASE_URL, url);
     if (httpStatus != null) {
       builder.withDetail("httpStatus", httpStatus);
     }
