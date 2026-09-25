@@ -17,6 +17,7 @@ public class Camunda7HealthIndicator implements HealthIndicator {
 
   private static final String BASE_URL = "baseUrl";
   private static final String ENGINE_PATH_SEGMENT = "engine";
+  private static final String SEMANTIC_MISMATCH = "semantic-mismatch";
 
   private final ExternalServiceHttpProbe httpProbe;
   private final HttpHeaderProvider httpHeaderProvider;
@@ -63,7 +64,9 @@ public class Camunda7HealthIndicator implements HealthIndicator {
 
     Camunda7EngineInfoRepresentationModel[] engines = result.body();
     if (engines == null || engines.length == 0) {
-      return downForFailure("semantic-mismatch", "No engines found", 200).build();
+      return downForFailure(
+              SEMANTIC_MISMATCH, "No engines found", HealthProbeFailureSupport.httpStatus(result))
+          .build();
     }
 
     Camunda7EngineInfoRepresentationModel[] validEngines =
@@ -71,16 +74,20 @@ public class Camunda7HealthIndicator implements HealthIndicator {
             .filter(Camunda7HealthIndicator::isValidEngine)
             .toArray(Camunda7EngineInfoRepresentationModel[]::new);
     if (validEngines.length == 0) {
-      return downForFailure("semantic-mismatch", "No valid engines found", 200).build();
+      return downForFailure(
+              SEMANTIC_MISMATCH,
+              "No valid engines found",
+              HealthProbeFailureSupport.httpStatus(result))
+          .build();
     }
 
     Camunda7EngineInfoRepresentationModel expectedEngine =
         expectedEngineName == null ? null : findEngine(validEngines, expectedEngineName);
     if (expectedEngine == null && expectedEngineName != null) {
       return downForFailure(
-              "semantic-mismatch",
+              SEMANTIC_MISMATCH,
               "Expected engine '" + expectedEngineName + "' not found",
-              200)
+              HealthProbeFailureSupport.httpStatus(result))
           .withDetail("camundaEngines", validEngines)
           .build();
     }
