@@ -6,7 +6,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
 final class ExternalServiceHttpProbe {
 
@@ -25,8 +24,6 @@ final class ExternalServiceHttpProbe {
           .exchange((request, response) -> readResponse(response, bodyType));
     } catch (ResourceAccessException e) {
       return HttpProbeResult.transportError(safeMessage(e));
-    } catch (RestClientException e) {
-      return HttpProbeResult.clientError(safeMessage(e));
     } catch (RuntimeException e) {
       return HttpProbeResult.clientError(safeMessage(e));
     }
