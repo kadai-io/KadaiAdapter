@@ -124,20 +124,9 @@ class ArchitectureTest {
   }
 
   @Test
-  void coreConnectorApiShouldNotExposePluginSpecificNames() {
-    fields()
-        .that()
-        .areDeclaredInClassesThat()
-        .resideInAPackage("io.kadai.adapter.systemconnector.api")
-        .should()
-        .haveNameNotMatching("(?i).*(camunda|outbox).*")
-        .check(IMPORTED_CLASSES);
-    methods()
-        .that()
-        .areDeclaredInClassesThat()
-        .resideInAPackage("io.kadai.adapter.systemconnector.api")
-        .should()
-        .haveNameNotMatching("(?i).*(camunda|outbox).*")
-        .check(IMPORTED_CLASSES);
+  void kadaiAdapterShouldNotContainPluginSpecificNames() {
+    fields().should().haveNameNotMatching("(?i).*(camunda|outbox).*").check(IMPORTED_CLASSES);
+    methods().should().haveNameNotMatching("(?i).*(camunda|outbox).*").check(IMPORTED_CLASSES);
+    classes().should().haveNameNotMatching("(?i).*(camunda|outbox).*").check(IMPORTED_CLASSES);
   }
 }
