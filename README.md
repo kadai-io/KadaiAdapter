@@ -89,6 +89,10 @@ The adapter performs periodically the following tasks
    the variables.
 2. **Workbaskets** \
    The Adapter does not perform routing of tasks to workbaskets but instead relies on a SPI.
+3. **Health endpoints** \
+   `/actuator/health/kadaiAdapter` reports adapter and external dependency health. Use
+   `/actuator/health/liveness` for process liveness so an external Camunda or Outbox outage does
+   not cause the application process to be restarted.
 
 # 📨Contact
 

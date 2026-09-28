@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.web.client.RestClient;
 
 class Camunda7OutboxHealthCompositeTest {
 
@@ -21,7 +22,7 @@ class Camunda7OutboxHealthCompositeTest {
       Camunda7HealthConfigurationProperties properties, long expectedEnabledCount) {
     final Camunda7OutboxHealthComposite camundaOutboxHealthComposite =
         new Camunda7OutboxHealthComposite(
-            mock(),
+            mock(RestClient.class),
             new Camunda7System(
                 "http://localhost:10020/engine-rest", "http://localhost:10020/outbox-rest", null),
             "http://localhost:10020/outbox-rest",
@@ -38,7 +39,7 @@ class Camunda7OutboxHealthCompositeTest {
       String contributorName) {
     final Camunda7OutboxHealthComposite camundaOutboxHealthComposite =
         new Camunda7OutboxHealthComposite(
-            mock(),
+            mock(RestClient.class),
             new Camunda7System(
                 "http://localhost:10020/engine-rest", "http://localhost:10020/outbox-rest", null),
             "http://localhost:10020/outbox-rest",

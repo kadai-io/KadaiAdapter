@@ -6,6 +6,7 @@ import io.kadai.adapter.systemconnector.camunda.config.health.Camunda7HealthConf
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.health.contributor.HealthContributor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -20,7 +21,7 @@ public class Camunda7HealthContributorFactory implements PluginHealthContributor
 
   @Autowired
   public Camunda7HealthContributorFactory(
-      RestClient restClient,
+      @Qualifier("camunda7HealthRestClient") RestClient restClient,
       Camunda7HealthConfigurationProperties properties,
       List<Camunda7System> camunda7Systems,
       HttpHeaderProvider httpHeaderProvider) {
