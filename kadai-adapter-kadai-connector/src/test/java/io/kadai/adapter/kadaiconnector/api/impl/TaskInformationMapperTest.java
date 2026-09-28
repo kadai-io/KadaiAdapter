@@ -42,14 +42,10 @@ class TaskInformationMapperTest {
   private static final String DUE = "2030-06-26T09:54:00.000+0000";
 
   private static final Instant EXPECTED_PLANNED =
-      LocalDateTime.parse("2030-06-25T09:54:00")
-          .atZone(ZoneId.systemDefault())
-          .toInstant();
+      LocalDateTime.parse("2030-06-25T09:54:00").atZone(ZoneId.systemDefault()).toInstant();
 
   private static final Instant EXPECTED_DUE =
-      LocalDateTime.parse("2030-06-26T09:54:00")
-          .atZone(ZoneId.systemDefault())
-          .toInstant();
+      LocalDateTime.parse("2030-06-26T09:54:00").atZone(ZoneId.systemDefault()).toInstant();
 
   private TaskService taskService;
   private TaskInformationMapper taskInformationMapper;
@@ -58,16 +54,14 @@ class TaskInformationMapperTest {
   void setUp() {
     taskService = mock(TaskService.class);
 
-    when(taskService.newTask("GPK_KSC", "DOMAIN_A"))
-        .thenAnswer(ignored -> new TaskImpl());
+    when(taskService.newTask("GPK_KSC", "DOMAIN_A")).thenAnswer(ignored -> new TaskImpl());
 
-    when(
-            taskService.newObjectReference(
-                "DEFAULT_COMPANY",
-                "DEFAULT_SYSTEM",
-                "DEFAULT_SYSTEM_INSTANCE",
-                "DEFAULT_TYPE",
-                "DEFAULT_VALUE"))
+    when(taskService.newObjectReference(
+            "DEFAULT_COMPANY",
+            "DEFAULT_SYSTEM",
+            "DEFAULT_SYSTEM_INSTANCE",
+            "DEFAULT_TYPE",
+            "DEFAULT_VALUE"))
         .thenReturn(mock(ObjectReference.class));
 
     taskInformationMapper =

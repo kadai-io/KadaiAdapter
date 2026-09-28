@@ -18,7 +18,6 @@
 
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
-import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,28 +41,26 @@ public class Camunda7TaskEventCleaner {
     this.restClient = restClient;
   }
 
-  public void cleanEventsForReferencedTasks(
-      List<ReferencedTask> referencedTasks, String camundaSystemTaskEventUrl)
+  public void cleanEvents(List<Integer> taskEventIds, String camundaSystemTaskEventUrl)
       throws HttpStatusCodeException {
 
-    LOGGER.debug(
-        "entry to cleanEventsForReferencedTasks, CamundaSystemURL = {}", camundaSystemTaskEventUrl);
+    LOGGER.debug("entry to cleanEvents, CamundaSystemURL = {}", camundaSystemTaskEventUrl);
 
     String requestUrl =
         camundaSystemTaskEventUrl + Camunda7SystemConnectorImpl.URL_DELETE_CAMUNDA_EVENTS;
 
-    if (referencedTasks == null || referencedTasks.isEmpty()) {
+    if (taskEventIds == null || taskEventIds.isEmpty()) {
       return;
     }
 
     String idsOfCamundaTaskEventsToDeleteFromOutbox =
-        getIdsOfCamunda7TaskEventsToDeleteFromOutbox(referencedTasks);
+        getIdsOfCamunda7TaskEventsToDeleteFromOutbox(taskEventIds);
     LOGGER.debug("delete Events url {} ", requestUrl);
 
     deleteCamunda7TaskEventsFromOutbox(requestUrl, idsOfCamundaTaskEventsToDeleteFromOutbox);
 
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("exit from cleanEventsForReferencedTasks.");
+      LOGGER.debug("exit from cleanEvents.");
     }
   }
 
@@ -80,15 +77,14 @@ public class Camunda7TaskEventCleaner {
         .toEntity(Void.class);
   }
 
-  private String getIdsOfCamunda7TaskEventsToDeleteFromOutbox(
-      List<ReferencedTask> referencedTasks) {
+  private String getIdsOfCamunda7TaskEventsToDeleteFromOutbox(List<Integer> taskEventIds) {
 
     StringBuilder idsBuf = new StringBuilder();
 
     idsBuf.append("{\"taskCreationIds\":[");
 
-    for (ReferencedTask referencedTask : referencedTasks) {
-      idsBuf.append(referencedTask.getOutboxEventId().trim());
+    for (Integer taskEventId : taskEventIds) {
+      idsBuf.append(taskEventId);
       idsBuf.append(',');
     }
     idsBuf.append("]}");

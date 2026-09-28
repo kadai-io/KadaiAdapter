@@ -23,6 +23,7 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predica
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -120,5 +121,12 @@ class ArchitectureTest {
         .dependOnClassesThat()
         .haveFullyQualifiedName("org.junit.jupiter.api.Assertions")
         .check(IMPORTED_TEST_CLASSES);
+  }
+
+  @Test
+  void kadaiAdapterShouldNotContainPluginSpecificNames() {
+    fields().should().haveNameNotMatching("(?i).*(camunda|outbox).*").check(IMPORTED_CLASSES);
+    methods().should().haveNameNotMatching("(?i).*(camunda|outbox).*").check(IMPORTED_CLASSES);
+    classes().should().haveNameNotMatching("(?i).*(camunda|outbox).*").check(IMPORTED_CLASSES);
   }
 }

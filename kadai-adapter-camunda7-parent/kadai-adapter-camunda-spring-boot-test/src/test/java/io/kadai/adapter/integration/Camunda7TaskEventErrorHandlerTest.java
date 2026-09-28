@@ -22,8 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kadai.adapter.camunda.outbox.rest.model.Camunda7TaskEvent;
 import io.kadai.adapter.manager.AdapterManager;
+import io.kadai.adapter.systemconnector.api.InboundReferencedTask;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
-import io.kadai.adapter.systemconnector.api.ReferencedTask;
+import io.kadai.adapter.systemconnector.camunda.api.impl.Camunda7InboundReferencedTask;
 import io.kadai.adapter.test.KadaiAdapterTestApplication;
 import io.kadai.common.test.security.JaasExtension;
 import io.kadai.common.test.security.WithAccessId;
@@ -86,7 +87,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
@@ -137,7 +138,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
 
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
@@ -188,7 +189,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
@@ -220,7 +221,7 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     // Start process with task to have an entry in OutboxDB
     this.camundaProcessengineRequester.startCamundaProcessAndReturnId(
         "simple_user_task_process", "");
-    List<ReferencedTask> referencedTasks =
+    List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
             .flatMap(
                 entry -> {
@@ -238,7 +239,63 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     assertThat(errorJson).hasToString(expectedErrorJson.toString());
   }
 
-  private Camunda7TaskEvent getAnEventWithError(List<ReferencedTask> referencedTasks) {
+  @Test
+  void should_UnlockEvent_When_KadaiTaskCreationFails() {
+    Exception testException = new NumberFormatException("exception");
+    InboundSystemConnector connector =
+        adapterManager.getInboundSystemConnectors().values().stream().findFirst().orElseThrow();
+
+    camundaProcessengineRequester.startCamundaProcessAndReturnId("simple_user_task_process", "");
+    InboundReferencedTask inboundTask =
+        connector.retrieveNewStartedReferencedTasks().stream().findFirst().orElseThrow();
+    int taskEventId = ((Camunda7InboundReferencedTask) inboundTask).taskEventId();
+    Camunda7TaskEvent lockedEvent = getEventWithId(taskEventId);
+
+    assertThat(lockedEvent.getLockExpiresAt()).isNotNull();
+    final int remainingRetriesBeforeFailure = lockedEvent.getRemainingRetries();
+
+    connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(inboundTask, testException);
+
+    Camunda7TaskEvent eventAfterFailure = getEventWithId(taskEventId);
+    JSONObject errorJson = new JSONObject(eventAfterFailure.getError());
+    assertThat(errorJson.getJSONObject("exception").getString("name"))
+        .isEqualTo(testException.getClass().getName());
+    assertThat(errorJson.getJSONObject("exception").getString("message"))
+        .isEqualTo(testException.getMessage());
+    assertThat(eventAfterFailure.getRemainingRetries())
+        .isEqualTo(remainingRetriesBeforeFailure - 1);
+    assertThat(eventAfterFailure.getLockExpiresAt()).isNull();
+  }
+
+  @Test
+  void should_UnlockAndKeepEvent_When_KadaiTaskTerminationFails() {
+    Exception testException = new RuntimeException("exception");
+    InboundSystemConnector connector =
+        adapterManager.getInboundSystemConnectors().values().stream().findFirst().orElseThrow();
+
+    String processInstanceId =
+        camundaProcessengineRequester.startCamundaProcessAndReturnId(
+            "simple_user_task_process", "");
+    String camundaTaskId =
+        camundaProcessengineRequester.getTaskIdsFromProcessInstanceId(processInstanceId).getFirst();
+    assertThat(camundaProcessengineRequester.completeTaskWithId(camundaTaskId)).isTrue();
+
+    InboundReferencedTask inboundTask =
+        connector.retrieveFinishedReferencedTasks().stream()
+            .filter(task -> task.referencedTask().getId().equals(camundaTaskId))
+            .findFirst()
+            .orElseThrow();
+    int taskEventId = ((Camunda7InboundReferencedTask) inboundTask).taskEventId();
+
+    assertThat(getEventWithId(taskEventId).getLockExpiresAt()).isNotNull();
+
+    connector.kadaiTaskFailedToBeTerminatedForFinishedReferencedTask(inboundTask, testException);
+
+    Camunda7TaskEvent eventAfterFailure = getEventWithId(taskEventId);
+    assertThat(eventAfterFailure.getLockExpiresAt()).isNull();
+  }
+
+  private Camunda7TaskEvent getAnEventWithError(List<InboundReferencedTask> referencedTasks) {
     List<Camunda7TaskEvent> allEvents = kadaiOutboxRequester.getAllEvents();
 
     return allEvents.stream()
@@ -246,7 +303,15 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
             event ->
                 referencedTasks.stream()
                     .anyMatch(
-                        task -> String.valueOf(event.getId()).equals(task.getOutboxEventId())))
+                        task ->
+                            event.getId() == ((Camunda7InboundReferencedTask) task).taskEventId()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException("No matching Camunda7TaskEvent found"));
+  }
+
+  private Camunda7TaskEvent getEventWithId(int taskEventId) {
+    return kadaiOutboxRequester.getAllEvents().stream()
+        .filter(event -> event.getId() == taskEventId)
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("No matching Camunda7TaskEvent found"));
   }

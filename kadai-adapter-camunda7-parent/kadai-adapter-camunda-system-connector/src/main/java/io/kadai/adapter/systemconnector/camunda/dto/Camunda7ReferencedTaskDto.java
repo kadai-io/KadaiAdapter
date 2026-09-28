@@ -21,9 +21,9 @@ package io.kadai.adapter.systemconnector.camunda.dto;
  * Deserialization DTO for Camunda 7 task-event payloads retrieved from the outbox.
  *
  * <p>The DTO accepts both task-created payloads and the smaller finished-task payload shape, while
- * ignoring extra legacy properties. It is mapped to the KADAI Adapter core
- * {@link io.kadai.adapter.systemconnector.api.ReferencedTask} by
- * {@link io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper}.
+ * ignoring extra legacy properties. It is mapped to the KADAI Adapter core {@link
+ * io.kadai.adapter.systemconnector.api.ReferencedTask} by {@link
+ * io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper}.
  */
 public class Camunda7ReferencedTaskDto {
 
@@ -34,8 +34,6 @@ public class Camunda7ReferencedTaskDto {
   private String planned;
   private String due;
   private String description;
-  private String owner;
-  private String priority;
   private String manualPriority;
   private String taskDefinitionKey;
   private String businessProcessId;
@@ -107,22 +105,6 @@ public class Camunda7ReferencedTaskDto {
 
   public void setDescription(String description) {
     this.description = description;
-  }
-
-  public String getOwner() {
-    return owner;
-  }
-
-  public void setOwner(String owner) {
-    this.owner = owner;
-  }
-
-  public String getPriority() {
-    return priority;
-  }
-
-  public void setPriority(String priority) {
-    this.priority = priority;
   }
 
   public String getManualPriority() {

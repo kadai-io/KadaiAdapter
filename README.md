@@ -50,13 +50,13 @@ The adapter performs periodically the following tasks
     * get the task’s variables via `SystemConnector::retrieveVariables`
     * map referenced task to KADAI task via `KadaiConnector::convertToKadaiTask`
     * create an associated KADAI task via `KadaiConnector::createKadaiTask`
-    * clean the corresponding create-event in the outbox via
+    * notify the inbound connector that the referenced task was processed successfully via
       `SystemConnector::kadaiTasksHaveBeenCreatedForNewReferencedTasks`
 * `retrieveFinishedReferencedTasksAndTerminateCorrespondingKadaiTasks`
     * retrieve finished referenced tasks via `SystemConnector::retrieveFinishedTasks`
     * terminate corresponding KADAI tasks via `KadaiConnector::terminateKadaiTask`
-    * clean the corresponding complete/delete-event in the outbox via
-      `SystemConnector::kadaiTasksHaveBeenCompletedForTerminatedReferencedTasks`
+    * notify the inbound connector that the referenced task was processed successfully via
+      `SystemConnector::kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks`
 * `retrieveFinishedKadaiTasksAndCompleteCorrespondingReferencedTasks`
     * retrieve finished KADAI tasks via
       `KadaiConnector::retrieveCompletedKadaiTasksAsReferencedTasks`
@@ -82,9 +82,9 @@ The adapter performs periodically the following tasks
 
 1. **Variables** \
    When the adapter finds a referenced task for which a kadai task must be started, it checks the
-   variables of the referenced task's process. If they are not already present due to retrieval from
-   the outbox it will attempt to retrieve them from the referenced task's process. These variables
-   are stored in the **custom attributes** of the corresponding kadai task in a HashMap with key
+   variables of the referenced task's process. If they are not already present from the inbound
+   connector, it will attempt to retrieve them from the referenced task's process. These variables are
+   stored in the **custom attributes** of the corresponding kadai task in a HashMap with key
    **referenced_task_variables** and value of type String that contains the Json representation of
    the variables.
 2. **Workbaskets** \

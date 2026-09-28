@@ -19,6 +19,7 @@
 package io.kadai.adapter.systemconnector.camunda.api.impl;
 
 import io.kadai.adapter.configuration.AdapterSpringContextProvider;
+import io.kadai.adapter.systemconnector.api.InboundReferencedTask;
 import io.kadai.adapter.systemconnector.api.InboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.OutboundSystemConnector;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
@@ -74,7 +75,7 @@ public class Camunda7SystemConnectorImpl
   }
 
   @Override
-  public List<ReferencedTask> retrieveNewStartedReferencedTasks() {
+  public List<InboundReferencedTask> retrieveNewStartedReferencedTasks() {
     return taskRetriever.retrieveNewStartedCamunda7Tasks(
         camunda7SystemUrl.getSystemTaskEventUrl(),
         camunda7SystemUrl.getCamunda7EngineIdentifier(),
@@ -82,13 +83,14 @@ public class Camunda7SystemConnectorImpl
   }
 
   @Override
-  public void kadaiTasksHaveBeenCreatedForNewReferencedTasks(List<ReferencedTask> referencedTasks) {
-    taskEventCleaner.cleanEventsForReferencedTasks(
-        referencedTasks, camunda7SystemUrl.getSystemTaskEventUrl());
+  public void kadaiTasksHaveBeenCreatedForNewReferencedTasks(
+      List<InboundReferencedTask> referencedTasks) {
+    taskEventCleaner.cleanEvents(
+        getTaskEventIds(referencedTasks), camunda7SystemUrl.getSystemTaskEventUrl());
   }
 
   @Override
-  public List<ReferencedTask> retrieveFinishedReferencedTasks() {
+  public List<InboundReferencedTask> retrieveFinishedReferencedTasks() {
     return taskRetriever.retrieveFinishedCamunda7Tasks(
         camunda7SystemUrl.getSystemTaskEventUrl(),
         camunda7SystemUrl.getCamunda7EngineIdentifier(),
@@ -97,9 +99,9 @@ public class Camunda7SystemConnectorImpl
 
   @Override
   public void kadaiTasksHaveBeenTerminatedForFinishedReferencedTasks(
-      List<ReferencedTask> referencedTasks) {
-    taskEventCleaner.cleanEventsForReferencedTasks(
-        referencedTasks, camunda7SystemUrl.getSystemTaskEventUrl());
+      List<InboundReferencedTask> referencedTasks) {
+    taskEventCleaner.cleanEvents(
+        getTaskEventIds(referencedTasks), camunda7SystemUrl.getSystemTaskEventUrl());
   }
 
   @Override
@@ -129,14 +131,36 @@ public class Camunda7SystemConnectorImpl
 
   @Override
   public void kadaiTaskFailedToBeCreatedForNewReferencedTask(
-      ReferencedTask referencedTask, Exception e) {
-    taskEventErrorHandler.decreaseRemainingRetriesAndLogErrorForReferencedTask(
-        referencedTask, e, camunda7SystemUrl.getSystemTaskEventUrl());
+      InboundReferencedTask referencedTask, Exception e) {
+    int taskEventId = requireCamunda7InboundTask(referencedTask).taskEventId();
+    taskEventErrorHandler.decreaseRemainingRetriesAndLogError(
+        taskEventId, e, camunda7SystemUrl.getSystemTaskEventUrl());
+    taskEventErrorHandler.unlockEvent(taskEventId, camunda7SystemUrl.getSystemTaskEventUrl());
   }
 
   @Override
-  public void unlockEvent(String eventId) {
-    taskEventErrorHandler.unlockEvent(eventId, camunda7SystemUrl.getSystemTaskEventUrl());
+  public void kadaiTaskFailedToBeTerminatedForFinishedReferencedTask(
+      InboundReferencedTask referencedTask, Exception e) {
+    taskEventErrorHandler.unlockEvent(
+        requireCamunda7InboundTask(referencedTask).taskEventId(),
+        camunda7SystemUrl.getSystemTaskEventUrl());
+  }
+
+  private List<Integer> getTaskEventIds(List<InboundReferencedTask> referencedTasks) {
+    return referencedTasks.stream()
+        .map(this::requireCamunda7InboundTask)
+        .map(Camunda7InboundReferencedTask::taskEventId)
+        .toList();
+  }
+
+  private Camunda7InboundReferencedTask requireCamunda7InboundTask(
+      InboundReferencedTask referencedTask) {
+    if (referencedTask instanceof Camunda7InboundReferencedTask camunda7Task) {
+      return camunda7Task;
+    }
+    throw new IllegalArgumentException(
+        "Expected Camunda7InboundReferencedTask but got "
+            + referencedTask.getClass().getSimpleName());
   }
 
   @Override
