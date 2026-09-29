@@ -18,10 +18,14 @@
 package io.kadai.adapter.systemconnector.camunda.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
+import io.kadai.task.api.TaskState;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class Camunda7ReferencedTaskMapperTest {
 
@@ -66,7 +70,7 @@ class Camunda7ReferencedTaskMapperTest {
     assertThat(actual.getTaskDefinitionKey()).isEqualTo("taskDefinitionKey");
     assertThat(actual.getBusinessProcessId()).isEqualTo("businessProcessId");
     assertThat(actual.getVariables()).isEqualTo("{\"variable\":\"value\"}");
-    assertThat(actual.getTaskState()).isEqualTo("COMPLETED");
+    assertThat(actual.getTaskState()).isEqualTo(TaskState.COMPLETED);
     assertThat(actual.getDomain()).isEqualTo("domain");
     assertThat(actual.getClassificationKey()).isEqualTo("classificationKey");
     assertThat(actual.getWorkbasketKey()).isEqualTo("workbasketKey");
@@ -79,5 +83,34 @@ class Camunda7ReferencedTaskMapperTest {
     assertThat(actual.getCustomInt7()).isEqualTo("customInt7");
     assertThat(actual.getCustomInt8()).isEqualTo("customInt8");
     assertThat(actual.getSystemUrl()).isNull();
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = TaskState.class, names = {"COMPLETED", "CANCELLED", "TERMINATED"})
+  void should_MapTaskState_When_EndStatePayloadIsProvided(TaskState taskState) {
+    Camunda7ReferencedTaskDto dto = new Camunda7ReferencedTaskDto();
+    dto.setTaskState(taskState.name());
+
+    ReferencedTask actual = mapper.toReferencedTask(dto);
+
+    assertThat(actual.getTaskState()).isEqualTo(taskState);
+  }
+
+  @Test
+  void should_KeepTaskStateNull_When_TaskStateIsMissing() {
+    Camunda7ReferencedTaskDto dto = new Camunda7ReferencedTaskDto();
+
+    ReferencedTask actual = mapper.toReferencedTask(dto);
+
+    assertThat(actual.getTaskState()).isNull();
+  }
+
+  @Test
+  void should_RejectTaskState_When_TaskStateIsUnknown() {
+    Camunda7ReferencedTaskDto dto = new Camunda7ReferencedTaskDto();
+    dto.setTaskState("CANCELED");
+
+    assertThatThrownBy(() -> mapper.toReferencedTask(dto))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 }

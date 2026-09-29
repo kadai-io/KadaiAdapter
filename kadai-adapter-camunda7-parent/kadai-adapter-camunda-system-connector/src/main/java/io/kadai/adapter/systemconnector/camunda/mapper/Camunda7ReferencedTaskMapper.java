@@ -19,6 +19,7 @@ package io.kadai.adapter.systemconnector.camunda.mapper;
 
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
+import io.kadai.task.api.TaskState;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,7 +41,7 @@ public class Camunda7ReferencedTaskMapper {
     referencedTask.setTaskDefinitionKey(dto.getTaskDefinitionKey());
     referencedTask.setBusinessProcessId(dto.getBusinessProcessId());
     referencedTask.setVariables(dto.getVariables());
-    referencedTask.setTaskState(dto.getTaskState());
+    referencedTask.setTaskState(mapTaskState(dto.getTaskState()));
     referencedTask.setDomain(dto.getDomain());
     referencedTask.setClassificationKey(dto.getClassificationKey());
     referencedTask.setWorkbasketKey(dto.getWorkbasketKey());
@@ -53,5 +54,12 @@ public class Camunda7ReferencedTaskMapper {
     referencedTask.setCustomInt7(dto.getCustomInt7());
     referencedTask.setCustomInt8(dto.getCustomInt8());
     return referencedTask;
+  }
+
+  private TaskState mapTaskState(String taskState) {
+    if (taskState == null) {
+      return null;
+    }
+    return TaskState.valueOf(taskState);
   }
 }
