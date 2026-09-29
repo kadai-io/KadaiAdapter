@@ -11,6 +11,7 @@ import io.kadai.adapter.monitoring.MonitoredRun;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.tasklistener.util.ReferencedTaskCreator;
 import io.kadai.adapter.util.LowerMedian;
+import io.kadai.task.api.TaskState;
 import java.time.Duration;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -23,7 +24,6 @@ public class UserTaskCompletion implements MonitoredComponent {
   public static final String USER_TASK_COMPLETED_JOB_WORKER_TYPE =
       "kadai-receive-task-completed-event";
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTaskCompletion.class);
-  private static final String TASK_STATE_COMPLETED = "COMPLETED";
 
   private final KadaiTaskCompletionService taskTerminator;
   private final ReferencedTaskCreator referencedTaskCreator;
@@ -54,7 +54,7 @@ public class UserTaskCompletion implements MonitoredComponent {
 
     try {
       ReferencedTask referencedTask = referencedTaskCreator.createReferencedTaskFromJob(job);
-      referencedTask.setTaskState(TASK_STATE_COMPLETED);
+      referencedTask.setTaskState(TaskState.COMPLETED);
       taskTerminator.terminateKadaiTask(referencedTask);
       monitoredRun.succeed();
     } catch (Exception e) {
