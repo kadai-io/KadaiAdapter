@@ -165,7 +165,7 @@ public class Camunda7TaskRetriever {
           referencedTasks.add(
               new Camunda7InboundReferencedTask(referencedTask, camunda7TaskEvent.getId()));
 
-        } catch (JacksonException e) {
+        } catch (JacksonException | IllegalArgumentException e) {
           LOGGER.warn(
               "Caught {} while trying to create ReferencedTasks "
                   + " out of CamundaTaskEventResources. RefTaskJson = {}",

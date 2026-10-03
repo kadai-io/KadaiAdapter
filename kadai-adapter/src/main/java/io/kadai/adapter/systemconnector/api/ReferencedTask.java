@@ -18,6 +18,7 @@
 
 package io.kadai.adapter.systemconnector.api;
 
+import io.kadai.task.api.TaskState;
 import java.util.Objects;
 
 /** POJO that represents the core-relevant properties of a task in an external system. */
@@ -40,7 +41,7 @@ public class ReferencedTask {
   private String taskDefinitionKey;
   private String businessProcessId;
   private String variables;
-  private String taskState;
+  private TaskState taskState;
   // extension properties
   private String domain;
   private String classificationKey;
@@ -142,11 +143,11 @@ public class ReferencedTask {
     this.taskDefinitionKey = taskDefinitionKey;
   }
 
-  public String getTaskState() {
+  public TaskState getTaskState() {
     return taskState;
   }
 
-  public void setTaskState(String taskState) {
+  public void setTaskState(TaskState taskState) {
     this.taskState = taskState;
   }
 

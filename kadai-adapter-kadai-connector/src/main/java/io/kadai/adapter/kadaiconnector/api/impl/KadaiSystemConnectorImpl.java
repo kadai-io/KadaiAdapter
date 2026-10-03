@@ -49,8 +49,6 @@ public class KadaiSystemConnectorImpl implements KadaiConnector {
 
   static final String REFERENCED_TASK_ID = "referenced_task_id";
   static final String SYSTEM_URL = "system_url";
-  private static final String TASK_STATE_CANCELLED = "CANCELLED";
-  private static final String TASK_STATE_TERMINATED = "TERMINATED";
   private static final Logger LOGGER = LoggerFactory.getLogger(KadaiSystemConnectorImpl.class);
 
   private final TaskService taskService;
@@ -167,16 +165,28 @@ public class KadaiSystemConnectorImpl implements KadaiConnector {
       if (taskSummary != null) {
         taskId = taskSummary.getId();
 
-        switch (referencedTask.getTaskState()) {
-          case TASK_STATE_TERMINATED:
+        TaskState taskState = referencedTask.getTaskState();
+        if (taskState == null || !taskState.isEndState()) {
+          throw new TaskTerminationFailedException(
+              taskId,
+              new IllegalArgumentException(
+                  "Expected an end state for finished referenced task, but got " + taskState));
+        }
+
+        switch (taskState) {
+          case TERMINATED:
             taskService.terminateTask(taskId);
             break;
-          case TASK_STATE_CANCELLED:
+          case CANCELLED:
             taskService.cancelTask(taskId);
             break;
-          default:
+          case COMPLETED:
             taskService.forceCompleteTask(taskId);
             break;
+          default:
+            throw new TaskTerminationFailedException(
+                taskId,
+                new IllegalStateException("Unexpected non-end task state: " + taskState));
         }
         // take care that the adapter doesn't attempt to finish the corresponding camunda task
         List<String> externalIds = Stream.of(referencedTask.getId()).collect(Collectors.toList());

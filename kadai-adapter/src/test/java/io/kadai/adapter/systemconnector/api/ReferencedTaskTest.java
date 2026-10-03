@@ -20,6 +20,7 @@ package io.kadai.adapter.systemconnector.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.kadai.task.api.TaskState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
@@ -119,6 +120,15 @@ class ReferencedTaskTest {
     ReferencedTask referencedTask = new ReferencedTask();
     referencedTask.setVariables(theValue);
     assertThat(theValue).isEqualTo(referencedTask.getVariables());
+  }
+
+  @Test
+  void should_ReturnTaskState_When_TaskStateWasSet() {
+    ReferencedTask referencedTask = new ReferencedTask();
+
+    referencedTask.setTaskState(TaskState.COMPLETED);
+
+    assertThat(referencedTask.getTaskState()).isEqualTo(TaskState.COMPLETED);
   }
 
   @Test

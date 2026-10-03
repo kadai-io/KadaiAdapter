@@ -29,6 +29,7 @@ import io.kadai.adapter.systemconnector.camunda.api.impl.HttpHeaderProvider;
 import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorConfiguration;
 import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
+import io.kadai.task.api.TaskState;
 import java.util.List;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -163,7 +164,7 @@ class RetrieveCamunda7TaskAccTest {
   void should_GetFinishedCamundaTask() {
     ReferencedTask expectedTask = new ReferencedTask();
     expectedTask.setId("2275fb87-1065-11ea-a7a0-02004c4f4f50");
-    expectedTask.setTaskState("COMPLETED");
+    expectedTask.setTaskState(TaskState.COMPLETED);
     String expectedReplyBody =
         "{"
             + "\n"
@@ -192,7 +193,7 @@ class RetrieveCamunda7TaskAccTest {
     Camunda7InboundReferencedTask inboundTask = (Camunda7InboundReferencedTask) actualResult.get(0);
     ReferencedTask actualTask = inboundTask.referencedTask();
     assertThat(actualTask).isEqualTo(expectedTask);
-    assertThat(actualTask.getTaskState()).isEqualTo("COMPLETED");
+    assertThat(actualTask.getTaskState()).isEqualTo(TaskState.COMPLETED);
     assertThat(inboundTask.taskEventId()).isEqualTo(16);
   }
 
@@ -218,5 +219,31 @@ class RetrieveCamunda7TaskAccTest {
     assertThat(actualTask.getId()).isEqualTo("task-1");
     assertThat(inboundTask.taskEventId()).isEqualTo(12);
     assertThat(actualTask.getSystemUrl()).isNull();
+  }
+
+  @Test
+  void should_IgnoreInvalidTaskStateAndContinue_When_RetrievingFinishedCamundaTasks() {
+    String expectedReplyBody =
+        "{\"camunda7TaskEvents\":["
+            + "{\"id\":16,\"type\":\"complete\",\"systemEngineIdentifier\":\"default\","
+            + "\"payload\":\"{\\\"id\\\":\\\"task-invalid\\\","
+            + "\\\"taskState\\\":\\\"CANCELED\\\"}\"},"
+            + "{\"id\":17,\"type\":\"complete\",\"systemEngineIdentifier\":\"default\","
+            + "\"payload\":\"{\\\"id\\\":\\\"task-valid\\\","
+            + "\\\"taskState\\\":\\\"COMPLETED\\\"}\"}]}";
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(expectedReplyBody));
+
+    List<InboundReferencedTask> actualResult =
+        camunda7TaskRetriever.retrieveFinishedCamunda7Tasks(
+            mockWebServer.url("").toString(), "default", null);
+
+    assertThat(actualResult).hasSize(1);
+    Camunda7InboundReferencedTask inboundTask = (Camunda7InboundReferencedTask) actualResult.get(0);
+    assertThat(inboundTask.taskEventId()).isEqualTo(17);
+    assertThat(inboundTask.referencedTask().getId()).isEqualTo("task-valid");
+    assertThat(inboundTask.referencedTask().getTaskState()).isEqualTo(TaskState.COMPLETED);
   }
 }
