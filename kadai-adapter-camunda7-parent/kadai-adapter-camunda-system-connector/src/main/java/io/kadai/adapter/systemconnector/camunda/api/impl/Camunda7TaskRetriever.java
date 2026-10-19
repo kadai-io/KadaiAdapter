@@ -70,10 +70,8 @@ public class Camunda7TaskRetriever {
             Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_CREATE_EVENTS,
             lockDuration);
 
-    List<InboundReferencedTask> referencedTasks =
-        getReferencedTasksFromCamunda7TaskEvents(camunda7TaskEvents, camundaSystemEngineIdentifier);
-
-    return referencedTasks;
+    return getReferencedTasksFromCamunda7TaskEvents(
+        camunda7TaskEvents, camundaSystemEngineIdentifier);
   }
 
   public List<InboundReferencedTask> retrieveFinishedCamunda7Tasks(
@@ -84,10 +82,8 @@ public class Camunda7TaskRetriever {
             Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_FINISHED_EVENTS,
             lockDuration);
 
-    List<InboundReferencedTask> referencedTasks =
-        getReferencedTasksFromCamunda7TaskEvents(camunda7TaskEvents, camundaSystemEngineIdentifier);
-
-    return referencedTasks;
+    return getReferencedTasksFromCamunda7TaskEvents(
+        camunda7TaskEvents, camundaSystemEngineIdentifier);
   }
 
   private List<Camunda7TaskEvent> getCamunda7TaskEvents(
@@ -113,10 +109,7 @@ public class Camunda7TaskRetriever {
               .toEntity(Camunda7TaskEventListResource.class)
               .getBody();
 
-      List<Camunda7TaskEvent> retrievedEvents =
-          camunda7TaskEventListResource.getCamunda7TaskEvents();
-
-      return retrievedEvents;
+      return camunda7TaskEventListResource.getCamunda7TaskEvents();
 
     } catch (Exception e) {
       LOGGER.error(
