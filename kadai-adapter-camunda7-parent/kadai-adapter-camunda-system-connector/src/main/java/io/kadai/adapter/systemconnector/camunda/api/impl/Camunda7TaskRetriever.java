@@ -64,40 +64,26 @@ public class Camunda7TaskRetriever {
       String camundaSystemEngineIdentifier,
       Duration lockDuration) {
 
-    LOGGER.debug("entry to retrieveNewStartedCamundaTasks.");
-
     List<Camunda7TaskEvent> camunda7TaskEvents =
         getCamunda7TaskEvents(
             camundaSystemTaskEventUrl,
             Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_CREATE_EVENTS,
             lockDuration);
 
-    List<InboundReferencedTask> referencedTasks =
-        getReferencedTasksFromCamunda7TaskEvents(camunda7TaskEvents, camundaSystemEngineIdentifier);
-
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("exit from retrieveActiveCamundaTasks. Retrieved Tasks: {}", referencedTasks);
-    }
-    return referencedTasks;
+    return getReferencedTasksFromCamunda7TaskEvents(
+        camunda7TaskEvents, camundaSystemEngineIdentifier);
   }
 
   public List<InboundReferencedTask> retrieveFinishedCamunda7Tasks(
       String camundaSystemUrl, String camundaSystemEngineIdentifier, Duration lockDuration) {
-    LOGGER.debug("entry to retrieveFinishedCamundaTasks. CamundaSystemURL = {} ", camundaSystemUrl);
-
     List<Camunda7TaskEvent> camunda7TaskEvents =
         getCamunda7TaskEvents(
             camundaSystemUrl,
             Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_FINISHED_EVENTS,
             lockDuration);
 
-    List<InboundReferencedTask> referencedTasks =
-        getReferencedTasksFromCamunda7TaskEvents(camunda7TaskEvents, camundaSystemEngineIdentifier);
-
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("exit from retrieveFinishedCamundaTasks. Retrieved Tasks: {}", referencedTasks);
-    }
-    return referencedTasks;
+    return getReferencedTasksFromCamunda7TaskEvents(
+        camunda7TaskEvents, camundaSystemEngineIdentifier);
   }
 
   private List<Camunda7TaskEvent> getCamunda7TaskEvents(
@@ -107,8 +93,6 @@ public class Camunda7TaskRetriever {
     String requestUrl = camundaSystemTaskEventUrl + eventSelector + durationParameter;
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
-    LOGGER.debug(
-        "retrieving camunda task event resources with url {} and headers {}", requestUrl, headers);
 
     Camunda7TaskEventListResource camunda7TaskEventListResource =
         new Camunda7TaskEventListResource();
@@ -125,14 +109,7 @@ public class Camunda7TaskRetriever {
               .toEntity(Camunda7TaskEventListResource.class)
               .getBody();
 
-      List<Camunda7TaskEvent> retrievedEvents =
-          camunda7TaskEventListResource.getCamunda7TaskEvents();
-
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("retrieved camunda task events {}", retrievedEvents);
-      }
-
-      return retrievedEvents;
+      return camunda7TaskEventListResource.getCamunda7TaskEvents();
 
     } catch (Exception e) {
       LOGGER.error(
@@ -148,6 +125,8 @@ public class Camunda7TaskRetriever {
       List<Camunda7TaskEvent> camunda7TaskEvents, String systemEngineIdentifier) {
 
     List<InboundReferencedTask> referencedTasks = new ArrayList<>();
+    int filteredCount = 0;
+    int malformedCount = 0;
 
     for (Camunda7TaskEvent camunda7TaskEvent : camunda7TaskEvents) {
 
@@ -166,16 +145,24 @@ public class Camunda7TaskRetriever {
               new Camunda7InboundReferencedTask(referencedTask, camunda7TaskEvent.getId()));
 
         } catch (JacksonException | IllegalArgumentException e) {
+          malformedCount++;
           LOGGER.warn(
-              "Caught {} while trying to create ReferencedTasks "
-                  + " out of CamundaTaskEventResources. RefTaskJson = {}",
-              e,
-              referencedTaskJson);
+              "Could not map Camunda 7 task event {}: {}",
+              camunda7TaskEvent.getId(),
+              e.getClass().getSimpleName());
         }
+      } else {
+        filteredCount++;
       }
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("retrieved reference tasks {}", referencedTasks);
-      }
+    }
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(
+          "Mapped {} of {} Camunda 7 outbox events for engine {} (filtered: {}, malformed: {})",
+          referencedTasks.size(),
+          camunda7TaskEvents.size(),
+          systemEngineIdentifier,
+          filteredCount,
+          malformedCount);
     }
     return referencedTasks;
   }
