@@ -24,6 +24,7 @@ import io.kadai.adapter.systemconnector.api.InboundReferencedTask;
 import io.kadai.adapter.systemconnector.api.ReferencedTask;
 import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
 import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
+import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -63,14 +65,14 @@ public class Camunda7TaskRetriever {
       String camundaSystemTaskEventUrl,
       String camundaSystemEngineIdentifier,
       Duration lockDuration) {
-
     LOGGER.debug("entry to retrieveNewStartedCamundaTasks.");
 
     List<Camunda7TaskEvent> camunda7TaskEvents =
         getCamunda7TaskEvents(
             camundaSystemTaskEventUrl,
             Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_CREATE_EVENTS,
-            lockDuration);
+            lockDuration,
+            camundaSystemEngineIdentifier);
 
     List<InboundReferencedTask> referencedTasks =
         getReferencedTasksFromCamunda7TaskEvents(camunda7TaskEvents, camundaSystemEngineIdentifier);
@@ -89,7 +91,8 @@ public class Camunda7TaskRetriever {
         getCamunda7TaskEvents(
             camundaSystemUrl,
             Camunda7SystemConnectorImpl.URL_GET_CAMUNDA_FINISHED_EVENTS,
-            lockDuration);
+            lockDuration,
+            camundaSystemEngineIdentifier);
 
     List<InboundReferencedTask> referencedTasks =
         getReferencedTasksFromCamunda7TaskEvents(camunda7TaskEvents, camundaSystemEngineIdentifier);
@@ -101,25 +104,37 @@ public class Camunda7TaskRetriever {
   }
 
   private List<Camunda7TaskEvent> getCamunda7TaskEvents(
-      String camundaSystemTaskEventUrl, String eventSelector, Duration lockDuration) {
+      String camundaSystemTaskEventUrl,
+      String eventSelector,
+      Duration lockDuration,
+      String engineIdentifier) {
 
+    if (engineIdentifier != null
+        && (engineIdentifier.isBlank()
+            || engineIdentifier.codePoints().anyMatch(Character::isISOControl))) {
+      throw new IllegalArgumentException(
+          "Configured Camunda 7 engine identifier must not be blank or contain control characters");
+    }
     String durationParameter = lockDuration == null ? "" : "&lock-for=" + lockDuration.toSeconds();
     String requestUrl = camundaSystemTaskEventUrl + eventSelector + durationParameter;
+    URI requestUri =
+        engineIdentifier == null
+            ? URI.create(requestUrl)
+            : UriComponentsBuilder.fromUriString(requestUrl)
+                .queryParam("engine", "{engine}")
+                .encode()
+                .buildAndExpand(engineIdentifier)
+                .toUri();
 
     HttpHeaders headers = httpHeaderProvider.getHttpHeadersForOutboxRestApi();
     LOGGER.debug(
-        "retrieving camunda task event resources with url {} and headers {}", requestUrl, headers);
-
-    Camunda7TaskEventListResource camunda7TaskEventListResource =
-        new Camunda7TaskEventListResource();
-    camunda7TaskEventListResource.setCamunda7TaskEvents(new ArrayList<>());
+        "retrieving camunda task event resources with url {} and headers {}", requestUri, headers);
 
     try {
-
-      camunda7TaskEventListResource =
+      Camunda7TaskEventListResource camunda7TaskEventListResource =
           restClient
               .get()
-              .uri(requestUrl)
+              .uri(requestUri)
               .headers(httpHeaders -> httpHeaders.addAll(headers))
               .retrieve()
               .toEntity(Camunda7TaskEventListResource.class)
@@ -127,6 +142,14 @@ public class Camunda7TaskRetriever {
 
       List<Camunda7TaskEvent> retrievedEvents =
           camunda7TaskEventListResource.getCamunda7TaskEvents();
+
+      if (engineIdentifier != null
+          && retrievedEvents.stream()
+              .anyMatch(
+                  event -> !Objects.equals(event.getSystemEngineIdentifier(), engineIdentifier))) {
+        throw new IllegalStateException(
+            "Outbox returned events outside the requested Camunda 7 engine " + engineIdentifier);
+      }
 
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("retrieved camunda task events {}", retrievedEvents);
@@ -139,6 +162,13 @@ public class Camunda7TaskRetriever {
           "Caught exception while trying to retrieve CamundaTaskEvents from system with URL "
               + camundaSystemTaskEventUrl,
           e);
+      if (engineIdentifier != null) {
+        throw new IllegalStateException(
+            "Failed to acquire Camunda 7 events for engine "
+                + engineIdentifier
+                + "; verify that the outbox server supports the engine query parameter",
+            e);
+      }
     }
 
     return Collections.emptyList();
