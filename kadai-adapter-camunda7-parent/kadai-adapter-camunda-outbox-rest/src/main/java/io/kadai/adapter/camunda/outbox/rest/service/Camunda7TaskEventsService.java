@@ -60,7 +60,9 @@ public class Camunda7TaskEventsService {
   private static final String RETRIES = "retries";
   private static final String TYPE = "type";
   private static final String LOCK_FOR = "lock-for";
-  private static final List<String> ALLOWED_PARAMS = Stream.of(TYPE, RETRIES, LOCK_FOR).toList();
+  private static final String ENGINE = "engine";
+  private static final List<String> ALLOWED_PARAMS =
+      Stream.of(TYPE, RETRIES, LOCK_FOR, ENGINE).toList();
   private static final String OUTBOX_SCHEMA = OutboxRestConfiguration.getOutboxSchema();
   private static final JsonMapper JSON_MAPPER = new JsonMapper();
   private static int maxNumberOfEventsReturned = 0;
@@ -75,6 +77,7 @@ public class Camunda7TaskEventsService {
       throws InvalidArgumentException {
 
     verifyNoInvalidParameters(filterParams);
+    String engineIdentifier = getEngineIdentifier(filterParams);
     Duration lockDuration = null;
     List<Camunda7TaskEvent> camunda7TaskEvents;
     if (filterParams.containsKey(LOCK_FOR)) {
@@ -82,13 +85,13 @@ public class Camunda7TaskEventsService {
     }
     if (filterParams.containsKey(TYPE) && filterParams.get(TYPE).contains(CREATE)) {
 
-      camunda7TaskEvents = getCreateEvents(lockDuration);
+      camunda7TaskEvents = getCreateEvents(lockDuration, engineIdentifier);
 
     } else if (filterParams.containsKey(TYPE)
         && filterParams.get(TYPE).contains(DELETE)
         && filterParams.get(TYPE).contains(COMPLETE)) {
 
-      camunda7TaskEvents = getCompleteAndDeleteEvents(lockDuration);
+      camunda7TaskEvents = getCompleteAndDeleteEvents(lockDuration, engineIdentifier);
 
     } else if (filterParams.containsKey(RETRIES) && filterParams.get(RETRIES) != null) {
 
@@ -224,8 +227,7 @@ public class Camunda7TaskEventsService {
       throw e;
     } catch (Exception e) {
       LOGGER.warn("Caught Exception while trying to retrieve events count from the outbox", e);
-      throw new OutboxServiceUnavailableException(
-          "Unable to retrieve Outbox event count", e);
+      throw new OutboxServiceUnavailableException("Unable to retrieve Outbox event count", e);
     }
   }
 
@@ -424,7 +426,7 @@ public class Camunda7TaskEventsService {
         preparedStatement.execute();
       }
     } catch (SQLException e) {
-      LOGGER.error("Caught exception while trying to lock events", e);
+      throw new OutboxServiceUnavailableException("Unable to lock Outbox events", e);
     }
   }
 
@@ -458,27 +460,66 @@ public class Camunda7TaskEventsService {
     }
   }
 
+  private String getEngineIdentifier(MultivaluedMap<String, String> filterParams)
+      throws InvalidArgumentException {
+    if (!filterParams.containsKey(ENGINE)) {
+      return null;
+    }
+
+    List<String> engines = filterParams.get(ENGINE);
+    if (engines == null
+        || engines.size() != 1
+        || engines.get(0) == null
+        || engines.get(0).isBlank()
+        || engines.get(0).codePoints().anyMatch(Character::isISOControl)) {
+      throw new InvalidArgumentException("engine param must contain one non-blank identifier");
+    }
+
+    List<String> types = filterParams.get(TYPE);
+    boolean create = types != null && types.size() == 1 && types.contains(CREATE);
+    boolean finished =
+        types != null && types.size() == 2 && types.contains(COMPLETE) && types.contains(DELETE);
+    if (filterParams.containsKey(RETRIES) || (!create && !finished)) {
+      throw new InvalidArgumentException(
+          "engine param requires type=create or type=complete&type=delete without retries");
+    }
+    return engines.get(0);
+  }
+
   private Instant getBlockedUntil() {
     Duration blockedDuration = OutboxRestConfiguration.getDurationBetweenTaskCreationRetries();
     return Instant.now().plus(blockedDuration);
   }
 
-  private List<Camunda7TaskEvent> getCreateEvents(Duration lockDuration) {
+  private List<Camunda7TaskEvent> getCreateEvents(Duration lockDuration, String engineIdentifier) {
     List<Camunda7TaskEvent> camunda7TaskEvents = new ArrayList<>();
     List<Integer> ids = null;
 
     try (Connection connection = getConnection(lockDuration == null)) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
-      String sql =
-          lockDuration == null
-              ? sqlProvider.getCreateEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned)
-              : sqlProvider.getAvailableCreateEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+      String sql;
+      if (lockDuration == null) {
+        sql =
+            engineIdentifier == null
+                ? sqlProvider.getCreateEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned)
+                : sqlProvider.getCreateEventsFilteredBySystemEngineId(
+                    OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+      } else {
+        sql =
+            engineIdentifier == null
+                ? sqlProvider.getAvailableCreateEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned)
+                : sqlProvider.getAvailableCreateEventsFilteredBySystemEngineId(
+                    OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+      }
       try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
         preparedStatement.setString(1, CREATE);
         preparedStatement.setTimestamp(2, Timestamp.from(Instant.now()));
         if (lockDuration != null) {
           preparedStatement.setTimestamp(3, Timestamp.from(Instant.now()));
+        }
+        if (engineIdentifier != null) {
+          preparedStatement.setString(lockDuration == null ? 3 : 4, engineIdentifier);
         }
         ResultSet camundaTaskEventResultSet = preparedStatement.executeQuery();
         camunda7TaskEvents = getCamunda7TaskEvents(camundaTaskEventResultSet);
@@ -492,6 +533,11 @@ public class Camunda7TaskEventsService {
         }
       } catch (Exception e) {
         LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox", e);
+        if (engineIdentifier != null) {
+          rollbackTransactionIfNecessary(connection, lockDuration);
+          throw new OutboxServiceUnavailableException(
+              "Unable to acquire filtered create events", e);
+        }
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -511,6 +557,9 @@ public class Camunda7TaskEventsService {
       }
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn("Caught Exception while trying to retrieve create events from the outbox", e);
+      if (engineIdentifier != null) {
+        throw new OutboxServiceUnavailableException("Unable to acquire filtered create events", e);
+      }
     }
     return camunda7TaskEvents;
   }
@@ -567,23 +616,37 @@ public class Camunda7TaskEventsService {
     return idsAsIntegers;
   }
 
-  private List<Camunda7TaskEvent> getCompleteAndDeleteEvents(Duration lockDuration) {
+  private List<Camunda7TaskEvent> getCompleteAndDeleteEvents(
+      Duration lockDuration, String engineIdentifier) {
 
     List<Camunda7TaskEvent> camunda7TaskEvents = new ArrayList<>();
     List<Integer> ids = null;
     try (Connection connection = getConnection(lockDuration == null)) {
       final Camunda7OutboxSqlProvider sqlProvider =
           Camunda7OutboxSqlProvider.valueOf(connection.getMetaData().getDatabaseProductName());
-      String sql =
-          lockDuration == null
-              ? sqlProvider.getCompleteAndDeleteEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned)
-              : sqlProvider.getAvailableCompleteAndDeleteEvents(
-                  OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+      String sql;
+      if (lockDuration == null) {
+        sql =
+            engineIdentifier == null
+                ? sqlProvider.getCompleteAndDeleteEvents(OUTBOX_SCHEMA, maxNumberOfEventsReturned)
+                : sqlProvider.getCompleteAndDeleteEventsFilteredBySystemEngineId(
+                    OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+      } else {
+        sql =
+            engineIdentifier == null
+                ? sqlProvider.getAvailableCompleteAndDeleteEvents(
+                    OUTBOX_SCHEMA, maxNumberOfEventsReturned)
+                : sqlProvider.getAvailableCompleteAndDeleteEventsFilteredBySystemEngineId(
+                    OUTBOX_SCHEMA, maxNumberOfEventsReturned);
+      }
       try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
         preparedStatement.setString(1, COMPLETE);
         preparedStatement.setString(2, DELETE);
         if (lockDuration != null) {
           preparedStatement.setTimestamp(3, Timestamp.from(Instant.now()));
+        }
+        if (engineIdentifier != null) {
+          preparedStatement.setString(lockDuration == null ? 3 : 4, engineIdentifier);
         }
         ResultSet completeAndDeleteEventsResultSet = preparedStatement.executeQuery();
         camunda7TaskEvents = getCamunda7TaskEvents(completeAndDeleteEventsResultSet);
@@ -598,6 +661,11 @@ public class Camunda7TaskEventsService {
         }
       } catch (Exception e) {
         LOGGER.warn("Caught Exception while trying to retrieve all events from the outbox", e);
+        if (engineIdentifier != null) {
+          rollbackTransactionIfNecessary(connection, lockDuration);
+          throw new OutboxServiceUnavailableException(
+              "Unable to acquire filtered complete/delete events", e);
+        }
         if (ids != null) {
           try {
             unlockEvents(ids, connection);
@@ -618,6 +686,10 @@ public class Camunda7TaskEventsService {
     } catch (SQLException | NullPointerException e) {
       LOGGER.warn(
           "Caught exception while trying to retrieve complete/delete events from the outbox", e);
+      if (engineIdentifier != null) {
+        throw new OutboxServiceUnavailableException(
+            "Unable to acquire filtered complete/delete events", e);
+      }
     }
 
     return camunda7TaskEvents;
@@ -638,15 +710,14 @@ public class Camunda7TaskEventsService {
       }
       connection.setAutoCommit(autoCommit);
     } catch (SQLException | NullPointerException e) {
-      LOGGER.warn(
-          "Caught {} while trying to retrieve a connection from the provided datasource",
-          e.getClass().getName());
-    }
-
-    if (connection == null) {
-      LOGGER.warn("Retrieved connection was NULL, Please make sure to provide a valid datasource.");
-      throw new RuntimeException(
-          "Retrieved connection was NULL. Please make sure to provide a valid datasource.");
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException closeException) {
+          e.addSuppressed(closeException);
+        }
+      }
+      throw new OutboxServiceUnavailableException("Unable to open Outbox connection", e);
     }
     return connection;
   }
