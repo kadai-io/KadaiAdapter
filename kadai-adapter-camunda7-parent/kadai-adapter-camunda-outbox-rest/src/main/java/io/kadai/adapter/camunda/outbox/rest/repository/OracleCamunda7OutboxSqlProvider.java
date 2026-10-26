@@ -12,7 +12,22 @@ public class OracleCamunda7OutboxSqlProvider implements Camunda7OutboxSqlProvide
             + "blocked_until < ? "
             + "fetch first %d rows only"
             + ")"
-            + "FOR UPDATE SKIP LOCKED";
+            + " FOR UPDATE SKIP LOCKED";
+    return String.format(sql, schema, schema, maxRows);
+  }
+
+  @Override
+  public String getAvailableCreateEventsFilteredBySystemEngineId(String schema, int maxRows) {
+    final String sql =
+        "SELECT * FROM %s.event_store WHERE ROWID IN ("
+            + "SELECT ROWID FROM %s.event_store WHERE type = ? "
+            + "and (lock_expire < ? or lock_expire is null) "
+            + "and remaining_retries>0 and "
+            + "blocked_until < ? "
+            + "and system_engine_identifier = ? "
+            + "fetch first %d rows only"
+            + ")"
+            + " FOR UPDATE SKIP LOCKED";
     return String.format(sql, schema, schema, maxRows);
   }
 
@@ -29,11 +44,26 @@ public class OracleCamunda7OutboxSqlProvider implements Camunda7OutboxSqlProvide
     final String sql =
         "SELECT * FROM %s.event_store WHERE ROWID IN ("
             + "SELECT ROWID FROM %s.event_store WHERE "
-            + "(type = ? OR type = ?)"
+            + "(type = ? OR type = ?) "
             + "and (lock_expire < ? or lock_expire is null) "
             + "fetch first %d rows only"
             + ")"
-            + "FOR UPDATE SKIP LOCKED";
+            + " FOR UPDATE SKIP LOCKED";
+    return String.format(sql, schema, schema, maxRows);
+  }
+
+  @Override
+  public String getAvailableCompleteAndDeleteEventsFilteredBySystemEngineId(
+      String schema, int maxRows) {
+    final String sql =
+        "SELECT * FROM %s.event_store WHERE ROWID IN ("
+            + "SELECT ROWID FROM %s.event_store WHERE "
+            + "(type = ? OR type = ?) "
+            + "and (lock_expire < ? or lock_expire is null) "
+            + "and system_engine_identifier = ? "
+            + "fetch first %d rows only"
+            + ")"
+            + " FOR UPDATE SKIP LOCKED";
     return String.format(sql, schema, schema, maxRows);
   }
 
