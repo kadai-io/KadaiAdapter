@@ -27,7 +27,17 @@ public interface Camunda7OutboxSqlProvider {
     return String.format(sql, schema, maxRows);
   }
 
+  default String getCreateEventsFilteredBySystemEngineId(String schema, int maxRows) {
+    final String sql =
+        "select * from %s.event_store where type = ? "
+            + "and remaining_retries>0 and blocked_until < ? "
+            + "and system_engine_identifier = ? fetch first %d rows only";
+    return String.format(sql, schema, maxRows);
+  }
+
   String getAvailableCreateEvents(String schema, int maxRows);
+
+  String getAvailableCreateEventsFilteredBySystemEngineId(String schema, int maxRows);
 
   default String getAllEvents(String schema) {
     final String sql = "select * from %s.event_store";
@@ -47,7 +57,16 @@ public interface Camunda7OutboxSqlProvider {
     return String.format(sql, schema, maxRows);
   }
 
+  default String getCompleteAndDeleteEventsFilteredBySystemEngineId(String schema, int maxRows) {
+    final String sql =
+        "select * from %s.event_store where (type = ? OR type = ?) "
+            + "and system_engine_identifier = ? fetch first %d rows only";
+    return String.format(sql, schema, maxRows);
+  }
+
   String getAvailableCompleteAndDeleteEvents(String schema, int maxRows);
+
+  String getAvailableCompleteAndDeleteEventsFilteredBySystemEngineId(String schema, int maxRows);
 
   default String getEventsFilteredByRetries(String schema) {
     final String sql = "select * from %s.event_store where remaining_retries = ?";
