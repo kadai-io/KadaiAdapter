@@ -339,12 +339,12 @@ class OutboxOAuth2TokenProviderTest {
     String tokenResponseBody =
         String.format(
             """
-        {
-          "access_token": "%s",
-          "token_type": "Bearer",
-          "expires_in": 3600
-        }
-        """,
+            {
+              "access_token": "%s",
+              "token_type": "Bearer",
+              "expires_in": 3600
+            }
+            """,
             tokenValue);
     mockTokenServer.enqueue(
         new MockResponse()

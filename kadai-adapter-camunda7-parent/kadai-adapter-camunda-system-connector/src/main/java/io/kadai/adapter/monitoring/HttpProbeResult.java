@@ -19,10 +19,8 @@ record HttpProbeResult<T>(
     return new HttpProbeResult<>(statusCode, body, FailureType.NONE, null);
   }
 
-  static <T> HttpProbeResult<T> invalidResponse(
-      HttpStatusCode statusCode, String failureMessage) {
-    return new HttpProbeResult<>(
-        statusCode, null, FailureType.INVALID_RESPONSE, failureMessage);
+  static <T> HttpProbeResult<T> invalidResponse(HttpStatusCode statusCode, String failureMessage) {
+    return new HttpProbeResult<>(statusCode, null, FailureType.INVALID_RESPONSE, failureMessage);
   }
 
   static <T> HttpProbeResult<T> transportError(String failureMessage) {

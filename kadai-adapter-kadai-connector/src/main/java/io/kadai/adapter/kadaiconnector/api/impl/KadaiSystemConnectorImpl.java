@@ -185,8 +185,7 @@ public class KadaiSystemConnectorImpl implements KadaiConnector {
             break;
           default:
             throw new TaskTerminationFailedException(
-                taskId,
-                new IllegalStateException("Unexpected non-end task state: " + taskState));
+                taskId, new IllegalStateException("Unexpected non-end task state: " + taskState));
         }
         // take care that the adapter doesn't attempt to finish the corresponding camunda task
         List<String> externalIds = Stream.of(referencedTask.getId()).collect(Collectors.toList());

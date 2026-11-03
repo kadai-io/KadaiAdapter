@@ -55,10 +55,7 @@ class Camunda7SystemHealthCompositeTest {
     RestClient restTemplate = mock(RestClient.class);
     Camunda7SystemsHealthComposite composite =
         new Camunda7SystemsHealthComposite(
-            restTemplate,
-            urls,
-            properties,
-            mock(HttpHeaderProvider.class));
+            restTemplate, urls, properties, mock(HttpHeaderProvider.class));
 
     long count = composite.stream().count();
     assertThat(count).isEqualTo(2);

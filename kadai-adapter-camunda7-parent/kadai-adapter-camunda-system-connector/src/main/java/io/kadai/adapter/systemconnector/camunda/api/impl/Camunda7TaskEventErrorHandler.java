@@ -51,8 +51,7 @@ public class Camunda7TaskEventErrorHandler {
 
     final String decreaseRemainingRetriesUrl =
         String.format(
-            Camunda7SystemConnectorImpl.URL_CAMUNDA_EVENT_DECREASE_REMAINING_RETRIES,
-            taskEventId);
+            Camunda7SystemConnectorImpl.URL_CAMUNDA_EVENT_DECREASE_REMAINING_RETRIES, taskEventId);
     final String requestUrl = camundaSystemTaskEventUrl + decreaseRemainingRetriesUrl;
 
     JSONObject errorLog = createErrorLog(e);

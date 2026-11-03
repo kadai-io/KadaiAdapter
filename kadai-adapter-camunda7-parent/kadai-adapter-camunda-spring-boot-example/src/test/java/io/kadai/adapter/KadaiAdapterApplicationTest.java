@@ -37,8 +37,7 @@ class KadaiAdapterApplicationTest {
 
   KadaiAdapterApplicationTest(@Autowired KadaiEngine kadaiEngine) throws Exception {
     TaskRoutingManager taskRoutingManager =
-        (TaskRoutingManager)
-            getValueFromPrivateField(kadaiEngine, "taskRoutingManager");
+        (TaskRoutingManager) getValueFromPrivateField(kadaiEngine, "taskRoutingManager");
     this.taskRoutingProviders =
         (List<TaskRoutingProvider>)
             getValueFromPrivateField(taskRoutingManager, "taskRoutingProviders");

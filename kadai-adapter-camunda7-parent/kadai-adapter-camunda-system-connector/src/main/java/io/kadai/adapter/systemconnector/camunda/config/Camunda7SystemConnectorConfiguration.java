@@ -123,8 +123,7 @@ public class Camunda7SystemConnectorConfiguration {
     return createRestClient(props, true);
   }
 
-  private RestClient createRestClient(
-      HttpComponentsClientProperties props, boolean healthProbe) {
+  private RestClient createRestClient(HttpComponentsClientProperties props, boolean healthProbe) {
     ConnectionConfig connectionConfig =
         ConnectionConfig.custom()
             .setConnectTimeout(Timeout.ofMilliseconds(props.getConnectionTimeout()))

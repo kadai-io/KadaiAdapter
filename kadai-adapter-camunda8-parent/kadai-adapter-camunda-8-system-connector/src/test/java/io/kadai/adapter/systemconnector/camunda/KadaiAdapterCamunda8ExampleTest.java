@@ -22,8 +22,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 /**
  * Integration-test setup for a runnable Camunda 8 adapter example.
  *
- * <p>Unlike {@link KadaiAdapterCamunda8SpringBootTest}, this annotation lets Spring Boot locate
- * the example application's {@code @SpringBootApplication}. It therefore verifies the same
+ * <p>Unlike {@link KadaiAdapterCamunda8SpringBootTest}, this annotation lets Spring Boot locate the
+ * example application's {@code @SpringBootApplication}. It therefore verifies the same
  * configuration that users run, while providing the embedded KADAI database and Camunda process
  * test environment needed by the test.
  */

@@ -48,8 +48,7 @@ class Camunda7RestClientConfigurationTest {
   @Test
   void should_ResolveDistinctOperationalAndHealthRestClients() {
     assertThat(restClient).isSameAs(applicationContext.getBean("restClient"));
-    assertThat(healthRestClient)
-        .isSameAs(applicationContext.getBean("camunda7HealthRestClient"));
+    assertThat(healthRestClient).isSameAs(applicationContext.getBean("camunda7HealthRestClient"));
     assertThat(restClient).isNotSameAs(healthRestClient);
   }
 }

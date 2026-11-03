@@ -86,7 +86,9 @@ class Camunda7ReferencedTaskMapperTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = TaskState.class, names = {"COMPLETED", "CANCELLED", "TERMINATED"})
+  @EnumSource(
+      value = TaskState.class,
+      names = {"COMPLETED", "CANCELLED", "TERMINATED"})
   void should_MapTaskState_When_EndStatePayloadIsProvided(TaskState taskState) {
     Camunda7ReferencedTaskDto dto = new Camunda7ReferencedTaskDto();
     dto.setTaskState(taskState.name());

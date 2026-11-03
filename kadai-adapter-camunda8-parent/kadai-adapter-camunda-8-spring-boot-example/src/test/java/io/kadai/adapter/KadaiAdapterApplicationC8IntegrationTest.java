@@ -37,32 +37,23 @@ class KadaiAdapterApplicationC8IntegrationTest {
     kadaiAdapterTestUtil.createClassification("L11010", "DOMAIN_A");
 
     ProcessInstanceEvent processInstance =
-        client
-            .newCreateInstanceCommand()
-            .bpmnProcessId(PROCESS_ID)
-            .latestVersion()
-            .send()
-            .join();
+        client.newCreateInstanceCommand().bpmnProcessId(PROCESS_ID).latestVersion().send().join();
 
     CamundaAssert.assertThat(processInstance).isActive();
-    camunda8TestUtil.waitUntil(
-        () ->
-            getKadaiTasks(processInstance.getProcessInstanceKey()).stream()
-                .anyMatch(task -> task.getState() == TaskState.READY));
+    camunda8TestUtil.waitUntil(() ->
+        getKadaiTasks(processInstance.getProcessInstanceKey()).stream()
+            .anyMatch(task -> task.getState() == TaskState.READY));
 
     Task kadaiTask = getOnlyKadaiTask(processInstance.getProcessInstanceKey());
     assertThat(kadaiTask.getState()).isEqualTo(TaskState.READY);
 
     client
-        .newCompleteUserTaskCommand(
-            extractUserTaskKeyFromTaskId(kadaiTask.getExternalId()))
+        .newCompleteUserTaskCommand(extractUserTaskKeyFromTaskId(kadaiTask.getExternalId()))
         .send()
         .join();
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState()
-                == TaskState.COMPLETED);
+    camunda8TestUtil.waitUntil(() ->
+        kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState() == TaskState.COMPLETED);
 
     assertThat(kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState())
         .isEqualTo(TaskState.COMPLETED);

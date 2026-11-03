@@ -352,11 +352,10 @@ public final class Camunda7TestcontainersConfiguration {
     }
     try (Stream<Path> jars = Files.list(USERLIB_DIR)) {
       jars.filter(p -> p.toString().endsWith(".jar"))
-          .forEach(
-              jar ->
-                  container.withCopyFileToContainer(
-                      MountableFile.forHostPath(jar.toAbsolutePath().toString()),
-                      "/camunda/configuration/userlib/" + jar.getFileName().toString()));
+          .forEach(jar ->
+              container.withCopyFileToContainer(
+                  MountableFile.forHostPath(jar.toAbsolutePath().toString()),
+                  "/camunda/configuration/userlib/" + jar.getFileName().toString()));
     } catch (IOException e) {
       throw new IllegalStateException("Failed to enumerate userlib jars in " + USERLIB_DIR, e);
     }
@@ -370,11 +369,10 @@ public final class Camunda7TestcontainersConfiguration {
     try (Stream<Path> bpmns = Files.list(PROCESSES_DIR)) {
       bpmns
           .filter(p -> p.toString().endsWith(".bpmn"))
-          .forEach(
-              bpmn ->
-                  container.withCopyFileToContainer(
-                      MountableFile.forHostPath(bpmn.toAbsolutePath().toString()),
-                      "/camunda/configuration/resources/" + bpmn.getFileName().toString()));
+          .forEach(bpmn ->
+              container.withCopyFileToContainer(
+                  MountableFile.forHostPath(bpmn.toAbsolutePath().toString()),
+                  "/camunda/configuration/resources/" + bpmn.getFileName().toString()));
     } catch (IOException e) {
       throw new IllegalStateException("Failed to enumerate BPMN files in " + PROCESSES_DIR, e);
     }

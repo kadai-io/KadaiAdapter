@@ -22,9 +22,7 @@ import io.kadai.adapter.systemconnector.camunda.dto.Camunda7ReferencedTaskDto;
 import io.kadai.task.api.TaskState;
 import org.springframework.stereotype.Component;
 
-/**
- * Maps a deserialized Camunda 7 task-event payload to the adapter core {@code ReferencedTask}.
- */
+/** Maps a deserialized Camunda 7 task-event payload to the adapter core {@code ReferencedTask}. */
 @Component
 public class Camunda7ReferencedTaskMapper {
 

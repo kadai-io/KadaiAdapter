@@ -190,9 +190,8 @@ public class ReferencedTaskCreator {
 
       Map<String, Object> variables = new HashMap<>();
 
-      variableNames.forEach(
-          nameOfVariableToAdd ->
-              variables.put(nameOfVariableToAdd, getVariable(job, nameOfVariableToAdd)));
+      variableNames.forEach(nameOfVariableToAdd ->
+          variables.put(nameOfVariableToAdd, getVariable(job, nameOfVariableToAdd)));
 
       return jsonMapper.writeValueAsString(variables);
 

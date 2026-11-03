@@ -54,13 +54,12 @@ class UserTaskCancellationTest {
 
     client.newCancelInstanceCommand(processInstance.getProcessInstanceKey()).send().join();
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            UserContext.runAsUser(
-                "admin",
-                () ->
-                    kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState()
-                        == TaskState.CANCELLED));
+    camunda8TestUtil.waitUntil(() ->
+        UserContext.runAsUser(
+            "admin",
+            () ->
+                kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState()
+                    == TaskState.CANCELLED));
 
     final Task canceledTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(canceledTask.getState()).isEqualTo(TaskState.CANCELLED);

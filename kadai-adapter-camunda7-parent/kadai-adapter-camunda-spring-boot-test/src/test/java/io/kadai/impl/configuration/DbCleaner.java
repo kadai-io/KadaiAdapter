@@ -36,9 +36,9 @@ import org.slf4j.LoggerFactory;
  * Utility class that clears the test databases between test runs.
  *
  * <p>Executes the SQL scripts from {@code sql/clear-kadai-db.sql} or {@code
- * sql/clear-camunda-db.sql}. For the outbox database it uses the runtime
- * {@code kadai.adapter.outbox.schema} property because the schema differs across H2, Postgres,
- * Oracle, and DB2.
+ * sql/clear-camunda-db.sql}. For the outbox database it uses the runtime {@code
+ * kadai.adapter.outbox.schema} property because the schema differs across H2, Postgres, Oracle, and
+ * DB2.
  */
 public class DbCleaner {
 

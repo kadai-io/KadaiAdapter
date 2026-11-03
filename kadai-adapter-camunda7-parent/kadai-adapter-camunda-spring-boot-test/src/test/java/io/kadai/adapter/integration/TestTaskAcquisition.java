@@ -112,21 +112,20 @@ class TestTaskAcquisition extends AbsIntegrationTest {
     String expectedPrimitiveProcessVariable2 =
         "{\"type\":\"boolean\",\"value\":true," + "\"valueInfo\":null}";
 
-    camundaTaskIds.forEach(
-        camundaTaskId -> {
-          Map<String, String> customAttributes =
-              retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
+    camundaTaskIds.forEach(camundaTaskId -> {
+      Map<String, String> customAttributes =
+          retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
 
-          assertThat(
-              expectedComplexProcessVariable,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute1")));
-          assertThat(
-              expectedPrimitiveProcessVariable1,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute2")));
-          assertThat(
-              expectedPrimitiveProcessVariable2,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute3")));
-        });
+      assertThat(
+          expectedComplexProcessVariable,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute1")));
+      assertThat(
+          expectedPrimitiveProcessVariable1,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute2")));
+      assertThat(
+          expectedPrimitiveProcessVariable2,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute3")));
+    });
   }
 
   @WithAccessId(
@@ -204,21 +203,20 @@ class TestTaskAcquisition extends AbsIntegrationTest {
     String expectedPrimitiveProcessVariable2 =
         "{\"type\":\"boolean\",\"value\":true," + "\"valueInfo\":null}";
 
-    camundaTaskIds.forEach(
-        camundaTaskId -> {
-          Map<String, String> customAttributes =
-              retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
+    camundaTaskIds.forEach(camundaTaskId -> {
+      Map<String, String> customAttributes =
+          retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
 
-          assertThat(
-              expectedComplexProcessVariable,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute1")));
-          assertThat(
-              expectedPrimitiveProcessVariable1,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute2")));
-          assertThat(
-              expectedPrimitiveProcessVariable2,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute3")));
-        });
+      assertThat(
+          expectedComplexProcessVariable,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute1")));
+      assertThat(
+          expectedPrimitiveProcessVariable1,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute2")));
+      assertThat(
+          expectedPrimitiveProcessVariable2,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute3")));
+    });
   }
 
   @WithAccessId(
@@ -272,17 +270,15 @@ class TestTaskAcquisition extends AbsIntegrationTest {
     String expectedPrimitiveVariable2 =
         "{\"type\":\"string\",\"value\":\"item-xyz\",\"valueInfo\":null}";
 
-    camundaTaskIds.forEach(
-        camundaTaskId -> {
-          Map<String, String> customAttributes =
-              retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
-          assertThat(
-              expectedPrimitiveVariable1,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:amount")));
-          assertThat(
-              expectedPrimitiveVariable2,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:item")));
-        });
+    camundaTaskIds.forEach(camundaTaskId -> {
+      Map<String, String> customAttributes =
+          retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
+      assertThat(
+          expectedPrimitiveVariable1,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:amount")));
+      assertThat(
+          expectedPrimitiveVariable2, SameJSONAs.sameJSONAs(customAttributes.get("camunda:item")));
+    });
   }
 
   @WithAccessId(
@@ -476,21 +472,20 @@ class TestTaskAcquisition extends AbsIntegrationTest {
 
     String expectedPrimitiveProcessVariable2 =
         "{\"type\":\"boolean\",\"value\":true," + "\"valueInfo\":null}";
-    camundaTaskIds.forEach(
-        camundaTaskId -> {
-          Map<String, String> customAttributes =
-              retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
+    camundaTaskIds.forEach(camundaTaskId -> {
+      Map<String, String> customAttributes =
+          retrieveCustomAttributesFromNewKadaiTask(camundaTaskId);
 
-          assertThat(
-              expectedComplexProcessVariable,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute1")));
-          assertThat(
-              expectedPrimitiveProcessVariable1,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute2")));
-          assertThat(
-              expectedPrimitiveProcessVariable2,
-              SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute3")));
-        });
+      assertThat(
+          expectedComplexProcessVariable,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute1")));
+      assertThat(
+          expectedPrimitiveProcessVariable1,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute2")));
+      assertThat(
+          expectedPrimitiveProcessVariable2,
+          SameJSONAs.sameJSONAs(customAttributes.get("camunda:attribute3")));
+    });
   }
 
   @WithAccessId(

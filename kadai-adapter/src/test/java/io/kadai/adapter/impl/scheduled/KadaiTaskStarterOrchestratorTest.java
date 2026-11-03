@@ -480,17 +480,16 @@ class KadaiTaskStarterOrchestratorTest {
 
     // Start a thread that will interrupt the main thread after task starts
     Thread interrupter =
-        new Thread(
-            () -> {
-              try {
-                taskStarted.await();
-                interruptThread.countDown();
-                Thread.sleep(50);
-                testThread.interrupt();
-              } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-              }
-            });
+        new Thread(() -> {
+          try {
+            taskStarted.await();
+            interruptThread.countDown();
+            Thread.sleep(50);
+            testThread.interrupt();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+        });
     interrupter.setDaemon(true);
     interrupter.start();
 

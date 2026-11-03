@@ -25,9 +25,7 @@ public class Camunda7HealthIndicator implements HealthIndicator {
   private final String expectedEngineName;
 
   public Camunda7HealthIndicator(
-      RestClient restClient,
-      HttpHeaderProvider httpHeaderProvider,
-      Camunda7System camunda7System) {
+      RestClient restClient, HttpHeaderProvider httpHeaderProvider, Camunda7System camunda7System) {
     this.httpProbe = new ExternalServiceHttpProbe(restClient);
     this.httpHeaderProvider = httpHeaderProvider;
     this.url = createEngineListUrl(camunda7System.getSystemRestUrl());
@@ -48,17 +46,17 @@ public class Camunda7HealthIndicator implements HealthIndicator {
 
     if (result.failureType() != HttpProbeResult.FailureType.NONE) {
       return downForFailure(
-          HealthProbeFailureSupport.healthFailureType(result.failureType()),
-          result.failureMessage(),
-          HealthProbeFailureSupport.httpStatus(result))
+              HealthProbeFailureSupport.healthFailureType(result.failureType()),
+              result.failureMessage(),
+              HealthProbeFailureSupport.httpStatus(result))
           .build();
     }
 
     if (!result.isHttp200()) {
       return downForFailure(
-          "http-status",
-          "Unexpected HTTP status: " + result.statusCode(),
-          HealthProbeFailureSupport.httpStatus(result))
+              "http-status",
+              "Unexpected HTTP status: " + result.statusCode(),
+              HealthProbeFailureSupport.httpStatus(result))
           .build();
     }
 
@@ -97,14 +95,10 @@ public class Camunda7HealthIndicator implements HealthIndicator {
           .withDetail(BASE_URL, url)
           .build();
     }
-    return Health.up()
-        .withDetail("camundaEngines", validEngines)
-        .withDetail(BASE_URL, url)
-        .build();
+    return Health.up().withDetail("camundaEngines", validEngines).withDetail(BASE_URL, url).build();
   }
 
-  private Health.Builder downForFailure(
-      String failureType, String error, Integer httpStatus) {
+  private Health.Builder downForFailure(String failureType, String error, Integer httpStatus) {
     Health.Builder builder =
         Health.down()
             .withDetail(
