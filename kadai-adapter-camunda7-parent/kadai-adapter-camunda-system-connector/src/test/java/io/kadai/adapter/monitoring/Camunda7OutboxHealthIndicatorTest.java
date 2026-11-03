@@ -60,8 +60,9 @@ class Camunda7OutboxHealthIndicatorTest {
     Health health = indicator().health();
 
     assertThat(health.getStatus()).isEqualTo(Status.UP);
-    assertThat(((OutboxEventCountRepresentationModel) health.getDetails().get("outboxService"))
-            .getEventsCount())
+    assertThat(
+            ((OutboxEventCountRepresentationModel) health.getDetails().get("outboxService"))
+                .getEventsCount())
         .isZero();
   }
 
@@ -72,8 +73,9 @@ class Camunda7OutboxHealthIndicatorTest {
     Health health = indicator().health();
 
     assertThat(health.getStatus()).isEqualTo(Status.UP);
-    assertThat(((OutboxEventCountRepresentationModel) health.getDetails().get("outboxService"))
-            .getEventsCount())
+    assertThat(
+            ((OutboxEventCountRepresentationModel) health.getDetails().get("outboxService"))
+                .getEventsCount())
         .isEqualTo(7);
   }
 

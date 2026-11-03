@@ -86,12 +86,11 @@ public class HttpHeaderProvider {
 
   private HttpHeaders oauth2BearerHeaders() {
     OutboxOAuth2TokenProvider provider =
-        oauth2TokenProvider.orElseThrow(
-            () ->
-                new IllegalStateException(
-                    "OAuth2 auth-type is configured for the outbox, "
-                        + "but no OutboxOAuth2TokenProvider bean is available. "
-                        + "Please check your OAuth2 configuration."));
+        oauth2TokenProvider.orElseThrow(() ->
+            new IllegalStateException(
+                "OAuth2 auth-type is configured for the outbox, "
+                    + "but no OutboxOAuth2TokenProvider bean is available. "
+                    + "Please check your OAuth2 configuration."));
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", "Bearer " + provider.getAccessToken());
     addXsrfHeaders(headers);

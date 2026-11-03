@@ -157,14 +157,13 @@ public class TaskInformationMapper {
 
     customAttributes.entrySet().stream()
         .filter(entry -> entry.getKey().startsWith(CAMUNDA_PROCESS_VARIABLE_PREFIX))
-        .forEach(
-            entry ->
-                builder
-                    .append("\"")
-                    .append(entry.getKey().replace(CAMUNDA_PROCESS_VARIABLE_PREFIX, ""))
-                    .append("\":")
-                    .append(entry.getValue())
-                    .append(","));
+        .forEach(entry ->
+            builder
+                .append("\"")
+                .append(entry.getKey().replace(CAMUNDA_PROCESS_VARIABLE_PREFIX, ""))
+                .append("\":")
+                .append(entry.getValue())
+                .append(","));
 
     if (!builder.isEmpty()) {
       return builder.deleteCharAt(builder.length() - 1).toString();
@@ -181,13 +180,12 @@ public class TaskInformationMapper {
 
     jsonObject
         .keySet()
-        .forEach(
-            key -> {
-              final Object value = jsonObject.get(key);
-              final String formattedValue =
-                  value instanceof String s ? String.format("\"%s\"", s) : String.valueOf(value);
-              customAttributes.put(CAMUNDA_PROCESS_VARIABLE_PREFIX + key, formattedValue);
-            });
+        .forEach(key -> {
+          final Object value = jsonObject.get(key);
+          final String formattedValue =
+              value instanceof String s ? String.format("\"%s\"", s) : String.valueOf(value);
+          customAttributes.put(CAMUNDA_PROCESS_VARIABLE_PREFIX + key, formattedValue);
+        });
 
     return customAttributes;
   }

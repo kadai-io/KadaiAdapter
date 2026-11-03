@@ -72,6 +72,7 @@ abstract class AbsIntegrationTest {
 
   @Value("${adapter.polling.interval.adjustment.factor}")
   protected double adapterPollingIntervalAdjustmentFactor;
+
   @Value("${kadai-adapter.kernel.scheduler.retries-and-blocking-task-events-interval}")
   protected long adapterRetryAndBlockingInterval;
 
@@ -79,8 +80,10 @@ abstract class AbsIntegrationTest {
   protected CamundaProcessengineRequester camundaProcessengineRequester;
   protected KadaiOutboxRequester kadaiOutboxRequester;
   protected TaskService taskService;
+
   @Resource(name = "camundaBpmDataSource")
   protected DataSource camundaBpmDataSource;
+
   protected RestClient restClient;
 
   @Value("${kadai-adapter.plugin.camunda7.systems[0].system-rest-url}")

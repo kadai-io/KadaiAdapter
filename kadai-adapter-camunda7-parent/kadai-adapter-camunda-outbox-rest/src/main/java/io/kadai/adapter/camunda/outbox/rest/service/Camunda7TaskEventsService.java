@@ -224,8 +224,7 @@ public class Camunda7TaskEventsService {
       throw e;
     } catch (Exception e) {
       LOGGER.warn("Caught Exception while trying to retrieve events count from the outbox", e);
-      throw new OutboxServiceUnavailableException(
-          "Unable to retrieve Outbox event count", e);
+      throw new OutboxServiceUnavailableException("Unable to retrieve Outbox event count", e);
     }
   }
 

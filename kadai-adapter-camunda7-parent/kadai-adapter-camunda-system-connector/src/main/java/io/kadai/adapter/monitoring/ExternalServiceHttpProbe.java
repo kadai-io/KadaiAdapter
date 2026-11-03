@@ -30,8 +30,7 @@ final class ExternalServiceHttpProbe {
   }
 
   private <T> HttpProbeResult<T> readResponse(
-      RestClient.RequestHeadersSpec.ConvertibleClientHttpResponse response,
-      Class<T> bodyType) {
+      RestClient.RequestHeadersSpec.ConvertibleClientHttpResponse response, Class<T> bodyType) {
     HttpStatusCode statusCode;
     try {
       statusCode = response.getStatusCode();

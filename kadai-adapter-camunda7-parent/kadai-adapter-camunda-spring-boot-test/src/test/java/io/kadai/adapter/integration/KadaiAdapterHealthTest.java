@@ -58,11 +58,7 @@ class KadaiAdapterHealthTest extends AbsIntegrationTest {
   @Test
   void should_ReportOutboxDown_When_OutboxPersistenceFails() {
     ResponseEntity<Map> successfulCountResponse =
-        restClient
-            .get()
-            .uri("/outbox-rest/events/count?retries=0")
-            .retrieve()
-            .toEntity(Map.class);
+        restClient.get().uri("/outbox-rest/events/count?retries=0").retrieve().toEntity(Map.class);
     assertThat(successfulCountResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(successfulCountResponse.getBody()).containsKey("eventsCount");
 

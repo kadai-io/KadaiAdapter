@@ -137,15 +137,14 @@ class MinimalPermissionsAccTest {
   }
 
   private CamundaClient createRestrictedClient() {
-    return processTestContext.createClient(
-        builder ->
-            builder
-                .credentialsProvider(
-                    CredentialsProvider.newBasicAuthCredentialsProviderBuilder()
-                        .username(RESTRICTED_USERNAME)
-                        .password(RESTRICTED_PASSWORD)
-                        .build())
-                .defaultTenantId(DEFAULT_TENANT));
+    return processTestContext.createClient(builder ->
+        builder
+            .credentialsProvider(
+                CredentialsProvider.newBasicAuthCredentialsProviderBuilder()
+                    .username(RESTRICTED_USERNAME)
+                    .password(RESTRICTED_PASSWORD)
+                    .build())
+            .defaultTenantId(DEFAULT_TENANT));
   }
 
   private Task createKadaiTaskViaRestrictedCreatedListener(
@@ -153,19 +152,17 @@ class MinimalPermissionsAccTest {
     ProcessInstanceEvent processInstance = startProcessInstance(adminClient);
     CamundaAssert.assertThat(processInstance).isActive();
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            handleNextJob(
-                restrictedClient,
-                "kadai-adapter-create",
-                DEFAULT_TENANT,
-                USER_TASK_CREATED_JOB_WORKER_TYPE,
-                userTaskCreation::receiveTaskCreatedEvent));
+    camunda8TestUtil.waitUntil(() ->
+        handleNextJob(
+            restrictedClient,
+            "kadai-adapter-create",
+            DEFAULT_TENANT,
+            USER_TASK_CREATED_JOB_WORKER_TYPE,
+            userTaskCreation::receiveTaskCreatedEvent));
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            getKadaiTasksByProcessInstance(processInstance).stream()
-                .anyMatch(task -> task.getState() == TaskState.READY));
+    camunda8TestUtil.waitUntil(() ->
+        getKadaiTasksByProcessInstance(processInstance).stream()
+            .anyMatch(task -> task.getState() == TaskState.READY));
 
     Task task = getOnlyKadaiTaskByProcessInstance(processInstance);
     assertThat(task.getState()).isEqualTo(TaskState.READY);
@@ -213,14 +210,13 @@ class MinimalPermissionsAccTest {
     kadaiEngine.getTaskService().claim(kadaiTask.getId());
     kadaiEngine.getTaskService().completeTask(kadaiTask.getId());
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            handleNextJob(
-                restrictedClient,
-                "kadai-adapter-complete",
-                DEFAULT_TENANT,
-                USER_TASK_COMPLETED_JOB_WORKER_TYPE,
-                userTaskCompletion::receiveTaskCompletedEvent));
+    camunda8TestUtil.waitUntil(() ->
+        handleNextJob(
+            restrictedClient,
+            "kadai-adapter-complete",
+            DEFAULT_TENANT,
+            USER_TASK_COMPLETED_JOB_WORKER_TYPE,
+            userTaskCompletion::receiveTaskCompletedEvent));
 
     Task completedKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(completedKadaiTask.getState()).isEqualTo(TaskState.COMPLETED);
@@ -235,19 +231,16 @@ class MinimalPermissionsAccTest {
         .send()
         .join();
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            handleNextJob(
-                restrictedClient,
-                "kadai-adapter-cancel",
-                DEFAULT_TENANT,
-                USER_TASK_CANCELLED_JOB_WORKER_TYPE,
-                userTaskCancellation::receiveTaskCancelledEvent));
+    camunda8TestUtil.waitUntil(() ->
+        handleNextJob(
+            restrictedClient,
+            "kadai-adapter-cancel",
+            DEFAULT_TENANT,
+            USER_TASK_CANCELLED_JOB_WORKER_TYPE,
+            userTaskCancellation::receiveTaskCancelledEvent));
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState()
-                == TaskState.CANCELLED);
+    camunda8TestUtil.waitUntil(() ->
+        kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState() == TaskState.CANCELLED);
 
     Task cancelledKadaiTask = kadaiEngine.getTaskService().getTask(kadaiTask.getId());
     assertThat(cancelledKadaiTask.getState()).isEqualTo(TaskState.CANCELLED);

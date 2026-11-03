@@ -44,37 +44,32 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
 
     if (result.failureType() != HttpProbeResult.FailureType.NONE) {
       return downForFailure(
-          HealthProbeFailureSupport.healthFailureType(result.failureType()),
-          result.failureMessage(),
-          HealthProbeFailureSupport.httpStatus(result))
+              HealthProbeFailureSupport.healthFailureType(result.failureType()),
+              result.failureMessage(),
+              HealthProbeFailureSupport.httpStatus(result))
           .build();
     }
 
     if (!result.isHttp200()) {
       return downForFailure(
-          "http-status",
-          "Unexpected HTTP status: " + result.statusCode(),
-          HealthProbeFailureSupport.httpStatus(result))
+              "http-status",
+              "Unexpected HTTP status: " + result.statusCode(),
+              HealthProbeFailureSupport.httpStatus(result))
           .build();
     }
 
     OutboxEventCountProbeResponse body = result.body();
     if (body == null || body.getEventsCount() == null || body.getEventsCount() < 0) {
-      return downForFailure(
-              "semantic-mismatch", "Invalid Outbox event-count response", 200)
+      return downForFailure("semantic-mismatch", "Invalid Outbox event-count response", 200)
           .build();
     }
 
     OutboxEventCountRepresentationModel details = new OutboxEventCountRepresentationModel();
     details.setEventsCount(body.getEventsCount());
-    return Health.up()
-        .withDetail("outboxService", details)
-        .withDetail(BASE_URL, url)
-        .build();
+    return Health.up().withDetail("outboxService", details).withDetail(BASE_URL, url).build();
   }
 
-  private Health.Builder downForFailure(
-      String failureType, String error, Integer httpStatus) {
+  private Health.Builder downForFailure(String failureType, String error, Integer httpStatus) {
     Health.Builder builder =
         Health.down()
             .withDetail(
@@ -87,5 +82,4 @@ public class Camunda7OutboxHealthIndicator implements HealthIndicator {
     }
     return builder;
   }
-
 }

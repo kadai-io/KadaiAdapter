@@ -62,10 +62,9 @@ class KadaiAdapterApplicationC8MultiTenancyIntegrationTest {
               .send()
               .join();
 
-      camunda8TestUtil.waitUntil(
-          () ->
-              getKadaiTasks(processInstance.getProcessInstanceKey()).stream()
-                  .anyMatch(task -> task.getState() == TaskState.READY));
+      camunda8TestUtil.waitUntil(() ->
+          getKadaiTasks(processInstance.getProcessInstanceKey()).stream()
+              .anyMatch(task -> task.getState() == TaskState.READY));
 
       assertThat(getKadaiTasks(processInstance.getProcessInstanceKey()))
           .singleElement()
@@ -75,12 +74,7 @@ class KadaiAdapterApplicationC8MultiTenancyIntegrationTest {
 
   private void registerTenant(String tenantId) {
     client.newCreateTenantCommand().tenantId(tenantId).name(tenantId).send().join();
-    client
-        .newAssignUserToTenantCommand()
-        .username("demo")
-        .tenantId(tenantId)
-        .send()
-        .join();
+    client.newAssignUserToTenantCommand().username("demo").tenantId(tenantId).send().join();
   }
 
   private List<Task> getKadaiTasks(long processInstanceKey) {

@@ -17,8 +17,7 @@ public class Db2Camunda7OutboxSqlProvider implements Camunda7OutboxSqlProvider {
   @Override
   public String getAllAvailableEvents(String schema) {
     final String sql =
-        "select * from %s.event_store where lock_expire < ? or lock_expire is null "
-            + LOCK_CLAUSE;
+        "select * from %s.event_store where lock_expire < ? or lock_expire is null " + LOCK_CLAUSE;
     return String.format(sql, schema);
   }
 

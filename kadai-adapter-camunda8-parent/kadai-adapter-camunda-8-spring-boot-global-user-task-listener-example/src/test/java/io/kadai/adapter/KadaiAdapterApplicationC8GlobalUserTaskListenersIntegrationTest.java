@@ -33,6 +33,7 @@ class KadaiAdapterApplicationC8GlobalUserTaskListenersIntegrationTest {
   @Autowired private KadaiAdapterTestUtil kadaiAdapterTestUtil;
   @Autowired private KadaiEngine kadaiEngine;
   @Autowired private KadaiAdapterApplicationC8GlobalUserTaskListeners application;
+
   @MockitoBean(name = "configureGlobalUserTaskListenersRunner")
   private ApplicationRunner globalUserTaskListenersRunner;
 
@@ -66,19 +67,17 @@ class KadaiAdapterApplicationC8GlobalUserTaskListenersIntegrationTest {
             .join();
 
     CamundaAssert.assertThat(processInstance).isActive();
-    camunda8TestUtil.waitUntil(
-        () ->
-            getKadaiTasks(processInstance.getProcessInstanceKey()).stream()
-                .anyMatch(task -> task.getState() == TaskState.READY));
+    camunda8TestUtil.waitUntil(() ->
+        getKadaiTasks(processInstance.getProcessInstanceKey()).stream()
+            .anyMatch(task -> task.getState() == TaskState.READY));
 
     assertThat(getKadaiTasks(processInstance.getProcessInstanceKey()))
         .singleElement()
-        .satisfies(
-            task -> {
-              assertThat(task.getState()).isEqualTo(TaskState.READY);
-              assertThat(task.getName()).isEqualTo("Review request");
-              assertThat(task.getDomain()).isEqualTo("DOMAIN_A");
-            });
+        .satisfies(task -> {
+          assertThat(task.getState()).isEqualTo(TaskState.READY);
+          assertThat(task.getName()).isEqualTo("Review request");
+          assertThat(task.getDomain()).isEqualTo("DOMAIN_A");
+        });
   }
 
   private List<Task> getKadaiTasks(long processInstanceKey) {

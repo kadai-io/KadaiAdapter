@@ -78,9 +78,8 @@ class TestLockingAndClustering extends AbsIntegrationTest {
 
   private static final String BASIC_OUTBOX_PATH = "http://localhost:10020/outbox-rest/events";
   private static final String INSERT_EVENT =
-      "INSERT INTO %s.EVENT_STORE "
-          + "(TYPE, CREATED, PAYLOAD, REMAINING_RETRIES, BLOCKED_UNTIL, CAMUNDA_TASK_ID, LOCK_EXPIRE) "
-          + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+      "INSERT INTO %s.EVENT_STORE (TYPE, CREATED, PAYLOAD, REMAINING_RETRIES, BLOCKED_UNTIL,"
+          + " CAMUNDA_TASK_ID, LOCK_EXPIRE) VALUES (?, ?, ?, ?, ?, ?, ?)";
   private static final String DELETE_ALL_EVENTS = "DELETE FROM %s.EVENT_STORE";
   @Autowired KadaiTaskStarterOrchestrator kadaiTaskStarter;
   @Autowired KadaiTaskCompletionOrchestrator kadaiTaskTerminator;
@@ -448,16 +447,13 @@ class TestLockingAndClustering extends AbsIntegrationTest {
     try {
       for (int i = 0; i < readers; i++) {
         futures.add(
-            executorService.submit(
-                () -> {
-                  ready.countDown();
-                  assertThat(start.await(10, TimeUnit.SECONDS)).isTrue();
-                  Camunda7TaskEventListResource answer = getEventListResource(url);
-                  assertThat(answer).isNotNull();
-                  return answer.getCamunda7TaskEvents().stream()
-                      .map(Camunda7TaskEvent::getId)
-                      .toList();
-                }));
+            executorService.submit(() -> {
+              ready.countDown();
+              assertThat(start.await(10, TimeUnit.SECONDS)).isTrue();
+              Camunda7TaskEventListResource answer = getEventListResource(url);
+              assertThat(answer).isNotNull();
+              return answer.getCamunda7TaskEvents().stream().map(Camunda7TaskEvent::getId).toList();
+            }));
       }
 
       assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();

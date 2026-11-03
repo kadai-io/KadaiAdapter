@@ -158,12 +158,11 @@ class Camunda7TaskEventsServiceLockingTest {
     try {
       for (int i = 0; i < readers; i++) {
         futures.add(
-            executorService.submit(
-                () -> {
-                  ready.countDown();
-                  assertThat(start.await(10, TimeUnit.SECONDS)).isTrue();
-                  return lockedEventRetriever.retrieve();
-                }));
+            executorService.submit(() -> {
+              ready.countDown();
+              assertThat(start.await(10, TimeUnit.SECONDS)).isTrue();
+              return lockedEventRetriever.retrieve();
+            }));
       }
 
       assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();

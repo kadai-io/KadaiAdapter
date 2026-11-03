@@ -141,34 +141,33 @@ public class KadaiTaskStarterOrchestrator implements MonitoredScheduledComponent
 
     for (InboundReferencedTask inboundReferencedTask : tasksToStart) {
       futures.add(
-          executorService.submit(
-              () -> {
-                ReferencedTask referencedTask = inboundReferencedTask.referencedTask();
-                try {
-                  addVariablesToReferencedTask(referencedTask, systemConnector);
-                  referencedTask.setSystemUrl(systemConnector.getSystemUrl());
-                  kadaiTaskStarterService.createKadaiTask(referencedTask);
-                  newCreatedTasksInKadai.add(inboundReferencedTask);
-                } catch (TaskCreationFailedException e) {
-                  if (e.getCause() instanceof TaskAlreadyExistException) {
-                    newCreatedTasksInKadai.add(inboundReferencedTask);
-                  } else {
-                    handleError(
-                        systemConnector,
-                        inboundReferencedTask,
-                        e,
-                        "caught Exception when attempting to start KadaiTask "
-                            + "for referencedTask {}");
-                  }
-                } catch (Exception e) {
-                  handleError(
-                      systemConnector,
-                      inboundReferencedTask,
-                      e,
-                      "caught unexpected Exception when attempting to start KadaiTask "
-                          + "for referencedTask {}");
-                }
-              }));
+          executorService.submit(() -> {
+            ReferencedTask referencedTask = inboundReferencedTask.referencedTask();
+            try {
+              addVariablesToReferencedTask(referencedTask, systemConnector);
+              referencedTask.setSystemUrl(systemConnector.getSystemUrl());
+              kadaiTaskStarterService.createKadaiTask(referencedTask);
+              newCreatedTasksInKadai.add(inboundReferencedTask);
+            } catch (TaskCreationFailedException e) {
+              if (e.getCause() instanceof TaskAlreadyExistException) {
+                newCreatedTasksInKadai.add(inboundReferencedTask);
+              } else {
+                handleError(
+                    systemConnector,
+                    inboundReferencedTask,
+                    e,
+                    "caught Exception when attempting to start KadaiTask "
+                        + "for referencedTask {}");
+              }
+            } catch (Exception e) {
+              handleError(
+                  systemConnector,
+                  inboundReferencedTask,
+                  e,
+                  "caught unexpected Exception when attempting to start KadaiTask "
+                      + "for referencedTask {}");
+            }
+          }));
     }
 
     for (Future<?> future : futures) {

@@ -241,8 +241,7 @@ public class KadaiTaskListener implements TaskListener {
         getUserTaskExtensionPropertyWithFallback(delegateTask, "classification-key"));
     payload.setDomain(getDomainVariable(delegateTask));
     payload.setWorkbasketKey(getVariableWithFallback(delegateTask, "workbasket-key", null));
-    payload.setManualPriority(
-        getVariableWithFallback(delegateTask, "manual-priority", "-1"));
+    payload.setManualPriority(getVariableWithFallback(delegateTask, "manual-priority", "-1"));
     payload.setCustomInt1(getVariableWithFallback(delegateTask, "custom-int-1", null));
     payload.setCustomInt2(getVariableWithFallback(delegateTask, "custom-int-2", null));
     payload.setCustomInt3(getVariableWithFallback(delegateTask, "custom-int-3", null));
@@ -311,10 +310,8 @@ public class KadaiTaskListener implements TaskListener {
       }
     }
 
-    variableNames.forEach(
-        nameOfVariableToAdd ->
-            addToVariablesBuilder(
-                delegateTask, objectMapper, variablesBuilder, nameOfVariableToAdd));
+    variableNames.forEach(nameOfVariableToAdd ->
+        addToVariablesBuilder(delegateTask, objectMapper, variablesBuilder, nameOfVariableToAdd));
 
     if (variablesBuilder.length() > 0) {
       variablesBuilder.deleteCharAt(variablesBuilder.length() - 1).append("}");

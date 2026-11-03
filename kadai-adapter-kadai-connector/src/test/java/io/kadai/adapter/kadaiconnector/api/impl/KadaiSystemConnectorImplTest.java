@@ -141,7 +141,6 @@ class KadaiSystemConnectorImplTest {
     verify(taskService, never()).cancelTask(anyString());
     verify(taskService, never()).terminateTask(anyString());
     verify(taskService, never())
-        .setCallbackStateForTasks(
-            anyList(), eq(CallbackState.CALLBACK_PROCESSING_COMPLETED));
+        .setCallbackStateForTasks(anyList(), eq(CallbackState.CALLBACK_PROCESSING_COMPLETED));
   }
 }

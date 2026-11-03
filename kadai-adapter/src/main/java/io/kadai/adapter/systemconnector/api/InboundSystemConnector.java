@@ -54,8 +54,7 @@ public interface InboundSystemConnector extends BaseSystemConnector {
    *
    * @param referencedTasks inbound ReferencedTasks for which KADAI tasks have been created.
    */
-  void kadaiTasksHaveBeenCreatedForNewReferencedTasks(
-      List<InboundReferencedTask> referencedTasks);
+  void kadaiTasksHaveBeenCreatedForNewReferencedTasks(List<InboundReferencedTask> referencedTasks);
 
   /**
    * With this call the Adapter notifies the SystemConnector that a list of KADAI tasks has been

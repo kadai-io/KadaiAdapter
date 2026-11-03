@@ -73,22 +73,20 @@ class MultiTenancyTest {
       CamundaAssert.assertThat(tenantProcessInstance).isActive();
       assertThat(tenantProcessInstance.getTenantId()).isEqualTo(TENANT_1);
 
-      camunda8TestUtil.waitUntil(
-          () ->
-              handleNextJob(
-                  defaultTenantClient,
-                  "default-create",
-                  DEFAULT_TENANT,
-                  USER_TASK_CREATED_JOB_WORKER_TYPE,
-                  userTaskCreation::receiveTaskCreatedEvent));
-      camunda8TestUtil.waitUntil(
-          () ->
-              handleNextJob(
-                  tenantClient,
-                  "tenant1-create",
-                  TENANT_1,
-                  USER_TASK_CREATED_JOB_WORKER_TYPE,
-                  userTaskCreation::receiveTaskCreatedEvent));
+      camunda8TestUtil.waitUntil(() ->
+          handleNextJob(
+              defaultTenantClient,
+              "default-create",
+              DEFAULT_TENANT,
+              USER_TASK_CREATED_JOB_WORKER_TYPE,
+              userTaskCreation::receiveTaskCreatedEvent));
+      camunda8TestUtil.waitUntil(() ->
+          handleNextJob(
+              tenantClient,
+              "tenant1-create",
+              TENANT_1,
+              USER_TASK_CREATED_JOB_WORKER_TYPE,
+              userTaskCreation::receiveTaskCreatedEvent));
 
       camunda8TestUtil.waitUntil(
           () -> kadaiEngine.getTaskService().createTaskQuery().list().size() == 2);
@@ -104,14 +102,13 @@ class MultiTenancyTest {
       camunda8TestUtil.waitUntil(() -> hasTenantId(tenantClient, tenant1Task, TENANT_1));
 
       completeKadaiTask(defaultTenantTask);
-      camunda8TestUtil.waitUntil(
-          () ->
-              handleNextJob(
-                  defaultTenantClient,
-                  "default-complete",
-                  DEFAULT_TENANT,
-                  USER_TASK_COMPLETED_JOB_WORKER_TYPE,
-                  userTaskCompletion::receiveTaskCompletedEvent));
+      camunda8TestUtil.waitUntil(() ->
+          handleNextJob(
+              defaultTenantClient,
+              "default-complete",
+              DEFAULT_TENANT,
+              USER_TASK_COMPLETED_JOB_WORKER_TYPE,
+              userTaskCompletion::receiveTaskCompletedEvent));
 
       camunda8TestUtil.waitUntil(
           () -> "COMPLETED".equals(getCamundaTaskStatus(defaultTenantClient, defaultTenantTask)));
@@ -123,14 +120,13 @@ class MultiTenancyTest {
       CamundaAssert.assertThat(tenantProcessInstance).isActive();
 
       completeKadaiTask(tenant1Task);
-      camunda8TestUtil.waitUntil(
-          () ->
-              handleNextJob(
-                  tenantClient,
-                  "tenant1-complete",
-                  TENANT_1,
-                  USER_TASK_COMPLETED_JOB_WORKER_TYPE,
-                  userTaskCompletion::receiveTaskCompletedEvent));
+      camunda8TestUtil.waitUntil(() ->
+          handleNextJob(
+              tenantClient,
+              "tenant1-complete",
+              TENANT_1,
+              USER_TASK_COMPLETED_JOB_WORKER_TYPE,
+              userTaskCompletion::receiveTaskCompletedEvent));
 
       camunda8TestUtil.waitUntil(
           () -> "COMPLETED".equals(getCamundaTaskStatus(tenantClient, tenant1Task)));
@@ -154,10 +150,9 @@ class MultiTenancyTest {
         .map(taskSummary -> getKadaiTask(taskSummary.getId()))
         .filter(task -> processInstanceKey.equals(String.valueOf(task.getBusinessProcessId())))
         .findFirst()
-        .orElseThrow(
-            () ->
-                new AssertionError(
-                    "Failed to find KADAI task for process instance '" + processInstanceKey + "'"));
+        .orElseThrow(() ->
+            new AssertionError(
+                "Failed to find KADAI task for process instance '" + processInstanceKey + "'"));
   }
 
   private UserTask getCamundaUserTask(CamundaClient tenantClient, Task kadaiTask) {

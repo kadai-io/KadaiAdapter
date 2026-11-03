@@ -146,10 +146,9 @@ class GlobalUserTaskListenerAccTest {
 
     CamundaAssert.assertThat(processInstance).isActive();
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            getKadaiTasksByProcessInstance(processInstance.getProcessInstanceKey()).stream()
-                .anyMatch(task -> task.getState() == TaskState.READY));
+    camunda8TestUtil.waitUntil(() ->
+        getKadaiTasksByProcessInstance(processInstance.getProcessInstanceKey()).stream()
+            .anyMatch(task -> task.getState() == TaskState.READY));
 
     Task task = getOnlyKadaiTaskByProcessInstance(processInstance.getProcessInstanceKey());
     assertThat(task.getState()).isEqualTo(TaskState.READY);
@@ -163,10 +162,8 @@ class GlobalUserTaskListenerAccTest {
 
     client.newCompleteUserTaskCommand(userTaskKey).send().join();
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState()
-                == TaskState.COMPLETED);
+    camunda8TestUtil.waitUntil(() ->
+        kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState() == TaskState.COMPLETED);
 
     Task completedTask = getKadaiTask(kadaiTask.getId());
     assertThat(completedTask.getState()).isEqualTo(TaskState.COMPLETED);
@@ -182,10 +179,8 @@ class GlobalUserTaskListenerAccTest {
         .send()
         .join();
 
-    camunda8TestUtil.waitUntil(
-        () ->
-            kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState()
-                == TaskState.CANCELLED);
+    camunda8TestUtil.waitUntil(() ->
+        kadaiEngine.getTaskService().getTask(kadaiTask.getId()).getState() == TaskState.CANCELLED);
 
     Task cancelledTask = getKadaiTask(kadaiTask.getId());
     assertThat(cancelledTask.getState()).isEqualTo(TaskState.CANCELLED);
@@ -219,13 +214,12 @@ class GlobalUserTaskListenerAccTest {
 
   private void assertGlobalUserTaskListenerTriggered(
       MonitoredComponent monitoredComponent, Instant globalListenerTriggerTime) {
-    camunda8TestUtil.waitUntil(
-        () -> {
-          var lastRun = monitoredComponent.getLastRun();
-          return lastRun.getEnd() != null
-              && lastRun.getStart() != null
-              && !lastRun.getStart().isBefore(globalListenerTriggerTime);
-        });
+    camunda8TestUtil.waitUntil(() -> {
+      var lastRun = monitoredComponent.getLastRun();
+      return lastRun.getEnd() != null
+          && lastRun.getStart() != null
+          && !lastRun.getStart().isBefore(globalListenerTriggerTime);
+    });
 
     assertThat(monitoredComponent.getLastRun().getEnd()).isNotNull();
     assertThat(monitoredComponent.getLastRun().getStart())

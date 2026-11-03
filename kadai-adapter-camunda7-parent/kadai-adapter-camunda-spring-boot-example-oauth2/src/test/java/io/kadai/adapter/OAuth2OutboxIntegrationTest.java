@@ -49,9 +49,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 /**
- * Full end-to-end integration test that boots the complete {@link KadaiAdapterOAuth2Application}
- * on {@code server.port=8083} and exercises real OAuth2 authentication against the embedded
- * Outbox REST service.
+ * Full end-to-end integration test that boots the complete {@link KadaiAdapterOAuth2Application} on
+ * {@code server.port=8083} and exercises real OAuth2 authentication against the embedded Outbox
+ * REST service.
  *
  * <p>Setup:
  *
@@ -64,8 +64,8 @@ import org.springframework.web.client.RestClient;
  * </ul>
  *
  * <p>The shared H2 in-memory database ({@code jdbc:h2:mem:outbox}) is created by Spring Boot via
- * {@code schema.sql} and is also accessible through the auto-configured {@link JdbcTemplate},
- * which allows tests to seed and clean up the {@code kadai_tables.event_store} table directly.
+ * {@code schema.sql} and is also accessible through the auto-configured {@link JdbcTemplate}, which
+ * allows tests to seed and clean up the {@code kadai_tables.event_store} table directly.
  */
 @SpringBootTest(
     classes = KadaiAdapterOAuth2Application.class,
@@ -191,44 +191,35 @@ class OAuth2OutboxIntegrationTest {
 
   @Test
   void should_Return401_When_CallingOutboxWithoutAuthorizationHeader() {
-    assertThatThrownBy(
-            () ->
-                restClient
-                    .get()
-                    .uri(outboxEventsUrl + "?type=create")
-                    .retrieve()
-                    .body(String.class))
+    assertThatThrownBy(() ->
+            restClient.get().uri(outboxEventsUrl + "?type=create").retrieve().body(String.class))
         .isInstanceOf(HttpClientErrorException.Unauthorized.class);
   }
 
   @Test
   void should_Return401_When_CallingOutboxWithInvalidBearerToken() {
-    assertThatThrownBy(
-            () ->
-                restClient
-                    .get()
-                    .uri(outboxEventsUrl + "?type=create")
-                    .header("Authorization", "Bearer this.is.not.a.valid.jwt")
-                    .retrieve()
-                    .body(String.class))
+    assertThatThrownBy(() ->
+            restClient
+                .get()
+                .uri(outboxEventsUrl + "?type=create")
+                .header("Authorization", "Bearer this.is.not.a.valid.jwt")
+                .retrieve()
+                .body(String.class))
         .isInstanceOf(HttpClientErrorException.Unauthorized.class);
   }
 
   @Test
   void should_Return401_When_CallingOutboxWithExpiredToken() {
     String expiredJwt =
-        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9"
-            + ".eyJleHAiOjF9"
-            + ".invalidsignature";
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9" + ".eyJleHAiOjF9" + ".invalidsignature";
 
-    assertThatThrownBy(
-            () ->
-                restClient
-                    .get()
-                    .uri(outboxEventsUrl + "?type=create")
-                    .header("Authorization", "Bearer " + expiredJwt)
-                    .retrieve()
-                    .body(String.class))
+    assertThatThrownBy(() ->
+            restClient
+                .get()
+                .uri(outboxEventsUrl + "?type=create")
+                .header("Authorization", "Bearer " + expiredJwt)
+                .retrieve()
+                .body(String.class))
         .isInstanceOf(HttpClientErrorException.Unauthorized.class);
   }
 

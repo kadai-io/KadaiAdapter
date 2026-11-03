@@ -89,15 +89,13 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
         "simple_user_task_process", "");
     List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
-            .flatMap(
-                entry -> {
-                  InboundSystemConnector connector = entry.getValue();
-                  return connector.retrieveNewStartedReferencedTasks().stream()
-                      .peek(
-                          task ->
-                              connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
-                                  task, testException));
-                })
+            .flatMap(entry -> {
+              InboundSystemConnector connector = entry.getValue();
+              return connector.retrieveNewStartedReferencedTasks().stream()
+                  .peek(task ->
+                      connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
+                          task, testException));
+            })
             .toList();
 
     try {
@@ -140,15 +138,13 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
 
     List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
-            .flatMap(
-                entry -> {
-                  InboundSystemConnector connector = entry.getValue();
-                  return connector.retrieveNewStartedReferencedTasks().stream()
-                      .peek(
-                          task ->
-                              connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
-                                  task, testException));
-                })
+            .flatMap(entry -> {
+              InboundSystemConnector connector = entry.getValue();
+              return connector.retrieveNewStartedReferencedTasks().stream()
+                  .peek(task ->
+                      connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
+                          task, testException));
+            })
             .toList();
 
     Camunda7TaskEvent camunda7TaskEvent = getAnEventWithError(referencedTasks);
@@ -191,15 +187,13 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
         "simple_user_task_process", "");
     List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
-            .flatMap(
-                entry -> {
-                  InboundSystemConnector connector = entry.getValue();
-                  return connector.retrieveNewStartedReferencedTasks().stream()
-                      .peek(
-                          task ->
-                              connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
-                                  task, testException));
-                })
+            .flatMap(entry -> {
+              InboundSystemConnector connector = entry.getValue();
+              return connector.retrieveNewStartedReferencedTasks().stream()
+                  .peek(task ->
+                      connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
+                          task, testException));
+            })
             .toList();
     Camunda7TaskEvent camunda7TaskEvent = getAnEventWithError(referencedTasks);
     JSONObject errorJson = new JSONObject(camunda7TaskEvent.getError());
@@ -223,15 +217,13 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
         "simple_user_task_process", "");
     List<InboundReferencedTask> referencedTasks =
         this.adapterManager.getInboundSystemConnectors().entrySet().stream()
-            .flatMap(
-                entry -> {
-                  InboundSystemConnector connector = entry.getValue();
-                  return connector.retrieveNewStartedReferencedTasks().stream()
-                      .peek(
-                          task ->
-                              connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
-                                  task, testException));
-                })
+            .flatMap(entry -> {
+              InboundSystemConnector connector = entry.getValue();
+              return connector.retrieveNewStartedReferencedTasks().stream()
+                  .peek(task ->
+                      connector.kadaiTaskFailedToBeCreatedForNewReferencedTask(
+                          task, testException));
+            })
             .toList();
     Camunda7TaskEvent camunda7TaskEvent = getAnEventWithError(referencedTasks);
     JSONObject errorJson = new JSONObject(camunda7TaskEvent.getError());
@@ -299,12 +291,10 @@ class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
     List<Camunda7TaskEvent> allEvents = kadaiOutboxRequester.getAllEvents();
 
     return allEvents.stream()
-        .filter(
-            event ->
-                referencedTasks.stream()
-                    .anyMatch(
-                        task ->
-                            event.getId() == ((Camunda7InboundReferencedTask) task).taskEventId()))
+        .filter(event ->
+            referencedTasks.stream()
+                .anyMatch(
+                    task -> event.getId() == ((Camunda7InboundReferencedTask) task).taskEventId()))
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("No matching Camunda7TaskEvent found"));
   }
