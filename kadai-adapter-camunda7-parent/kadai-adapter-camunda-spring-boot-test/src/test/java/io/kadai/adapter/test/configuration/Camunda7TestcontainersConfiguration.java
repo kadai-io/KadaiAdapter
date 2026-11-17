@@ -65,7 +65,7 @@ public final class Camunda7TestcontainersConfiguration {
   public static final String POSTGRES_IMAGE = "postgres:16-alpine";
   public static final String DB2_IMAGE = "ibmcom/db2:11.5.0.0a";
   public static final String ORACLE_IMAGE = "gvenzl/oracle-xe:21-slim-faststart";
-  public static final String CAMUNDA_IMAGE = "camunda/camunda-bpm-platform:run-7.24.0";
+  public static final String CAMUNDA_IMAGE = "ghcr.io/kadai-io/camunda-bpm-platform:run-7.24.0";
   public static final String DB_ALIAS = "db";
   public static final String DB_NAME = "camunda";
   public static final String CAMUNDA_ENGINE_IDENTIFIER = "default";
