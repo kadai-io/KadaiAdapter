@@ -12,6 +12,16 @@ public class PostgresCamunda7OutboxSqlProvider implements Camunda7OutboxSqlProvi
   }
 
   @Override
+  public String getAvailableCreateEventsFilteredBySystemEngineId(String schema, int maxRows) {
+    final String sql =
+        "select * from %s.event_store where type = ? and (lock_expire < ? or lock_expire is null) "
+            + "and remaining_retries>0 and blocked_until < ? "
+            + "and system_engine_identifier = ? "
+            + "fetch first %d rows only for update skip locked";
+    return String.format(sql, schema, maxRows);
+  }
+
+  @Override
   public String getAllAvailableEvents(String schema) {
     final String sql =
         "select * from %s.event_store where lock_expire < ? or lock_expire is null "
@@ -24,6 +34,17 @@ public class PostgresCamunda7OutboxSqlProvider implements Camunda7OutboxSqlProvi
     final String sql =
         "select * from %s.event_store where (type = ? OR type = ?) and (lock_expire < ? or"
             + " lock_expire is null)"
+            + " fetch first %d rows only for update skip locked";
+    return String.format(sql, schema, maxRows);
+  }
+
+  @Override
+  public String getAvailableCompleteAndDeleteEventsFilteredBySystemEngineId(
+      String schema, int maxRows) {
+    final String sql =
+        "select * from %s.event_store where (type = ? OR type = ?) and (lock_expire < ? or"
+            + " lock_expire is null)"
+            + " and system_engine_identifier = ?"
             + " fetch first %d rows only for update skip locked";
     return String.format(sql, schema, maxRows);
   }

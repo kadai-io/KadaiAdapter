@@ -19,6 +19,7 @@
 package io.kadai.camunda.camundasystemconnector.acceptance;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.kadai.adapter.configuration.AdapterSpringContextProvider;
 import io.kadai.adapter.systemconnector.api.InboundReferencedTask;
@@ -30,12 +31,16 @@ import io.kadai.adapter.systemconnector.camunda.config.Camunda7SystemConnectorCo
 import io.kadai.adapter.systemconnector.camunda.mapper.Camunda7ReferencedTaskMapper;
 import io.kadai.camunda.camundasystemconnector.configuration.CamundaConnectorTestConfiguration;
 import io.kadai.task.api.TaskState;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -245,5 +250,91 @@ class RetrieveCamunda7TaskAccTest {
     assertThat(inboundTask.taskEventId()).isEqualTo(17);
     assertThat(inboundTask.referencedTask().getId()).isEqualTo("task-valid");
     assertThat(inboundTask.referencedTask().getTaskState()).isEqualTo(TaskState.COMPLETED);
+  }
+
+  @Test
+  void should_EncodeEngineFilterForCreateAndFinishedRequests() throws Exception {
+    String engine = "A&B +/%ä?#=engine ";
+    String url = mockWebServer.url("").toString();
+    for (boolean create : List.of(true, false)) {
+      mockWebServer.enqueue(
+          new MockResponse()
+              .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+              .setBody("{\"camunda7TaskEvents\":[]}"));
+
+      if (create) {
+        assertThat(
+                camunda7TaskRetriever.retrieveNewStartedCamunda7Tasks(
+                    url, engine, Duration.ofSeconds(30)))
+            .isEmpty();
+      } else {
+        assertThat(
+                camunda7TaskRetriever.retrieveFinishedCamunda7Tasks(
+                    url, engine, Duration.ofSeconds(30)))
+            .isEmpty();
+      }
+
+      var request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
+      assertThat(request).isNotNull();
+      assertThat(request.getRequestUrl().queryParameter("engine")).isEqualTo(engine);
+      assertThat(request.getRequestUrl().queryParameter("lock-for")).isEqualTo("30");
+      assertThat(request.getRequestUrl().queryParameterValues("type"))
+          .containsExactlyElementsOf(create ? List.of("create") : List.of("complete", "delete"));
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void should_OmitEngineParameterWhenNoEngineIsConfigured(boolean create) throws Exception {
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(
+                "{\"camunda7TaskEvents\":["
+                    + "{\"id\":1,\"systemEngineIdentifier\":null,"
+                    + "\"payload\":\"{\\\"id\\\":\\\"null-engine\\\"}\"},"
+                    + "{\"id\":2,\"systemEngineIdentifier\":\"A\","
+                    + "\"payload\":\"{\\\"id\\\":\\\"engine-A\\\"}\"}]}"));
+
+    String url = mockWebServer.url("").toString();
+    List<InboundReferencedTask> tasks =
+        create
+            ? camunda7TaskRetriever.retrieveNewStartedCamunda7Tasks(url, null, null)
+            : camunda7TaskRetriever.retrieveFinishedCamunda7Tasks(url, null, null);
+
+    assertThat(tasks)
+        .extracting(task -> task.referencedTask().getId())
+        .containsExactly("null-engine", "engine-A");
+    var request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
+    assertThat(request).isNotNull();
+    assertThat(request.getRequestUrl().queryParameter("engine")).isNull();
+  }
+
+  @Test
+  void should_ReportServerResponseContainingAnotherEngine() {
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .setBody(
+                "{\"camunda7TaskEvents\":[{\"id\":1,\"type\":\"create\","
+                    + "\"systemEngineIdentifier\":\"B\",\"payload\":\"{}\"}]}"));
+
+    assertThatThrownBy(
+            () ->
+                camunda7TaskRetriever.retrieveNewStartedCamunda7Tasks(
+                    mockWebServer.url("").toString(), "A", null))
+        .isInstanceOf(IllegalStateException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"", " ", "A\nB", "A\tB", "A\u007fB"})
+  void should_RejectInvalidEngineBeforeSendingRequest(String engine) {
+    String url = mockWebServer.url("").toString();
+    assertThatThrownBy(
+            () -> camunda7TaskRetriever.retrieveNewStartedCamunda7Tasks(url, engine, null))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> camunda7TaskRetriever.retrieveFinishedCamunda7Tasks(url, engine, null))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThat(mockWebServer.getRequestCount()).isZero();
   }
 }
