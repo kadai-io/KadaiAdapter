@@ -42,12 +42,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest(
     classes = KadaiAdapterTestApplication.class,
     webEnvironment = WebEnvironment.DEFINED_PORT)
 @AutoConfigureWebTestClient
 @ExtendWith(JaasExtension.class)
+@ContextConfiguration
 class Camunda7TaskEventErrorHandlerTest extends AbsIntegrationTest {
 
   @Autowired private AdapterManager adapterManager;
